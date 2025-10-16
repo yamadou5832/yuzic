@@ -87,6 +87,8 @@ export const JellyfinProvider: React.FC<{ children: ReactNode }> = ({ children }
     }
 
     try {
+      console.log('[Jellyfin] Authenticating to', `${serverUrl}/Users/AuthenticateByName`);
+
       const response = await fetch(`${serverUrl}/Users/AuthenticateByName`, {
         method: 'POST',
         headers: {
@@ -97,47 +99,70 @@ export const JellyfinProvider: React.FC<{ children: ReactNode }> = ({ children }
         body: JSON.stringify({ Username: user, Pw: pass }),
       });
 
+      // --- Handle error responses safely ---
       if (!response.ok) {
-        const err = await response.json().catch(() => null);
-        return { success: false, message: err?.ErrorMessage || 'Login failed' };
+        const text = await response.text().catch(() => '');
+        console.warn('[Jellyfin Login] Non-200:', response.status, text);
+        let msg = `Login failed (${response.status})`;
+
+        if (response.status === 401) msg = 'Invalid username or password.';
+        if (response.status === 403)
+          msg = 'User not permitted to sign in. Enable "Allow remote connections" in Jellyfin user settings.';
+
+        return { success: false, message: msg };
       }
 
-      const data = await response.json();
-      const accessToken = data?.AccessToken;
-      const userId = data?.User?.Id; // ⬅️ NEW: extract user id
-      if (!accessToken || !userId)
-        return { success: false, message: 'Invalid Jellyfin login response' };
+      // --- Try to parse JSON, fallback to plain text ---
+      let data: any;
+      try {
+        data = await response.json();
+      } catch (parseErr) {
+        const text = await response.text().catch(() => '');
+        console.error('[Jellyfin Login] JSON parse error. Raw body:', text);
+        return { success: false, message: 'Unexpected server response. Check credentials or server logs.' };
+      }
 
-      // ✅ Save token and userId
-      await AsyncStorage.setItem('jellyfin_token', accessToken);
-      await AsyncStorage.setItem('jellyfin_userId', userId); // ⬅️ NEW LINE
+      const accessToken = data?.AccessToken;
+      const userId = data?.User?.Id;
+      if (!accessToken || !userId) {
+        console.error('[Jellyfin Login] Missing AccessToken or UserId in response:', data);
+        return { success: false, message: 'Invalid login response from Jellyfin.' };
+      }
+
+      // --- Save credentials ---
+      await AsyncStorage.multiSet([
+        ['jellyfin_token', accessToken],
+        ['jellyfin_userId', userId],
+      ]);
+
       setToken(accessToken);
       dispatch(setAuthenticated(true));
+      console.log('[Jellyfin] Authenticated:', userId);
 
-      console.log('[Jellyfin] Saved token:', accessToken);
-      console.log('[Jellyfin] Saved userId:', userId);
-
-      // ✅ Save first music library if available
-      const res = await fetch(`${serverUrl}/Library/MediaFolders`, {
-        headers: { 'X-Emby-Token': accessToken },
-      });
-      const libs = await res.json();
-      const musicLibs = (libs.Items || []).filter(
-        (lib: any) => lib.CollectionType?.toLowerCase() === 'music'
-      );
-
-      if (musicLibs.length > 0) {
-        const chosen = musicLibs[0];
-        console.log('[Jellyfin] Auto-selected music library:', chosen.Name);
-        await AsyncStorage.setItem('jellyfin_library_id', chosen.Id);
-      } else {
-        console.warn('[Jellyfin] No music libraries found.');
+      // --- Preload libraries (optional) ---
+      try {
+        const libsRes = await fetch(`${serverUrl}/Library/MediaFolders`, {
+          headers: { 'X-Emby-Token': accessToken },
+        });
+        if (libsRes.ok) {
+          const libs = await libsRes.json();
+          const musicLibs = (libs.Items || []).filter(
+            (lib: any) => lib.CollectionType?.toLowerCase() === 'music'
+          );
+          if (musicLibs.length) {
+            const chosen = musicLibs[0];
+            await AsyncStorage.setItem('jellyfin_library_id', chosen.Id);
+            console.log('[Jellyfin] Default music library:', chosen.Name);
+          }
+        }
+      } catch (libErr) {
+        console.warn('[Jellyfin] Could not load libraries:', libErr);
       }
 
       return { success: true };
     } catch (err) {
-      console.error('Jellyfin login error:', err);
-      return { success: false, message: 'Connection failed' };
+      console.error('[Jellyfin Login] Network/Runtime error:', err);
+      return { success: false, message: 'Connection failed. Check your server URL or network.' };
     }
   };
 

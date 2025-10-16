@@ -55,7 +55,7 @@ export default function CredentialsScreen() {
             const success = typeof result === 'boolean' ? result : result?.success;
 
             if (success) {
-                router.replace('(home)');
+                //router.replace('(home)');
             } else {
                 Alert.alert(
                     'Error',

@@ -2,7 +2,7 @@
 import { PlaylistData, SongData } from '@/types';
 
 const API_HEADERS = (token: string) => ({
-  'Authorization': `MediaBrowser Token=${token}`,
+  'X-Emby-Token': token,
   'Content-Type': 'application/json',
 });
 
@@ -70,14 +70,20 @@ export const addItemsToPlaylistJellyfin = async (
   token: string,
   itemIds: string[]
 ): Promise<void> => {
-  const res = await fetch(`${serverUrl}/Playlists/${playlistId}/Items`, {
+  // Comma-separated list for query string
+  const idsParam = itemIds.join(',');
+  const url = `${serverUrl}/Playlists/${playlistId}/Items?Ids=${idsParam}&UserId=${userId}`;
+
+  const res = await fetch(url, {
     method: 'POST',
     headers: API_HEADERS(token),
-    body: JSON.stringify({ Ids: itemIds, UserId: userId }),
   });
-  if (!res.ok) throw new Error(`Failed to add items: ${res.statusText}`);
-};
 
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    throw new Error(`Failed to add items: ${res.status} ${res.statusText} ${text}`);
+  }
+};
 /**
  * Remove items from a playlist.
  */
@@ -87,10 +93,15 @@ export const removeItemsFromPlaylistJellyfin = async (
   token: string,
   entryIds: string[]
 ): Promise<void> => {
-  const res = await fetch(`${serverUrl}/Playlists/${playlistId}/Items`, {
+  const idsParam = entryIds.join(',');
+  const url = `${serverUrl}/Playlists/${playlistId}/Items?EntryIds=${idsParam}`;
+  const res = await fetch(url, {
     method: 'DELETE',
     headers: API_HEADERS(token),
-    body: JSON.stringify({ EntryIds: entryIds }),
   });
-  if (!res.ok) throw new Error(`Failed to remove items: ${res.statusText}`);
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    throw new Error(`Failed to remove items: ${res.status} ${res.statusText} ${text}`);
+  }
 };

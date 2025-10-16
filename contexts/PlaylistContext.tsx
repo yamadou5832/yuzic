@@ -44,6 +44,14 @@ export const PlaylistProvider: React.FC<{ children: ReactNode }> = ({ children }
   const fetchAllPlaylists = async () => {
     if (!serverUrl || !username || !password) return;
 
+    // prevent fetching if user logged out
+    const token = await AsyncStorage.getItem('jellyfin_token');
+    const userId = await AsyncStorage.getItem('jellyfin_userId');
+    if (serverType === 'jellyfin' && (!token || !userId)) {
+      console.log('[Playlist] Skipping Jellyfin playlist fetch — not authenticated');
+      return;
+    }
+
     await runLibraryServices([fetchPlaylistsService], {
       serverType,
       serverUrl,
@@ -53,6 +61,7 @@ export const PlaylistProvider: React.FC<{ children: ReactNode }> = ({ children }
       getState: () => store.getState() as RootState,
     });
   };
+
 
   const addSongToPlaylist = async (playlistId: string, song: SongData) => {
     if (serverType === 'jellyfin') {
