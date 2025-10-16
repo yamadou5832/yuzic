@@ -76,64 +76,70 @@ export const JellyfinProvider: React.FC<{ children: ReactNode }> = ({ children }
   }, [serverUrl, token]);
 
   const connectToServer = async (
-  providedUsername?: string,
-  providedPassword?: string
-): Promise<{ success: boolean; message?: string }> => {
-  const user = providedUsername ?? username;
-  const pass = providedPassword ?? password;
+    providedUsername?: string,
+    providedPassword?: string
+  ): Promise<{ success: boolean; message?: string }> => {
+    const user = providedUsername ?? username;
+    const pass = providedPassword ?? password;
 
-  if (!serverUrl || !user || !pass) {
-    return { success: false, message: 'Missing credentials or server URL' };
-  }
-
-  try {
-    const response = await fetch(`${serverUrl}/Users/AuthenticateByName`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Emby-Authorization':
-          `MediaBrowser Client="Yuzic", Device="Mobile", DeviceId="yuzic-device", Version="1.0.0"`,
-      },
-      body: JSON.stringify({ Username: user, Pw: pass }),
-    });
-
-    if (!response.ok) {
-      const err = await response.json().catch(() => null);
-      return { success: false, message: err?.ErrorMessage || 'Login failed' };
+    if (!serverUrl || !user || !pass) {
+      return { success: false, message: 'Missing credentials or server URL' };
     }
 
-    const data = await response.json();
-    const accessToken = data?.AccessToken;
-    if (!accessToken) return { success: false, message: 'No access token returned' };
+    try {
+      const response = await fetch(`${serverUrl}/Users/AuthenticateByName`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Emby-Authorization':
+            `MediaBrowser Client="Yuzic", Device="Mobile", DeviceId="yuzic-device", Version="1.0.0"`,
+        },
+        body: JSON.stringify({ Username: user, Pw: pass }),
+      });
 
-    // ✅ Save token
-    await AsyncStorage.setItem('jellyfin_token', accessToken);
-    setToken(accessToken);
-    dispatch(setAuthenticated(true));
+      if (!response.ok) {
+        const err = await response.json().catch(() => null);
+        return { success: false, message: err?.ErrorMessage || 'Login failed' };
+      }
 
-    // ✅ Save first music library if available
-    const res = await fetch(`${serverUrl}/Library/MediaFolders`, {
-      headers: { 'X-Emby-Token': accessToken },
-    });
-    const libs = await res.json();
-    const musicLibs = (libs.Items || []).filter(
-      (lib: any) => lib.CollectionType?.toLowerCase() === 'music'
-    );
+      const data = await response.json();
+      const accessToken = data?.AccessToken;
+      const userId = data?.User?.Id; // ⬅️ NEW: extract user id
+      if (!accessToken || !userId)
+        return { success: false, message: 'Invalid Jellyfin login response' };
 
-    if (musicLibs.length > 0) {
-      const chosen = musicLibs[0];
-      console.log('[Jellyfin] Auto-selected music library:', chosen.Name);
-      await AsyncStorage.setItem('jellyfin_library_id', chosen.Id);
-    } else {
-      console.warn('[Jellyfin] No music libraries found.');
+      // ✅ Save token and userId
+      await AsyncStorage.setItem('jellyfin_token', accessToken);
+      await AsyncStorage.setItem('jellyfin_userId', userId); // ⬅️ NEW LINE
+      setToken(accessToken);
+      dispatch(setAuthenticated(true));
+
+      console.log('[Jellyfin] Saved token:', accessToken);
+      console.log('[Jellyfin] Saved userId:', userId);
+
+      // ✅ Save first music library if available
+      const res = await fetch(`${serverUrl}/Library/MediaFolders`, {
+        headers: { 'X-Emby-Token': accessToken },
+      });
+      const libs = await res.json();
+      const musicLibs = (libs.Items || []).filter(
+        (lib: any) => lib.CollectionType?.toLowerCase() === 'music'
+      );
+
+      if (musicLibs.length > 0) {
+        const chosen = musicLibs[0];
+        console.log('[Jellyfin] Auto-selected music library:', chosen.Name);
+        await AsyncStorage.setItem('jellyfin_library_id', chosen.Id);
+      } else {
+        console.warn('[Jellyfin] No music libraries found.');
+      }
+
+      return { success: true };
+    } catch (err) {
+      console.error('Jellyfin login error:', err);
+      return { success: false, message: 'Connection failed' };
     }
-
-    return { success: true };
-  } catch (err) {
-    console.error('Jellyfin login error:', err);
-    return { success: false, message: 'Connection failed' };
-  }
-};
+  };
 
   const pingServer = async () => {
     if (!serverUrl) return false;

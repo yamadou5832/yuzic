@@ -6,10 +6,18 @@ import { useStore } from 'react-redux';
 import {
     resetLibraryState,
 } from '@/utils/redux/slices/librarySlice';
-import {resetGenreMaps} from '@/utils/redux/slices/genreSlice';
-import {resetStatsMap} from '@/utils/redux/slices/statsSlice';
+import { resetGenreMaps } from '@/utils/redux/slices/genreSlice';
+import { resetStatsMap } from '@/utils/redux/slices/statsSlice';
 import { fetchStarredService } from '@/utils/library/starredService';
-import {starItem, unstarItem} from "@/utils/navidrome/starApi";
+import {
+    starItem,
+    unstarItem,
+} from "@/utils/navidrome/starApi";
+import {
+    favoriteItemJellyfin,
+    unfavoriteItemJellyfin,
+} from "@/utils/jellyfin/starApi";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { runLibraryServices } from '@/utils/library/runLibraryServices';
 import { fetchAlbumsService } from '@/utils/library/albumsService';
 import { fetchGenresService } from '@/utils/library/genresService';
@@ -91,13 +99,37 @@ export const LibraryProvider: React.FC<LibraryProviderProps> = ({ children }) =>
 
     const handleStarItem = async (id: string) => {
         if (!serverType || !serverUrl || !username || !password) return;
-        await starItem(serverUrl, username, password, id);
+
+        if (serverType === "jellyfin") {
+            const token = await AsyncStorage.getItem("jellyfin_token");
+            const userId = await AsyncStorage.getItem("jellyfin_userId");
+            if (!token || !userId) {
+                console.warn("[Library] Missing Jellyfin credentials for starItem");
+                return;
+            }
+            await favoriteItemJellyfin(serverUrl, userId, token, id);
+        } else {
+            await starItem(serverUrl, username, password, id);
+        }
+
         await runLibraryServices([fetchStarredService], context);
     };
 
     const handleUnstarItem = async (id: string) => {
         if (!serverType || !serverUrl || !username || !password) return;
-        await unstarItem(serverUrl, username, password, id);
+
+        if (serverType === "jellyfin") {
+            const token = await AsyncStorage.getItem("jellyfin_token");
+            const userId = await AsyncStorage.getItem("jellyfin_userId");
+            if (!token || !userId) {
+                console.warn("[Library] Missing Jellyfin credentials for unstarItem");
+                return;
+            }
+            await unfavoriteItemJellyfin(serverUrl, userId, token, id);
+        } else {
+            await unstarItem(serverUrl, username, password, id);
+        }
+
         await runLibraryServices([fetchStarredService], context);
     };
 
