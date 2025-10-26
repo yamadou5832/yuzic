@@ -24,40 +24,47 @@ export const useServer = () => {
 export const ServerProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const serverType = useSelector((state: RootState) => state.server.type);
 
-  // ✅ Keep both contexts mounted at all times
+  // Keep both contexts mounted at all times
   const navidrome = useNavidrome();
   const jellyfin = useJellyfin();
 
-  // ✅ Choose which context to expose based on Redux type
+  // Helpful combined loading for the "none" state so routing can wait for hydration
+  const anyLoading =
+    Boolean((navidrome as any)?.isLoading) || Boolean((jellyfin as any)?.isLoading);
+
+  // Choose which context to expose based on Redux type
   const value: ServerContextType =
-    serverType === 'jellyfin'
-      ? {
-          serverType: 'jellyfin',
-          ...jellyfin,
-        }
-      : serverType === 'navidrome'
-      ? {
-          serverType: 'navidrome',
-          ...navidrome,
-        }
-      : {
-          // 💤 Safe fallback when logged out / no server selected
-          serverType: 'none',
-          isAuthenticated: false,
-          serverUrl: '',
-          username: '',
-          password: '',
-          setServerUrl: () => {},
-          setUsername: () => {},
-          setPassword: () => {},
-          connectToServer: async () => ({ success: false, message: 'Not connected' }),
-          pingServer: async () => false,
-          testServerUrl: async () => ({ success: false, message: 'Not connected' }),
-          testNavidromeServerUrl: async () => ({ success: false, message: 'Not connected' }),
-          startScan: async () => ({ success: false, message: 'Not connected' }),
-          getLibraries: async () => [],
-          disconnect: () => {},
-        };
+  serverType === 'jellyfin'
+    ? {
+        serverType: 'jellyfin',
+        ...jellyfin,
+        isLoading: (jellyfin as any)?.isLoading ?? false, // ✅ defined after spread
+      }
+    : serverType === 'navidrome'
+    ? {
+        serverType: 'navidrome',
+        ...navidrome,
+        isLoading: (navidrome as any)?.isLoading ?? false, // ✅ defined after spread
+      }
+    : {
+        serverType: 'none',
+        isAuthenticated: false,
+        isLoading:
+          Boolean((navidrome as any)?.isLoading) ||
+          Boolean((jellyfin as any)?.isLoading),
+        serverUrl: '',
+        username: '',
+        password: '',
+        setServerUrl: () => {},
+        setUsername: () => {},
+        setPassword: () => {},
+        connectToServer: async () => ({ success: false, message: 'Not connected' }),
+        pingServer: async () => false,
+        testServerUrl: async () => ({ success: false, message: 'Not connected' }),
+        startScan: async () => ({ success: false, message: 'Not connected' }),
+        getLibraries: async () => [],
+        disconnect: () => {},
+      };
 
   return <ServerContext.Provider value={value}>{children}</ServerContext.Provider>;
 };

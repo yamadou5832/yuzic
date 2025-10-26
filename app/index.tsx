@@ -6,28 +6,25 @@ import { RootState } from '@/utils/redux/store';
 import { View, ActivityIndicator } from 'react-native';
 
 export default function Index() {
-  const { isAuthenticated } = useServer();
+  const { isAuthenticated, isLoading } = useServer();
   const { type, serverUrl } = useSelector((s: RootState) => s.server);
   const router = useRouter();
   const [isMounted, setIsMounted] = useState(false);
 
-  // 🧠 Wait until this component is mounted AND router is initialized
   useEffect(() => {
     const timeout = setTimeout(() => setIsMounted(true), 100);
     return () => clearTimeout(timeout);
   }, []);
 
   useEffect(() => {
-    if (!isMounted) return; // router may not be ready yet
+    if (!isMounted || isLoading) return; // ⏳ wait until loading finishes
 
     if (isAuthenticated && type && serverUrl) {
-      console.log('[Router] Going to home');
       router.replace('/(home)');
     } else {
-      console.log('[Router] Going to onboarding');
       router.replace('/(onboarding)');
     }
-  }, [isMounted, isAuthenticated, type, serverUrl]);
+  }, [isMounted, isLoading, isAuthenticated, type, serverUrl]);
 
   return (
     <View

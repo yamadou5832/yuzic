@@ -61,7 +61,8 @@ export interface AlbumSummary {
 }
 
 export interface ServerContextType {
-    serverType: 'navidrome' | 'jellyfin';
+    serverType: 'navidrome' | 'jellyfin' | 'none';
+    isLoading: boolean;
     serverUrl: string;
     username: string;
     password: string;
@@ -72,9 +73,9 @@ export interface ServerContextType {
     testServerUrl: (url: string) => Promise<{ success: boolean; message?: string }>;
     startScan?: () => Promise<{ success: boolean; message?: string }>;
     disconnect: () => void;
-  
     setServerUrl: (url: string) => void;
     setUsername: (user: string) => void;
     setPassword: (pass: string) => void;
+    getLibraries?: () => Promise<any[]>;
   }  
   

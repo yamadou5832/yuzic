@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
+    Image,
     View,
     Text,
     TextInput,
@@ -16,7 +17,9 @@ import { useServer } from '@/contexts/ServerContext';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { setServerType } from '@/utils/redux/slices/serverSlice';
 import { useDispatch } from 'react-redux';
-import { Music, Film } from 'lucide-react-native';
+import NavidromeIcon from '@/assets/images/navidrome.png';
+import JellyfinIcon from '@/assets/images/jellyfin.png';
+
 
 export default function OnboardingScreen() {
     const [localServerUrl, setLocalServerUrl] = useState('');
@@ -114,7 +117,6 @@ export default function OnboardingScreen() {
                     <View style={styles.serverTypeContainer}>
                         {(['navidrome', 'jellyfin'] as const).map((type) => {
                             const isSelected = selectedType === type;
-                            const Icon = type === 'navidrome' ? Music : Film;
 
                             return (
                                 <TouchableOpacity
@@ -133,7 +135,16 @@ export default function OnboardingScreen() {
                                         isSelected && styles.serverTypeButtonSelected,
                                     ]}
                                 >
-                                    <Icon size={22} color={isSelected ? '#000' : '#fff'} />
+                                    <Image
+                                        source={type === 'navidrome' ? NavidromeIcon : JellyfinIcon}
+                                        style={{
+                                            width: 36,
+                                            height: 36,
+                                            marginBottom: 6,
+                                        }}
+                                        resizeMode="contain"
+                                    />
+
                                     <Text style={[styles.serverTypeText, isSelected && styles.serverTypeTextSelected]}>
                                         {type === 'navidrome' ? 'Navidrome' : 'Jellyfin'}
                                     </Text>

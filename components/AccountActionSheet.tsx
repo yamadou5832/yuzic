@@ -5,24 +5,53 @@ import {
   TouchableOpacity,
   StyleSheet,
   useColorScheme,
+  Alert,
 } from 'react-native';
 import BottomSheet from 'react-native-gesture-bottom-sheet';
 import { Ionicons } from '@expo/vector-icons';
 import { useServer } from '@/contexts/ServerContext';
+import { useLibrary } from '@/contexts/LibraryContext';
+import { usePlaying } from '@/contexts/PlayingContext';
+import { useRouter } from 'expo-router';
 
 type Props = {
   themeColor: string;
-  onSettings: () => void;
-  onSignOut: () => void;
-  onScan: () => void;
 };
 
 const AccountActionSheet = forwardRef<BottomSheet, Props>(
-  ({ themeColor, onSettings, onSignOut, onScan }, ref) => {
+  ({ themeColor }, ref) => {
     const isDarkMode = useColorScheme() === 'dark';
-    const { username, serverUrl } = useServer();
+    const router = useRouter();
+    const { username, serverUrl, disconnect, startScan } = useServer();
+    const { clearLibrary } = useLibrary();
+    const { pauseSong, resetQueue } = usePlaying();
 
     const initial = username?.[0]?.toUpperCase() ?? '?';
+
+    const handleSettings = () => {
+      (ref as any)?.current?.close();
+      router.push('/settings');
+    };
+
+    const handleSignOut = async () => {
+      (ref as any)?.current?.close();
+      try {
+        await pauseSong();
+        await resetQueue();
+        clearLibrary();
+        disconnect();
+        router.replace('/(onboarding)');
+      } catch (e) {
+        console.error('Sign-out failed:', e);
+        Alert.alert('Error', 'Could not sign out cleanly.');
+      }
+    };
+
+    const handleScan = async () => {
+      (ref as any)?.current?.close();
+      const result = await startScan();
+      Alert.alert('Library Scan', result.message ?? 'Scan triggered.');
+    };
 
     return (
       <BottomSheet
@@ -32,7 +61,6 @@ const AccountActionSheet = forwardRef<BottomSheet, Props>(
         sheetBackgroundColor={isDarkMode ? '#222' : '#f9f9f9'}
       >
         <View style={styles.sheetContainer}>
-          {/* Header with icon */}
           <View style={styles.headerContainer}>
             <View style={[styles.iconCircle, { backgroundColor: themeColor }]}>
               <Text style={styles.iconInitial}>{initial}</Text>
@@ -42,45 +70,52 @@ const AccountActionSheet = forwardRef<BottomSheet, Props>(
                 {username}
               </Text>
               <Text style={[styles.subtext, isDarkMode && styles.subtextDark]}>
-                {serverUrl}
+                {serverUrl?.replace(/^https?:\/\//, '')}
               </Text>
             </View>
           </View>
 
-          {/* Divider */}
-          <View style={[styles.divider, { backgroundColor: isDarkMode ? '#333' : '#ddd' }]} />
+          <View
+            style={[
+              styles.divider,
+              { backgroundColor: isDarkMode ? '#333' : '#ddd' },
+            ]}
+          />
 
-          {/* Options */}
-          <TouchableOpacity style={styles.row} onPress={onSettings}>
+          <TouchableOpacity style={styles.row} onPress={handleSettings}>
             <Ionicons
               name="settings-outline"
               size={18}
               color={themeColor}
               style={styles.icon}
             />
-            <Text style={[styles.rowText, isDarkMode && styles.rowTextDark]}>Settings</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.row} onPress={onScan}>
-            <Ionicons
-                name="sync-outline"
-                size={18}
-                color={themeColor}
-                style={styles.icon}
-            />
             <Text style={[styles.rowText, isDarkMode && styles.rowTextDark]}>
-                Trigger Scan
+              Settings
             </Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.row} onPress={onSignOut}>
+          <TouchableOpacity style={styles.row} onPress={handleScan}>
+            <Ionicons
+              name="sync-outline"
+              size={18}
+              color={themeColor}
+              style={styles.icon}
+            />
+            <Text style={[styles.rowText, isDarkMode && styles.rowTextDark]}>
+              Trigger Scan
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.row} onPress={handleSignOut}>
             <Ionicons
               name="log-out-outline"
               size={18}
               color={themeColor}
               style={styles.icon}
             />
-            <Text style={[styles.rowText, isDarkMode && styles.rowTextDark]}>Sign Out</Text>
+            <Text style={[styles.rowText, isDarkMode && styles.rowTextDark]}>
+              Sign Out
+            </Text>
           </TouchableOpacity>
         </View>
       </BottomSheet>
@@ -149,5 +184,5 @@ const styles = StyleSheet.create({
   },
   rowTextDark: {
     color: '#eee',
-  }
+  },
 });

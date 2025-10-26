@@ -15,6 +15,7 @@ interface JellyfinContextType {
   username: string;
   password: string;
   isAuthenticated: boolean;
+  isLoading: boolean;
   setServerUrl: (url: string) => void;
   setUsername: (user: string) => void;
   setPassword: (pass: string) => void;
@@ -39,9 +40,10 @@ export const JellyfinProvider: React.FC<{ children: ReactNode }> = ({ children }
   const { serverUrl, username, password, isAuthenticated } = useSelector(
     (state: RootState) => state.server
   );
-  const [token, setToken] = useState<string | null>(null);
 
-  // Load token from storage on mount
+  const [token, setToken] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
   useEffect(() => {
     (async () => {
       const saved = await AsyncStorage.getItem('jellyfin_token');
@@ -49,18 +51,14 @@ export const JellyfinProvider: React.FC<{ children: ReactNode }> = ({ children }
         setToken(saved);
         dispatch(setAuthenticated(true));
       }
+      setIsLoading(false);
     })();
   }, []);
 
-  // Deauth when token disappears
   useEffect(() => {
-    if (!token) {
-      console.log('[Jellyfin] Token missing — deauthenticating');
-      dispatch(setAuthenticated(false));
-    }
-  }, [token]);
+    if (!token && !isLoading) dispatch(setAuthenticated(false));
+  }, [token, isLoading]);
 
-  // Verify connection if token and URL exist
   useEffect(() => {
     if (!serverUrl || !token) return;
     (async () => {
@@ -69,9 +67,7 @@ export const JellyfinProvider: React.FC<{ children: ReactNode }> = ({ children }
           headers: { 'X-Emby-Token': token },
         });
         if (res.ok) dispatch(setAuthenticated(true));
-      } catch {
-        /* silent */
-      }
+      } catch {}
     })();
   }, [serverUrl, token]);
 
@@ -87,8 +83,6 @@ export const JellyfinProvider: React.FC<{ children: ReactNode }> = ({ children }
     }
 
     try {
-      console.log('[Jellyfin] Authenticating to', `${serverUrl}/Users/AuthenticateByName`);
-
       const response = await fetch(`${serverUrl}/Users/AuthenticateByName`, {
         method: 'POST',
         headers: {
@@ -99,37 +93,21 @@ export const JellyfinProvider: React.FC<{ children: ReactNode }> = ({ children }
         body: JSON.stringify({ Username: user, Pw: pass }),
       });
 
-      // --- Handle error responses safely ---
       if (!response.ok) {
-        const text = await response.text().catch(() => '');
-        console.warn('[Jellyfin Login] Non-200:', response.status, text);
         let msg = `Login failed (${response.status})`;
-
         if (response.status === 401) msg = 'Invalid username or password.';
         if (response.status === 403)
           msg = 'User not permitted to sign in. Enable "Allow remote connections" in Jellyfin user settings.';
-
         return { success: false, message: msg };
       }
 
-      // --- Try to parse JSON, fallback to plain text ---
-      let data: any;
-      try {
-        data = await response.json();
-      } catch (parseErr) {
-        const text = await response.text().catch(() => '');
-        console.error('[Jellyfin Login] JSON parse error. Raw body:', text);
-        return { success: false, message: 'Unexpected server response. Check credentials or server logs.' };
-      }
-
+      const data = await response.json().catch(() => ({}));
       const accessToken = data?.AccessToken;
       const userId = data?.User?.Id;
       if (!accessToken || !userId) {
-        console.error('[Jellyfin Login] Missing AccessToken or UserId in response:', data);
         return { success: false, message: 'Invalid login response from Jellyfin.' };
       }
 
-      // --- Save credentials ---
       await AsyncStorage.multiSet([
         ['jellyfin_token', accessToken],
         ['jellyfin_userId', userId],
@@ -137,9 +115,7 @@ export const JellyfinProvider: React.FC<{ children: ReactNode }> = ({ children }
 
       setToken(accessToken);
       dispatch(setAuthenticated(true));
-      console.log('[Jellyfin] Authenticated:', userId);
 
-      // --- Preload libraries (optional) ---
       try {
         const libsRes = await fetch(`${serverUrl}/Library/MediaFolders`, {
           headers: { 'X-Emby-Token': accessToken },
@@ -152,16 +128,12 @@ export const JellyfinProvider: React.FC<{ children: ReactNode }> = ({ children }
           if (musicLibs.length) {
             const chosen = musicLibs[0];
             await AsyncStorage.setItem('jellyfin_library_id', chosen.Id);
-            console.log('[Jellyfin] Default music library:', chosen.Name);
           }
         }
-      } catch (libErr) {
-        console.warn('[Jellyfin] Could not load libraries:', libErr);
-      }
+      } catch {}
 
       return { success: true };
-    } catch (err) {
-      console.error('[Jellyfin Login] Network/Runtime error:', err);
+    } catch {
       return { success: false, message: 'Connection failed. Check your server URL or network.' };
     }
   };
@@ -189,10 +161,7 @@ export const JellyfinProvider: React.FC<{ children: ReactNode }> = ({ children }
   };
 
   const getLibraries = async (): Promise<{ id: string; name: string; type: string }[]> => {
-    if (!serverUrl || !token) {
-      console.warn('[Jellyfin] Missing credentials when calling getLibraries()');
-      return [];
-    }
+    if (!serverUrl || !token) return [];
     try {
       const res = await fetch(`${serverUrl}/Library/MediaFolders`, {
         headers: { 'X-Emby-Token': token },
@@ -203,8 +172,7 @@ export const JellyfinProvider: React.FC<{ children: ReactNode }> = ({ children }
         name: lib.Name,
         type: lib.CollectionType,
       }));
-    } catch (err) {
-      console.error('[Jellyfin] Failed to fetch libraries', err);
+    } catch {
       return [];
     }
   };
@@ -231,9 +199,6 @@ export const JellyfinProvider: React.FC<{ children: ReactNode }> = ({ children }
     dispatch(disconnect());
   };
 
-  console.log('[Token]', token);
-  console.log('[Server]', serverUrl);
-
   return (
     <JellyfinContext.Provider
       value={{
@@ -241,6 +206,7 @@ export const JellyfinProvider: React.FC<{ children: ReactNode }> = ({ children }
         username,
         password,
         isAuthenticated,
+        isLoading,
         setServerUrl: (url) => dispatch(setServerUrl(url)),
         setUsername: (user) => dispatch(setUsername(user)),
         setPassword: (pass) => dispatch(setPassword(pass)),
@@ -248,7 +214,7 @@ export const JellyfinProvider: React.FC<{ children: ReactNode }> = ({ children }
         pingServer,
         testServerUrl,
         startScan,
-        getLibraries, // ✅ with credentials
+        getLibraries,
         disconnect: disconnectServer,
       }}
     >

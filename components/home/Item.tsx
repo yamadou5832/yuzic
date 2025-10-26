@@ -13,7 +13,7 @@ import { useDownload } from '@/contexts/DownloadContext';
 import { useLibrary } from '@/contexts/LibraryContext';
 import { usePlaying } from '@/contexts/PlayingContext';
 
-interface LibraryItemProps {
+interface ItemProps {
     item: any;
     isGridView: boolean;
     isDarkMode: boolean;
@@ -23,7 +23,7 @@ interface LibraryItemProps {
     gridWidth?: number;
 }
 
-const LibraryItem: React.FC<LibraryItemProps> = ({
+const Item: React.FC<ItemProps> = ({
                                                      item,
                                                      isGridView,
                                                      isDarkMode,
@@ -292,7 +292,7 @@ const LibraryItem: React.FC<LibraryItemProps> = ({
     return content;
 };
 
-export default LibraryItem;
+export default Item;
 
 const styles = StyleSheet.create({
     itemContainer: {

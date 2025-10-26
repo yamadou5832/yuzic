@@ -17,7 +17,7 @@ import { useSettings } from '@/contexts/SettingsContext';
 import { Ionicons } from '@expo/vector-icons';
 import BottomSheet from 'react-native-gesture-bottom-sheet';
 import { usePlaying } from '@/contexts/PlayingContext';
-import LibraryItem from "@/components/LibraryItem";
+import Item from "@/components/home/Item";
 import { useServer } from '@/contexts/ServerContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
@@ -208,7 +208,7 @@ export default function HomeScreen() {
         };
 
         return (
-            <LibraryItem
+            <Item
                 item={item}
                 isGridView={isGridView}
                 isDarkMode={isDarkMode}
@@ -406,33 +406,7 @@ export default function HomeScreen() {
                 </View>
             </BottomSheet>
 
-            <AccountActionSheet
-                ref={accountSheetRef}
-                themeColor={themeColor}
-                onSettings={() => {
-                    accountSheetRef.current?.close();
-                    navigation.navigate('settings');
-                }}
-                onSignOut={async () => {
-                    accountSheetRef.current?.close();
-                    try {
-                        await pauseSong();
-                        await resetQueue();
-                        clearLibrary();
-                        disconnect();           // safe now
-                        router.replace('/(onboarding)');
-                    } catch (e) {
-                        console.error('Failed to disconnect cleanly:', e);
-                    }
-                }}
-                onScan={async () => {
-                    accountSheetRef.current?.close();
-                    const result = await startScan();
-                    alert(result.message ?? 'Scan triggered.');
-                }}
-            />
-
-
+            <AccountActionSheet ref={accountSheetRef} themeColor={themeColor} />
         </SafeAreaView>
     );
 }
