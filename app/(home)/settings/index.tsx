@@ -6,7 +6,9 @@ import {
     StyleSheet,
     TouchableOpacity,
     Platform,
-    Switch
+    Switch,
+    Linking,
+    Alert
 } from 'react-native';
 import { useLidarr } from '@/contexts/LidarrContext';
 import { useSettings } from '@/contexts/SettingsContext';
@@ -20,9 +22,8 @@ export default function SettingsScreen() {
     const router = useRouter();
     const { isAuthenticated } = useLidarr();
     const { serverType, username, serverUrl } = useServer()
-    const { themeColor, lidarrEnabled, setLidarrEnabled, limportEnabled, setLimportEnabled } = useSettings();
+    const { themeColor, lidarrEnabled, setLidarrEnabled } = useSettings();
     const [tempLidarrEnabled, setTempLidarrEnabled] = useState(lidarrEnabled);
-    const [tempLimportEnabled, setTempLimportEnabled] = useState(limportEnabled);
     const colorScheme = Appearance.getColorScheme();
     const isDarkMode = colorScheme === 'dark';
 
@@ -30,12 +31,8 @@ export default function SettingsScreen() {
         setLidarrEnabled(tempLidarrEnabled);
     }, [tempLidarrEnabled]);
 
-    useEffect(() => {
-        setLimportEnabled(tempLimportEnabled);
-    }, [tempLimportEnabled]);
-
     const avatarLetter = username?.[0]?.toUpperCase() || 'U';
-    
+
     return (
         <SafeAreaView
             edges={['top']}
@@ -50,26 +47,24 @@ export default function SettingsScreen() {
                     Settings
                 </Text>
 
-                <TouchableOpacity onPress={() => {/* maybe open a menu */}}>
-                    <Entypo name="dots-three-vertical" size={18} color={isDarkMode ? '#fff' : '#000'} />
-                </TouchableOpacity>
+                <View style={{ width: 24 }} />
             </View>
 
             <ScrollView contentContainerStyle={styles.scrollContent}>
-            <View style={[styles.profileCard, isDarkMode && styles.profileCardDark]}>
-                <View style={styles.profileRow}>
-                    <View style={[styles.avatar, { backgroundColor: themeColor }]}>
-                    <Text style={styles.avatarText}>{avatarLetter}</Text>
+                <View style={[styles.profileCard, isDarkMode && styles.profileCardDark]}>
+                    <View style={styles.profileRow}>
+                        <View style={[styles.avatar, { backgroundColor: themeColor }]}>
+                            <Text style={styles.avatarText}>{avatarLetter}</Text>
+                        </View>
+                        <View>
+                            <Text style={[styles.profileName, isDarkMode && styles.profileNameDark]}>
+                                {username || 'Unknown User'}
+                            </Text>
+                            <Text style={[styles.profileSubtext, isDarkMode && styles.profileSubtextDark]}>
+                                Connected to {serverType} at {serverUrl?.replace(/^https?:\/\//, '') || 'no server'}
+                            </Text>
+                        </View>
                     </View>
-                    <View>
-                    <Text style={[styles.profileName, isDarkMode && styles.profileNameDark]}>
-                        {username || 'Unknown User'}
-                    </Text>
-                    <Text style={[styles.profileSubtext, isDarkMode && styles.profileSubtextDark]}>
-                        Connected to {serverType} at {serverUrl?.replace(/^https?:\/\//, '') || 'no server'}
-                    </Text>
-                    </View>
-                </View>
                 </View>
 
                 <Text style={[styles.sectionTitle, isDarkMode && styles.sectionTitleDark]}>General</Text>
@@ -85,54 +80,50 @@ export default function SettingsScreen() {
 
                 <Text style={[styles.sectionTitle, isDarkMode && styles.sectionTitleDark]}>Plugins</Text>
                 <View style={[styles.section, isDarkMode && styles.sectionDark]}>
-                <TouchableOpacity
-                style={styles.row}
-                onPress={() => router.push('/settings/lidarrView')}
-                >
-                <View style={styles.leftContent}>
-                    <Entypo
-                    name="download"
-                    size={20}
-                    color={isDarkMode ? '#fff' : '#333'}
-                    style={styles.icon}
-                    />
-                    <Text style={[styles.rowText, isDarkMode && styles.rowTextDark]}>
-                    Lidarr
-                    </Text>
-                </View>
-                <Switch
-                    value={tempLidarrEnabled}
-                    onValueChange={setTempLidarrEnabled}                    
-                    disabled={!isAuthenticated}
-                    trackColor={{ false: '#999', true: themeColor }}
-                    thumbColor={isDarkMode ? '#fff' : '#fff'}
-                    onStartShouldSetResponder={() => true} // Prevents row tap from interfering
-                />
-                </TouchableOpacity>
                     <TouchableOpacity
                         style={styles.row}
-                        onPress={() => router.push('/settings/limportView')}
+                        onPress={() => router.push('/settings/lidarrView')}
                     >
                         <View style={styles.leftContent}>
-                            <Entypo
-                                name="clapperboard"
-                                size={20}
-                                color={isDarkMode ? '#fff' : '#333'}
-                                style={styles.icon}
-                            />
                             <Text style={[styles.rowText, isDarkMode && styles.rowTextDark]}>
-                                Limport
+                                Lidarr
                             </Text>
                         </View>
                         <Switch
-                            value={tempLimportEnabled}
-                            onValueChange={setTempLimportEnabled}
+                            value={tempLidarrEnabled}
+                            onValueChange={setTempLidarrEnabled}
+                            disabled={!isAuthenticated}
                             trackColor={{ false: '#999', true: themeColor }}
                             thumbColor={isDarkMode ? '#fff' : '#fff'}
                             onStartShouldSetResponder={() => true} // Prevents row tap from interfering
                         />
                     </TouchableOpacity>
-            </View>
+                </View>
+
+                <Text style={[styles.sectionTitle, isDarkMode && styles.sectionTitleDark]}>About</Text>
+                <View style={[styles.section, isDarkMode && styles.sectionDark]}>
+                    <TouchableOpacity
+                        style={styles.row}
+                        onPress={async () => {
+                            const url = "https://pastebin.com/raw/KzGjR9aA"
+                            const supported = await Linking.canOpenURL(url);
+
+                            if (supported) {
+                                await Linking.openURL(url);
+                            } else {
+                                Alert.alert(`Don't know how to open this URL: ${url}`);
+                            }
+                        }}
+                    >
+                        <View style={styles.leftContent}>
+                            <Text style={[styles.rowText, isDarkMode && styles.rowTextDark]}>
+                                Privacy Policy
+                            </Text>
+                        </View>
+
+                        <MaterialIcons name="chevron-right" size={24} color={isDarkMode ? '#fff' : '#333'} />
+                    </TouchableOpacity>
+                </View>
             </ScrollView>
         </SafeAreaView>
     );
@@ -225,7 +216,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingHorizontal: 16,
         paddingVertical: 14,
-      },      
+    },
     leftContent: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -255,16 +246,16 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.1,
         shadowRadius: 6,
         elevation: 3,
-      },
-      profileCardDark: {
+    },
+    profileCardDark: {
         backgroundColor: '#1C1C1E',
-      },
-      profileRow: {
+    },
+    profileRow: {
         flexDirection: 'row',
         alignItems: 'center', // ✅ Vertical centering
         height: 52, // ✅ Or however tall you want the profile row
-      },      
-      avatar: {
+    },
+    avatar: {
         width: 48,
         height: 48,
         borderRadius: 24,
@@ -272,25 +263,25 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         marginRight: 12,
-      },
-      avatarText: {
+    },
+    avatarText: {
         fontSize: 18,
         fontWeight: '600',
         color: '#fff',
-      },
-      profileName: {
+    },
+    profileName: {
         fontSize: 16,
         fontWeight: '600',
         color: '#000',
-      },
-      profileNameDark: {
+    },
+    profileNameDark: {
         color: '#fff',
-      },
-      profileSubtext: {
+    },
+    profileSubtext: {
         fontSize: 12,
         color: '#444',
-      },
-      profileSubtextDark: {
+    },
+    profileSubtextDark: {
         color: '#aaa',
-      } 
+    }
 });

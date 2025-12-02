@@ -37,6 +37,8 @@ export default function OnboardingScreen() {
     const router = useRouter();
     const dispatch = useDispatch();
 
+    const jellyfinDisabled = true;
+
     useEffect(() => {
         const timeout = setTimeout(() => setIsLayoutMounted(true), 0);
         return () => clearTimeout(timeout);
@@ -121,17 +123,15 @@ export default function OnboardingScreen() {
                             return (
                                 <TouchableOpacity
                                     key={type}
+                                    disabled={type === 'jellyfin' && jellyfinDisabled}
                                     onPress={() => {
-                                        // 1️⃣ update local UI immediately
+                                        if (type === 'jellyfin' && jellyfinDisabled) return;
                                         setSelectedType(type);
-
-                                        // 2️⃣ defer provider swap to next frame
-                                        requestAnimationFrame(() => {
-                                            dispatch(setServerType(type));
-                                        });
+                                        requestAnimationFrame(() => dispatch(setServerType(type)));
                                     }}
                                     style={[
                                         styles.serverTypeButton,
+                                        (type === 'jellyfin' && jellyfinDisabled) && { opacity: 0.3 },
                                         isSelected && styles.serverTypeButtonSelected,
                                     ]}
                                 >
@@ -145,8 +145,14 @@ export default function OnboardingScreen() {
                                         resizeMode="contain"
                                     />
 
-                                    <Text style={[styles.serverTypeText, isSelected && styles.serverTypeTextSelected]}>
-                                        {type === 'navidrome' ? 'Navidrome' : 'Jellyfin'}
+                                    <Text
+                                        style={[
+                                            styles.serverTypeText,
+                                            isSelected && styles.serverTypeTextSelected,
+                                            type === 'jellyfin' && jellyfinDisabled && { color: '#777' },
+                                        ]}
+                                    >
+                                        {type === 'navidrome' ? 'Navidrome' : 'Jellyfin (wip)'}
                                     </Text>
                                 </TouchableOpacity>
                             );

@@ -17,10 +17,6 @@ type SettingsContextType = {
     setGridColumns: (val: number) => void;
     lidarrEnabled: boolean;
     setLidarrEnabled: (val: boolean) => void;
-    limportEnabled: boolean;
-    setLimportEnabled: (val: boolean) => void;
-    limportID: string;
-    setLimportID: (val: string) => void;
 };
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
@@ -30,9 +26,7 @@ const PROMPT_HISTORY_KEY = '@prompt_history';
 const WEIGHTING_KEY = '@ai_weighting';
 const AUDIO_QUALITY_KEY = '@audio_quality'
 const GRID_COLUMNS_KEY = '@grid_columns';
-const lIMPORT_ID_KEY = '@limport_id'
 const LIDARR_ENABLED_KEY = '@lidarr_enabled';
-const LIMPORT_ENABLED_KEY = '@limport_enabled';
 
 export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const [themeColor, setThemeColorState] = useState('#ff7f7f');
@@ -40,9 +34,7 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     const [weighting, setWeightingState] = useState({ global: 1, user: 2, favorite: 1 });
     const [audioQuality, setAudioQualityState] = useState<AudioQuality>('medium');
     const [gridColumns, setGridColumnsState] = useState(3);
-    const [limportID, setLimportIDState] = useState('');
     const [lidarrEnabled, setLidarrEnabledState] = useState(true);
-    const [limportEnabled, setLimportEnabledState] = useState(false);
 
     useEffect(() => {
         const loadThemeColor = async () => {
@@ -99,26 +91,10 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
                 console.error('Failed to load grid column count:', err);
             }
         };
-        const loadLimportID = async () => {
-            try {
-                const stored = await AsyncStorage.getItem(lIMPORT_ID_KEY);
-                if (stored) setLimportIDState(stored);
-            } catch (error) {
-                console.error('Failed to load limportID:', error);
-            }
-        };
         const loadLidarrEnabled = async () => {
             try {
                 const stored = await AsyncStorage.getItem(LIDARR_ENABLED_KEY);
                 if (stored !== null) setLidarrEnabledState(stored === 'true');
-            } catch (error) {
-                console.error('Failed to load Lidarr enabled state:', error);
-            }
-        };
-        const loadLimportEnabled = async () => {
-            try {
-                const stored = await AsyncStorage.getItem(LIMPORT_ENABLED_KEY);
-                if (stored !== null) setLimportEnabledState(stored === 'true');
             } catch (error) {
                 console.error('Failed to load Lidarr enabled state:', error);
             }
@@ -129,9 +105,7 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
         loadWeighting();
         loadAudioQuality();
         loadGridColumns();
-        loadLimportID();
         loadLidarrEnabled();
-        loadLimportEnabled();
     }, []);
 
     const setThemeColor = async (color: string) => {
@@ -184,28 +158,11 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
             console.error('Failed to save grid column count:', err);
         }
     };
-
-    const setLimportID = async (id: string) => {
-        try {
-            await AsyncStorage.setItem(lIMPORT_ID_KEY, id);
-            setLimportIDState(id);
-        } catch (error) {
-            console.error('Failed to save limportID:', error);
-        }
-    };
-
+    
     const setLidarrEnabled = async (val: boolean) => {
         try {
             await AsyncStorage.setItem(LIDARR_ENABLED_KEY, val.toString());
             setLidarrEnabledState(val);
-        } catch (error) {
-            console.error('Failed to save Lidarr enabled state:', error);
-        }
-    };
-    const setLimportEnabled = async (val: boolean) => {
-        try {
-            await AsyncStorage.setItem(LIMPORT_ENABLED_KEY, val.toString());
-            setLimportEnabledState(val);
         } catch (error) {
             console.error('Failed to save Lidarr enabled state:', error);
         }
@@ -223,11 +180,7 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
             gridColumns,
             setGridColumns,
             lidarrEnabled,
-            setLidarrEnabled,
-            limportEnabled,
-            setLimportEnabled,
-            limportID,
-            setLimportID
+            setLidarrEnabled
         }}>
             {children}
         </SettingsContext.Provider>

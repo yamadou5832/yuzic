@@ -18,7 +18,6 @@ import { PlaybackService } from '@/utils/track-player/PlaybackService';
 import { SongData } from '@/types';
 import shuffleArray from '@/utils/shuffleArray';
 import { scrobbleTrack } from '@/utils/navidrome/scrobble';
-import { updateNowPlaying } from '@/utils/navidrome/updateNowPlaying';
 import { useServer } from "@/contexts/ServerContext";
 import { incrementUserPlayCount } from '@/utils/redux/slices/userStatsSlice';
 import { useDispatch } from 'react-redux';
@@ -78,7 +77,6 @@ export const PlayingProvider: React.FC<{ children: ReactNode }> = ({ children })
     const playbackState = usePlaybackState();
     const dispatch = useDispatch();
     const { serverUrl, username, password } = useServer();
-    const { limportID, limportEnabled } = useSettings();
     const { getSongLocalUri } = useDownload();
 
     const isPlaying = playbackState.state === State.Playing;
@@ -148,13 +146,6 @@ export const PlayingProvider: React.FC<{ children: ReactNode }> = ({ children })
             hasScrobbledRef.current = false;
 
             await scrobbleTrack(next.id, serverUrl, username, password, true);
-            if (limportEnabled && limportID) {
-                try {
-                    await updateNowPlaying(next.id, serverUrl, limportID, username, password);
-                } catch (err) {
-                    console.warn('[Limport NowPlaying update failed]', err);
-                }
-            }
         } catch (err) {
             console.error('[PlaybackActiveTrackChanged Error]', err);
         }

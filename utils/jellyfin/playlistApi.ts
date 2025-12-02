@@ -26,14 +26,23 @@ export const fetchPlaylists = async (
 
   const listJson = await listRes.json();
   const playlists = listJson.Items || [];
-
+  
   const detailed = await Promise.all(
     playlists.map(async (pl: any) => {
-      const itemsRes = await fetch(`${serverUrl}/Playlists/${pl.Id}/Items?userId=${userId}`, {
-        headers: API_HEADERS(token),
-      });
+      const itemsRes = await fetch(
+        `${serverUrl}/Playlists/${pl.Id}/Items?userId=${userId}`,
+        { headers: API_HEADERS(token) }
+      );
       const itemsJson = await itemsRes.json();
-      const entryIds = (itemsJson.Items || []).map((it: any) => it.Id);
+
+      console.log(itemsJson.Items[0]);
+
+      const entryIds = (itemsJson.Items || [])
+        .map((it: any) => it.PlaylistItemId)   // <-- THIS IS THE ONLY CORRECT VALUE
+
+        // filter out null entries (if any)
+        .filter((x: any) => x);
+
       return { id: pl.Id, name: pl.Name, entryIds };
     })
   );
