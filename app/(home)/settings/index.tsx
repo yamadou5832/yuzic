@@ -98,6 +98,18 @@ export default function SettingsScreen() {
                             onStartShouldSetResponder={() => true} // Prevents row tap from interfering
                         />
                     </TouchableOpacity>
+                    {renderDivider()}
+                    <TouchableOpacity
+                        style={styles.row}
+                        onPress={() => router.push('/settings/openaiView')}
+                    >
+                        <View style={styles.leftContent}>
+                            <Text style={[styles.rowText, isDarkMode && styles.rowTextDark]}>
+                                OpenAI
+                            </Text>
+                        </View>
+                        <MaterialIcons name="chevron-right" size={24} color={isDarkMode ? '#fff' : '#333'} />
+                    </TouchableOpacity>
                 </View>
 
                 <Text style={[styles.sectionTitle, isDarkMode && styles.sectionTitleDark]}>About</Text>
@@ -118,6 +130,27 @@ export default function SettingsScreen() {
                         <View style={styles.leftContent}>
                             <Text style={[styles.rowText, isDarkMode && styles.rowTextDark]}>
                                 Privacy Policy
+                            </Text>
+                        </View>
+
+                        <MaterialIcons name="chevron-right" size={24} color={isDarkMode ? '#fff' : '#333'} />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        style={styles.row}
+                        onPress={async () => {
+                            const url = "https://pastebin.com/raw/4QHJPtuj"
+                            const supported = await Linking.canOpenURL(url);
+
+                            if (supported) {
+                                await Linking.openURL(url);
+                            } else {
+                                Alert.alert(`Don't know how to open this URL: ${url}`);
+                            }
+                        }}
+                    >
+                        <View style={styles.leftContent}>
+                            <Text style={[styles.rowText, isDarkMode && styles.rowTextDark]}>
+                                Terms of Use
                             </Text>
                         </View>
 
@@ -157,6 +190,7 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#fff',
+        marginBottom: 150
     },
     containerDark: {
         backgroundColor: '#000',

@@ -115,18 +115,19 @@ const LibraryView: React.FC = () => {
 
     return (
         <SafeAreaView style={[styles.container, isDarkMode && styles.containerDark]}>
-            <View style={[styles.header, isDarkMode && styles.headerDark]}>
+            <View style={styles.header}>
                 <TouchableOpacity
-                    style={styles.backButton}
                     onPress={() => router.back()}
                     hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
                 >
-                    <Ionicons name="chevron-back" size={24} color={isDarkMode ? '#fff' : '#333'} />
+                    <Ionicons name="chevron-back" size={24} color={isDarkMode ? '#fff' : '#000'} />
                 </TouchableOpacity>
+
                 <Text style={[styles.headerTitle, isDarkMode && styles.headerTitleDark]}>
                     Library
                 </Text>
             </View>
+
 
             <ScrollView contentContainerStyle={styles.scrollContent}>
                 {/* Library Stats */}
@@ -413,10 +414,30 @@ export default LibraryView;
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#fff' },
     containerDark: { backgroundColor: '#000' },
-    header: { flexDirection: 'row', alignItems: 'center', padding: 16, backgroundColor: '#fff' },
-    headerDark: { backgroundColor: '#000', borderBottomColor: '#222' },
-    headerTitle: { fontSize: 18, fontWeight: 'bold', color: '#000', flex: 1, textAlign: 'center' },
-    headerTitleDark: { color: '#fff' },
+    header: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: 16,
+        paddingTop: 6,
+    },
+    headerDark: { 
+        // No background, keep it transparent like OpenAI
+    },
+    headerTitle: {
+        fontSize: 18,
+        fontWeight: '700',
+        marginLeft: 12,
+        color: '#000',
+    },
+    headerTitleDark: {
+        color: '#fff',
+    },
+    backButton: {
+        width: 44,
+        height: 44,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
     downloadItemCard: {
         flexDirection: 'row',
         alignItems: 'center',

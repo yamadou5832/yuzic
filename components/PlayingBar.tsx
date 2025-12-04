@@ -12,6 +12,7 @@ import {
     TextInput,
     Easing,
 } from 'react-native';
+import { toast } from '@backpackapp-io/react-native-toast';
 import { Ionicons } from '@expo/vector-icons';
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import { BlurView } from 'expo-blur';
@@ -32,7 +33,7 @@ const PlayingBar: React.FC = () => {
     const position = appState === 'active' ? playbackProgress.position : 0;
     const duration = appState === 'active' ? playbackProgress.duration : 1;
     const progress = duration > 0 ? position / duration : 0;
-    const { themeColor } = useSettings();
+    const { themeColor, openaiApiKey } = useSettings();
     const { generateQueue, isLoading } = useAI();
     const [inputValue, setInputValue] = useState('');
     const { currentSong, isPlaying, pauseSong, resumeSong } = usePlaying();
@@ -92,7 +93,13 @@ const PlayingBar: React.FC = () => {
     });
 
     const handleToggleInput = () => {
+        if (!openaiApiKey) {
+            toast.error("Please enter your OpenAI API key in Settings > Plugins.");
+            return;
+        }
+
         setInputMode(true);
+
         Animated.parallel([
             Animated.timing(fadeAnim, {
                 toValue: 0,
@@ -110,7 +117,7 @@ const PlayingBar: React.FC = () => {
     const handleSubmitInput = async () => {
         if (!inputValue.trim()) return;
 
-        await generateQueue(inputValue); // 👈 Send to AI context
+        await generateQueue(inputValue);
 
         inputRef.current?.blur();
         setInputValue('');

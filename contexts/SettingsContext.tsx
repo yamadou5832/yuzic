@@ -17,6 +17,10 @@ type SettingsContextType = {
     setGridColumns: (val: number) => void;
     lidarrEnabled: boolean;
     setLidarrEnabled: (val: boolean) => void;
+    openaiEnabled: boolean;
+    setOpenaiEnabled: (val: boolean) => void;
+    openaiApiKey: string;
+    setOpenaiApiKey: (val: string) => void;
 };
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
@@ -27,6 +31,8 @@ const WEIGHTING_KEY = '@ai_weighting';
 const AUDIO_QUALITY_KEY = '@audio_quality'
 const GRID_COLUMNS_KEY = '@grid_columns';
 const LIDARR_ENABLED_KEY = '@lidarr_enabled';
+const OPENAI_ENABLED_KEY = '@openai_enabled';
+const OPENAI_API_KEY = '@openai_api_key';
 
 export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const [themeColor, setThemeColorState] = useState('#ff7f7f');
@@ -35,6 +41,8 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     const [audioQuality, setAudioQualityState] = useState<AudioQuality>('medium');
     const [gridColumns, setGridColumnsState] = useState(3);
     const [lidarrEnabled, setLidarrEnabledState] = useState(true);
+    const [openaiEnabled, setOpenaiEnabledState] = useState(false);
+    const [openaiApiKey, setOpenaiApiKeyState] = useState('');
 
     useEffect(() => {
         const loadThemeColor = async () => {
@@ -99,6 +107,17 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
                 console.error('Failed to load Lidarr enabled state:', error);
             }
         };
+        const loadOpenAI = async () => {
+            try {
+                const enabled = await AsyncStorage.getItem(OPENAI_ENABLED_KEY);
+                if (enabled !== null) setOpenaiEnabledState(enabled === 'true');
+
+                const key = await AsyncStorage.getItem(OPENAI_API_KEY);
+                if (key) setOpenaiApiKeyState(key);
+            } catch (error) {
+                console.error('Failed to load OpenAI settings:', error);
+            }
+        };
 
         loadThemeColor();
         loadPromptHistory();
@@ -106,6 +125,7 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
         loadAudioQuality();
         loadGridColumns();
         loadLidarrEnabled();
+        loadOpenAI();
     }, []);
 
     const setThemeColor = async (color: string) => {
@@ -168,6 +188,24 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
         }
     };
 
+    const setOpenaiEnabled = async (val: boolean) => {
+        try {
+            await AsyncStorage.setItem(OPENAI_ENABLED_KEY, val.toString());
+            setOpenaiEnabledState(val);
+        } catch (error) {
+            console.error('Failed to save OpenAI enabled state:', error);
+        }
+    };
+
+    const setOpenaiApiKey = async (key: string) => {
+        try {
+            await AsyncStorage.setItem(OPENAI_API_KEY, key);
+            setOpenaiApiKeyState(key);
+        } catch (error) {
+            console.error('Failed to save OpenAI API key:', error);
+        }
+    };
+
     return (
         <SettingsContext.Provider value={{ themeColor,
             setThemeColor,
@@ -180,7 +218,11 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
             gridColumns,
             setGridColumns,
             lidarrEnabled,
-            setLidarrEnabled
+            setLidarrEnabled,
+            openaiEnabled,
+            setOpenaiEnabled,
+            openaiApiKey,
+            setOpenaiApiKey
         }}>
             {children}
         </SettingsContext.Provider>

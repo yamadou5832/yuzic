@@ -3,6 +3,7 @@ import { SongData } from '@/types';
 import { useLibrary } from '@/contexts/LibraryContext';
 import { usePlaying } from '@/contexts/PlayingContext';
 import { useSettings } from '@/contexts/SettingsContext';
+import { toast } from '@backpackapp-io/react-native-toast';
 
 interface AIContextType {
     input: string;
@@ -11,8 +12,8 @@ interface AIContextType {
     generatedQueue: SongData[];
     setGeneratedQueue: (queue: SongData[]) => void;
     isLoading: boolean;
-    weighting: { global: number; user: number };
-    setWeighting: (val: { global: number; user: number }) => void;
+    weighting: { global: number; user: number; favorite: number };
+    setWeighting: (val: { global: number; user: number; favorite: number }) => void;
 }
 
 const AIContext = createContext<AIContextType | undefined>(undefined);
@@ -28,7 +29,7 @@ export const useAI = () => {
 export const AIProvider = ({ children }: { children: ReactNode }) => {
     const { songs, albums, starred } = useLibrary();
     const { playSongInCollection } = usePlaying();
-    const { addPromptToHistory, weighting, setWeighting } = useSettings();
+    const { addPromptToHistory, weighting, setWeighting, openaiApiKey } = useSettings();
     const [input, setInput] = useState('');
     const [generatedQueue, setGeneratedQueue] = useState<SongData[]>([]);
     const [isLoading, setIsLoading] = useState(false);
@@ -37,7 +38,6 @@ export const AIProvider = ({ children }: { children: ReactNode }) => {
         try {
             const trimmed = text.trim();
 
-            // Attempt auto-complete if the JSON appears clipped
             if (trimmed.startsWith('[') && !trimmed.endsWith(']')) {
                 const lastComma = trimmed.lastIndexOf(',');
                 const maybeFixed = trimmed.substring(0, lastComma) + ']';
@@ -62,61 +62,87 @@ export const AIProvider = ({ children }: { children: ReactNode }) => {
     };
 
     const callOpenAIString = async ({ systemPrompt, userPrompt, temperature = 0.3 }: OpenAICallParams): Promise<string> => {
-        const res = await fetch(`https://rawarr-server-af0092d911f6.herokuapp.com/api/openai/string`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                systemPrompt,
-                userPrompt,
-                temperature,
-            }),
-        });
+        if (!openaiApiKey) {
+            toast.error("OpenAI API key not set.");
+            throw new Error("Missing OpenAI API Key");
+        }
 
-        const data = await res.json();
-        return (data.content || '').trim();
+        try {
+            const res = await fetch(`https://rawarr-server-af0092d911f6.herokuapp.com/api/openai/string`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    systemPrompt,
+                    userPrompt,
+                    temperature,
+                    apiKey: openaiApiKey,
+                }),
+            });
+
+            const data = await res.json();
+            return (data.content || '').trim();
+        } catch (err) {
+            console.error("OpenAI request failed:", err);
+            toast.error("Failed to contact OpenAI.");
+            throw err;
+        }
     };
 
     const callOpenAIJson = async (params: OpenAICallParams): Promise<any> => {
-        const text = await callOpenAIString(params);
-        const cleaned = cleanAIText(text);
-        return tryParseJson(cleaned);
+        try {
+            const text = await callOpenAIString(params);
+            const cleaned = cleanAIText(text);
+            return tryParseJson(cleaned);
+        } catch (err) {
+            return null;
+        }
     };
 
     const classifyPromptType = async (prompt: string): Promise<'genre' | 'artist'> => {
-        const result = await callOpenAIString({
-            systemPrompt:
-                "Classify the user's prompt as either 'genre' or 'artist'. " +
-                "If the prompt asks for a specific artist, album, or band, return 'artist'. " +
-                "If the prompt is about a vibe, mood, genre, or activity, return 'genre'. " +
-                "Return only the word 'genre' or 'artist' — no explanation, no punctuation.",
-            userPrompt: prompt,
-            temperature: 0.3,
-        });
+        try {
+            const result = await callOpenAIString({
+                systemPrompt:
+                    "Classify the user's prompt as either 'genre' or 'artist'. " +
+                    "If the prompt asks for a specific artist, album, or band, return 'artist'. " +
+                    "If the prompt is about a vibe, mood, genre, or activity, return 'genre'. " +
+                    "Return only the word 'genre' or 'artist' — no explanation, no punctuation.",
+                userPrompt: prompt,
+                temperature: 0.3,
+            });
 
-        const lower = result.toLowerCase();
-        if (lower === 'artist' || lower === 'genre') return lower;
-        console.warn('Unknown classification result:', result);
-        return 'genre';
+            const lower = result.toLowerCase();
+            if (lower === 'artist' || lower === 'genre') return lower;
+            console.warn('Unknown classification result:', result);
+            return 'genre';
+        } catch (err) {
+            toast.error("AI failed to classify prompt.");
+            return 'genre';
+        }
     };
 
     const getGenresForPrompt = async (prompt: string, genres: string[]): Promise<string[]> => {
-        const result = await callOpenAIJson({
-            systemPrompt:
-                "You are a music genre matching assistant. The user will give you a music prompt and a list of genres. " +
-                "Return a JSON array of the genres from the list that best match the prompt. " +
-                "Return only the JSON array. No keys, objects, or explanation.",
-            userPrompt: `Prompt: "${prompt}"\n\nGenres:\n${genres.join(', ')}`,
-            temperature: 0.4,
-        });
+        try {
+            const result = await callOpenAIJson({
+                systemPrompt:
+                    "You are a music genre matching assistant. The user will give you a music prompt and a list of genres. " +
+                    "Return a JSON array of the genres from the list that best match the prompt. " +
+                    "Return only the JSON array. No keys, objects, or explanation.",
+                userPrompt: `Prompt: "${prompt}"\n\nGenres:\n${genres.join(', ')}`,
+                temperature: 0.4,
+            });
 
-        if (!Array.isArray(result)) {
-            console.warn('⚠️ Invalid genre response:', result);
+            if (!Array.isArray(result)) {
+                console.warn('⚠️ Invalid genre response:', result);
+                return [];
+            }
+
+            return result;
+        } catch (err) {
+            toast.error("AI failed to match genres.");
             return [];
         }
-
-        return result;
     };
 
     const getSongWeight = (song: SongData): number => {
@@ -160,7 +186,6 @@ export const AIProvider = ({ children }: { children: ReactNode }) => {
 
         try {
             const promptType = await classifyPromptType(userPrompt);
-            console.log('Prompt classified as:', promptType);
 
             if (promptType === 'genre') {
                 const genreToAlbumsMap: Record<string, string[]> = {};
@@ -178,19 +203,14 @@ export const AIProvider = ({ children }: { children: ReactNode }) => {
 
                 const allGenres = Array.from(allGenresSet);
                 const selectedGenres = await getGenresForPrompt(userPrompt, allGenres);
-                console.log('Selected genres:', selectedGenres);
 
-                // ✅ NEW: Just filter songs by genres directly
                 const genreMatchedSongs = songs.filter(song =>
                     song.genres?.some(genre => selectedGenres.includes(genre))
                 );
 
-                if (genreMatchedSongs.length === 0) {
-                    console.warn('No songs matched the selected genres:', selectedGenres);
-                    return [];
-                }
+                if (genreMatchedSongs.length === 0) return [];
 
-                const shuffledQueue = weightedShuffle(genreMatchedSongs, 100); // limit to 100 songs
+                const shuffledQueue = weightedShuffle(genreMatchedSongs, 100);
 
                 setGeneratedQueue(shuffledQueue);
 
@@ -206,7 +226,6 @@ export const AIProvider = ({ children }: { children: ReactNode }) => {
                 addPromptToHistory({ prompt: userPrompt, queue: shuffledQueue });
                 return shuffledQueue;
             } else {
-                // --- STEP 1: Select Albums ---
                 const albumText = albums.map((a, i) =>
                     `${i + 1}. "${a.title}" by ${a.artist.name}${a.genres?.length ? ` — ${a.genres.join(', ')}` : ''} [${a.id}]`
                 ).join('\n');
@@ -218,14 +237,8 @@ export const AIProvider = ({ children }: { children: ReactNode }) => {
                     userPrompt: `Prompt: "${userPrompt}"\n\nAlbums:\n${albumText}`,
                 });
 
-                // --- STEP 2: Filter songs from selected albums ---
-                const relevantSongs = songs.filter(song => selectedAlbumIds.includes(song.albumId));
-                if (relevantSongs.length === 0) {
-                    console.warn('No relevant songs found from selected albums.');
-                    return [];
-                }
-
-                console.log(relevantSongs.length)
+                const relevantSongs = songs.filter(song => selectedAlbumIds?.includes(song.albumId));
+                if (relevantSongs.length === 0) return [];
 
                 const songText = relevantSongs.map((s, i) =>
                     `${i + 1}. "${s.title}" — ${s.artist}` +
@@ -242,7 +255,7 @@ export const AIProvider = ({ children }: { children: ReactNode }) => {
                     userPrompt: `Prompt: "${userPrompt}"\n\nSongs:\n${songText}`,
                 });
 
-                const queue = relevantSongs.filter(song => selectedSongIds.includes(song.id));
+                const queue = relevantSongs.filter(song => selectedSongIds?.includes(song.id));
                 setGeneratedQueue(queue);
 
                 if (queue.length > 0) {
@@ -259,6 +272,7 @@ export const AIProvider = ({ children }: { children: ReactNode }) => {
             }
         } catch (err) {
             console.error('AI error:', err);
+            toast.error("AI failed to generate a playlist.");
             return [];
         } finally {
             setIsLoading(false);
@@ -266,9 +280,11 @@ export const AIProvider = ({ children }: { children: ReactNode }) => {
     };
 
     return (
-        <AIContext.Provider value={{ input, setInput, generateQueue, generatedQueue, setGeneratedQueue, isLoading,
+        <AIContext.Provider value={{
+            input, setInput, generateQueue, generatedQueue, setGeneratedQueue, isLoading,
             weighting,
-            setWeighting }}>
+            setWeighting
+        }}>
             {children}
         </AIContext.Provider>
     );
