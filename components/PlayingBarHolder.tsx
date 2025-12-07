@@ -5,11 +5,9 @@ import {
     KeyboardAvoidingView,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { usePlaying } from '@/contexts/PlayingContext';
 import PlayingBar from './PlayingBar';
 
 const PlayingBarHolder: React.FC = () => {
-    const { currentSong } = usePlaying();
     const insets = useSafeAreaInsets();
 
     return (

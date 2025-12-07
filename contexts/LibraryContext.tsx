@@ -71,7 +71,6 @@ export const LibraryProvider: React.FC<LibraryProviderProps> = ({ children }) =>
 
     const fetchLibrary = async (force = false) => {
         if (!serverType || !serverUrl || !username || !password || (isLibraryFetchedRef.current && !force)) return;
-
         isLibraryFetchedRef.current = true;
         console.log('Fetching library...');
 
