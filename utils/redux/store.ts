@@ -10,20 +10,19 @@ import libraryStatusReducer from './slices/libraryStatusSlice';
 import lidarrReducer from './slices/lidarrSlice'
 import userStatsReducer from './slices/userStatsSlice';
 
-// Persist configuration for server
 const serverPersistConfig = {
     key: 'server',
-    storage, // Use AsyncStorage for persistence
+    storage,
 };
 
 const lidarrPersistConfig = {
     key: 'lidarr',
-    storage, // Use AsyncStorage for persistence
+    storage,
 };
-// Persist configuration for library
+
 const libraryPersistConfig = {
     key: 'library',
-    storage, // Use AsyncStorage for persistence
+    storage,
 };
 
 const genrePersistConfig = {

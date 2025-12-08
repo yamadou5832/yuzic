@@ -85,9 +85,9 @@ We will need to restart the app.
             <Provider store={store}>
                 <PersistGate loading={null} persistor={persistor}>
                     <SettingsProvider>
-                            <NavidromeProvider>
-                                <JellyfinProvider>
-                                                            <ServerProvider>
+                        <NavidromeProvider>
+                            <JellyfinProvider>
+                                <ServerProvider>
                                     <LibraryProvider>
                                         <LidarrProvider>
                                             <PlaylistProvider>
@@ -140,9 +140,9 @@ We will need to restart the app.
                                             </PlaylistProvider>
                                         </LidarrProvider>
                                     </LibraryProvider>
-                        </ServerProvider>
-                                                        </JellyfinProvider>
-                            </NavidromeProvider>
+                                </ServerProvider>
+                            </JellyfinProvider>
+                        </NavidromeProvider>
                     </SettingsProvider>
                 </PersistGate>
             </Provider>
