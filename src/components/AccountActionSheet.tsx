@@ -9,10 +9,13 @@ import {
 } from 'react-native';
 import BottomSheet from 'react-native-gesture-bottom-sheet';
 import { Ionicons } from '@expo/vector-icons';
-import { useServer } from '@/contexts/ServerContext';
-import { useLibrary } from '@/contexts/LibraryContext';
-import { usePlaying } from '@/contexts/PlayingContext';
+import { useSelector, useDispatch } from "react-redux";
+import { RootState } from "@/utils/redux/store";
+import { useLibrary } from "@/contexts/LibraryContext";
+import { usePlaying } from "@/contexts/PlayingContext";
 import { useRouter } from 'expo-router';
+import { useApi } from "@/api";
+import { disconnect } from "@/utils/redux/slices/serverSlice";
 
 type Props = {
   themeColor: string;
@@ -22,7 +25,13 @@ const AccountActionSheet = forwardRef<BottomSheet, Props>(
   ({ themeColor }, ref) => {
     const isDarkMode = useColorScheme() === 'dark';
     const router = useRouter();
-    const { username, serverUrl, disconnect, startScan } = useServer();
+    const dispatch = useDispatch();
+    const api = useApi();
+
+    const { username, serverUrl } = useSelector(
+      (s: RootState) => s.server
+    );
+
     const { clearLibrary } = useLibrary();
     const { pauseSong, resetQueue } = usePlaying();
 
@@ -39,7 +48,7 @@ const AccountActionSheet = forwardRef<BottomSheet, Props>(
         await pauseSong();
         await resetQueue();
         clearLibrary();
-        disconnect();
+        dispatch(disconnect());
         router.replace('/(onboarding)');
       } catch (e) {
         console.error('Sign-out failed:', e);
@@ -49,8 +58,12 @@ const AccountActionSheet = forwardRef<BottomSheet, Props>(
 
     const handleScan = async () => {
       (ref as any)?.current?.close();
-      const result = await startScan();
-      Alert.alert('Library Scan', result.message ?? 'Scan triggered.');
+      try {
+        const result = await api.auth.startScan();
+        Alert.alert("Library Scan", result?.message ?? "Scan triggered.");
+      } catch {
+        Alert.alert("Error", "Could not trigger scan.");
+      }
     };
 
     return (

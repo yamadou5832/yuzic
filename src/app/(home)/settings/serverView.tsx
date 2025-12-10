@@ -12,7 +12,10 @@ import {
     Easing,
     Platform,
 } from 'react-native';
-import { useServer } from '@/contexts/ServerContext';
+import { useSelector, useDispatch } from 'react-redux';
+import { RootState } from '@/utils/redux/store';
+import { disconnect as reduxDisconnect } from '@/utils/redux/slices/serverSlice';
+import { useApi } from '@/api';
 import { useLibrary } from '@/contexts/LibraryContext';
 import { usePlaying } from '@/contexts/PlayingContext';
 import { useRouter } from 'expo-router';
@@ -20,10 +23,16 @@ import { MaterialIcons, Ionicons } from '@expo/vector-icons';
 import { Loader2 } from 'lucide-react-native';
 
 const ServerView: React.FC = () => {
-    const { serverUrl, username, isAuthenticated, pingServer, disconnect } = useServer();
-    const router = useRouter();
+    const dispatch = useDispatch();
+    const api = useApi();
     const { clearLibrary } = useLibrary();
     const { pauseSong, resetQueue } = usePlaying();
+    const router = useRouter();
+
+    const { serverUrl, username, isAuthenticated } = useSelector(
+        (s: RootState) => s.server
+    );
+
     const colorScheme = Appearance.getColorScheme();
     const isDarkMode = colorScheme === 'dark';
     const [isLoading, setIsLoading] = useState(false);
@@ -49,8 +58,10 @@ const ServerView: React.FC = () => {
     const handlePing = async () => {
         setIsLoading(true);
         try {
-            await pingServer();
-            alert('Server connection successful.');
+            if (!api) return alert('No API available.');
+            const result = await api.auth.ping();
+            if (result) alert('Server connection successful.');
+            else alert('Failed to connect.');
         } catch {
             alert('Failed to connect.');
         } finally {
@@ -63,15 +74,19 @@ const ServerView: React.FC = () => {
             await pauseSong();
             await resetQueue();
             clearLibrary();
-            disconnect();
-            alert('Disconnected.');
-        } catch (e) {
-            console.error('Failed to disconnect cleanly:', e);
-        }
+            dispatch(reduxDisconnect());
+            router.replace('/(onboarding)');
+        } catch (e) {}
     };
 
     return (
-        <SafeAreaView style={[styles.container, isDarkMode && styles.containerDark, Platform.OS === 'android' && { paddingTop: 24 }]}>
+        <SafeAreaView
+            style={[
+                styles.container,
+                isDarkMode && styles.containerDark,
+                Platform.OS === 'android' && { paddingTop: 24 },
+            ]}
+        >
             <View style={styles.header}>
                 <TouchableOpacity
                     onPress={() => router.back()}
@@ -86,7 +101,6 @@ const ServerView: React.FC = () => {
             </View>
 
             <ScrollView contentContainerStyle={styles.scrollContent}>
-                {/* Server Info + Connectivity Together */}
                 <View style={[styles.section, isDarkMode && styles.sectionDark]}>
                     <Text style={[styles.label, isDarkMode && styles.labelDark]}>Server URL</Text>
                     <TextInput
@@ -96,6 +110,7 @@ const ServerView: React.FC = () => {
                         placeholderTextColor="#888"
                         style={[styles.input, isDarkMode && styles.inputDark]}
                     />
+
                     <Text style={[styles.label, isDarkMode && styles.labelDark]}>Username</Text>
                     <TextInput
                         value={username || ''}
@@ -105,11 +120,13 @@ const ServerView: React.FC = () => {
                         style={[styles.inputNoMargin, isDarkMode && styles.inputDark]}
                     />
 
-                    {/* Add a consistent space break */}
                     <View style={{ height: 16 }} />
 
                     <TouchableOpacity style={styles.row} onPress={handlePing}>
-                        <Text style={[styles.rowText, isDarkMode && styles.rowTextDark]}>Connectivity</Text>
+                        <Text style={[styles.rowText, isDarkMode && styles.rowTextDark]}>
+                            Connectivity
+                        </Text>
+
                         {isLoading ? (
                             <Animated.View style={{ transform: [{ rotate: spin }] }}>
                                 <Loader2 size={20} color="#007BFF" />
@@ -124,7 +141,6 @@ const ServerView: React.FC = () => {
                     </TouchableOpacity>
                 </View>
 
-                {/* Disconnect */}
                 <TouchableOpacity
                     style={[styles.disconnectButton, isDarkMode && styles.disconnectButtonDark]}
                     onPress={handleDisconnect}
@@ -148,24 +164,13 @@ const styles = StyleSheet.create({
         padding: 16,
         paddingTop: 6,
     },
-    headerDark: {
-        // No background, keep it transparent like OpenAI
-    },
     headerTitle: {
         fontSize: 18,
         fontWeight: '700',
         marginLeft: 12,
         color: '#000',
     },
-    headerTitleDark: {
-        color: '#fff',
-    },
-    backButton: {
-        width: 44,
-        height: 44,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
+    headerTitleDark: { color: '#fff' },
     scrollContent: { padding: 16, paddingBottom: 100 },
     section: { marginBottom: 24 },
     sectionDark: {

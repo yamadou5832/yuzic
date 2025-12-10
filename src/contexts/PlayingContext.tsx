@@ -18,11 +18,11 @@ import { PlaybackService } from '@/utils/track-player/PlaybackService';
 import { SongData } from '@/types';
 import shuffleArray from '@/utils/shuffleArray';
 import { scrobble } from '@/utils/navidrome/scrobble';
-import { useServer } from "@/contexts/ServerContext";
+import { useSelector } from "react-redux";
+import { RootState } from "@/utils/redux/store";
 import { incrementUserPlayCount } from '@/utils/redux/slices/userStatsSlice';
 import { useDispatch } from 'react-redux';
 import { useDownload } from "@/contexts/DownloadContext";
-import { useSettings } from "@/contexts/SettingsContext"
 
 TrackPlayer.registerPlaybackService(() => PlaybackService);
 
@@ -76,7 +76,9 @@ export const PlayingProvider: React.FC<{ children: ReactNode }> = ({ children })
     const [shuffleOn, setShuffleOn] = useState<boolean>(false);
     const playbackState = usePlaybackState();
     const dispatch = useDispatch();
-    const { serverUrl, username, password } = useServer();
+    const { serverUrl, username, password } = useSelector(
+        (state: RootState) => state.server
+    );
     const { getSongLocalUri } = useDownload();
 
     const isPlaying = playbackState.state === State.Playing;
@@ -109,13 +111,13 @@ export const PlayingProvider: React.FC<{ children: ReactNode }> = ({ children })
             const elapsed = Date.now() - start;
             if (elapsed >= thresholdMs) {
                 try {
-                    await scrobble(currentSong.id, serverUrl, username, password, false); // nowPlaying=false
+                    await scrobble(currentSong.id, serverUrl, username, password, false).catch(() => { });
                     hasScrobbledRef.current = true;
                 } catch (err) {
                     console.warn('Scrobble failed:', err);
                 }
             }
-        }, 10000); // check every 10 seconds
+        }, 10000);
 
         return () => clearInterval(interval);
     }, [currentSong?.id, isPlaying]);

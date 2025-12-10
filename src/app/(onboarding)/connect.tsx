@@ -13,10 +13,12 @@ import {
     ScrollView,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useServer } from '@/contexts/ServerContext';
+import { useSelector, useDispatch } from 'react-redux';
+import { RootState } from '@/utils/redux/store';
+import { setServerUrl, setUsername, setPassword } from '@/utils/redux/slices/serverSlice';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { setServerType } from '@/utils/redux/slices/serverSlice';
-import { useDispatch } from 'react-redux';
+import { useApi } from '@/api';
 import NavidromeIcon from '@assets/images/navidrome.png';
 import JellyfinIcon from '@assets/images/jellyfin.png';
 
@@ -25,17 +27,18 @@ export default function OnboardingScreen() {
     const [localServerUrl, setLocalServerUrl] = useState('');
     const [selectedType, setSelectedType] = useState<'navidrome' | 'jellyfin' | null>(null);
     const [isLayoutMounted, setIsLayoutMounted] = useState(false);
-    const {
-        isAuthenticated,
-        setServerUrl,
-        setUsername,
-        setPassword,
-        serverUrl,
-        testServerUrl,
-    } = useServer();
     const [isTesting, setIsTesting] = useState(false);
     const router = useRouter();
     const dispatch = useDispatch();
+    const api = useApi();
+
+    const { isAuthenticated, serverUrl } = useSelector(
+        (s: RootState) => s.server
+    );
+
+    const updateServerUrl = (url: string) => dispatch(setServerUrl(url));
+    const updateUsername = (u: string) => dispatch(setUsername(u));
+    const updatePassword = (p: string) => dispatch(setPassword(p));
 
     const jellyfinDisabled = true;
 
@@ -68,9 +71,9 @@ export default function OnboardingScreen() {
 
         setIsTesting(true);
         try {
-            const result = await testServerUrl(localServerUrl);
+            const result = await api.auth.testUrl(localServerUrl);
             if (result.success) {
-                setServerUrl(localServerUrl);
+                updateServerUrl(localServerUrl);
                 router.push('(onboarding)/credentials');
             } else {
                 Alert.alert('Error', 'Server could not be reached. Please verify the URL.');
@@ -85,10 +88,18 @@ export default function OnboardingScreen() {
     const handleDemo = async () => {
         setIsTesting(true);
         try {
-            setServerUrl('https://demo.navidrome.org');
-            setUsername('demo');
-            setPassword('demo');
-            router.replace('(home)');
+            updateServerUrl('https://demo.navidrome.org');
+            updateUsername('demo');
+            updatePassword('demo');
+            setTimeout(async () => {
+                const result = await api.auth.connect();
+                if (result.success) {
+                    router.replace('(home)');
+                } else {
+                    Alert.alert('Error', result.message ?? 'Demo login failed.');
+                    setIsTesting(false);
+                }
+            }, 50);
         } catch (e) {
             console.error('Failed to use demo server:', e);
             setIsTesting(false);

@@ -9,7 +9,6 @@ import React, {
 import * as FileSystem from 'expo-file-system';
 import {useLibrary} from "@/contexts/LibraryContext";
 import { useSettings } from '@/contexts/SettingsContext';
-import { usePlaylists } from '@/contexts/PlaylistContext';
 import { AlbumData, PlaylistData } from '@/types';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
@@ -57,8 +56,7 @@ export const DownloadProvider: React.FC<{ children: ReactNode }> = ({ children }
     const [downloadingIds, setDownloadingIds] = useState<string[]>([]);
     const [downloadedSize, setDownloadedSize] = useState<number>(0);
     const { audioQuality } = useSettings();
-    const { albums } = useLibrary();
-    const { playlists } = usePlaylists();
+    const { albums, playlists } = useLibrary();
 
     const cancelledIds = useRef<Set<string>>(new Set());
     const downloadTasks = useRef<Map<string, FileSystem.DownloadResumable>>(new Map());

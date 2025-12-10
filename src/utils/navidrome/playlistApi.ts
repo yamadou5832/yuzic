@@ -1,10 +1,10 @@
-import { getPlaylists } from '@/api/navidrome/getPlaylists';
-import { getPlaylist } from '@/api/navidrome/getPlaylist';
+import { getPlaylists } from '@/api/navidrome/playlists/getPlaylists';
+import { getPlaylist } from '@/api/navidrome/playlists/getPlaylist';
 import {
     addSongToPlaylist,
     removeSongFromPlaylist,
 } from '@/api/navidrome/updatePlaylist';
-import { createPlaylist } from '@/api/navidrome/createPlaylist';
+import { createPlaylist } from '@/api/navidrome/playlists/createPlaylist';
 
 export const fetchPlaylists = async (
     serverUrl: string,

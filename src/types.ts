@@ -61,21 +61,15 @@ export interface AlbumSummary {
 }
 
 export interface ServerContextType {
-    serverType: 'navidrome' | 'jellyfin' | 'none';
-    isLoading: boolean;
-    serverUrl: string;
-    username: string;
-    password: string;
-    isAuthenticated: boolean;
-  
-    connectToServer: (localUsername: string, localPassword: string) => Promise<{ success: boolean; message?: string }>;
-    pingServer: () => Promise<boolean>;
-    testServerUrl: (url: string) => Promise<{ success: boolean; message?: string }>;
-    startScan?: () => Promise<{ success: boolean; message?: string }>;
-    disconnect: () => void;
-    setServerUrl: (url: string) => void;
-    setUsername: (user: string) => void;
-    setPassword: (pass: string) => void;
-    getLibraries?: () => Promise<any[]>;
-  }  
-  
+  serverType: 'navidrome' | 'jellyfin' | 'none';
+  serverUrl: string;
+  username: string;
+  password: string;
+  token?: string | null;
+}
+
+export interface AdapterType {
+  serverUrl: string;
+  username: string;
+  password: string;
+}

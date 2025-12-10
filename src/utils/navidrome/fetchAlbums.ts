@@ -1,9 +1,9 @@
 import { buildCoverArtUrl, buildStreamUrl } from '@/utils/urlBuilders';
 import { AlbumData, ArtistData } from '@/types';
 
-import { getArtist } from '@/api/navidrome/getArtist';
-import { getAlbum } from '@/api/navidrome/getAlbum';
-import { getAlbumInfo } from '@/api/navidrome/getAlbumInfo';
+import { getArtist } from '@/api/navidrome/artists/getArtist';
+import { getAlbum } from '@/api/navidrome/albums/getAlbum';
+import { getAlbumInfo } from '@/api/navidrome/albums/getAlbumInfo';
 
 export const fetchAlbums = async (
     serverUrl: string,

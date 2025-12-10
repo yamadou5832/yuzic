@@ -1,70 +1,62 @@
-import React, { createContext, ReactNode, useContext } from 'react';
-import { useSelector } from 'react-redux';
-import { RootState } from '@/utils/redux/store';
-import { useNavidrome } from './NavidromeContext';
-import { useJellyfin } from './JellyfinContext';
-import { ServerContextType } from '@/types';
+// contexts/ServerContext.tsx
+import React, { createContext, useContext } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "@/utils/redux/store";
+import {
+  setServerType,
+  setServerUrl,
+  setUsername,
+  setPassword,
+  setToken,
+  disconnect,
+  ServerType
+} from "@/utils/redux/slices/serverSlice";
 
-/**
- * Shared ServerContext accessible throughout the app
- */
-const ServerContext = createContext<ServerContextType | undefined>(undefined);
+export interface ServerContextType {
+  serverType: 'navidrome' | 'jellyfin' | 'none';
+  serverUrl: string;
+  username: string;
+  password: string;
+  token: string | null;
+  isAuthenticated: boolean;
 
-export const useServer = () => {
-  const context = useContext(ServerContext);
-  if (!context) throw new Error('useServer must be used within a ServerProvider');
-  return context;
-};
+  setServerType: (t: ServerType) => void;
+  setServerUrl: (url: string) => void;
+  setUsername: (val: string) => void;
+  setPassword: (val: string) => void;
+  setToken: (val: string | null) => void;
 
-/**
- * ServerProvider — provides a unified server context
- * that switches seamlessly between Navidrome and Jellyfin
- * without unmounting or causing UI flicker.
- */
-export const ServerProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const serverType = useSelector((state: RootState) => state.server.type);
+  disconnect: () => void;
+}
 
-  // Keep both contexts mounted at all times
-  const navidrome = useNavidrome();
-  const jellyfin = useJellyfin();
+interface ServerProviderProps {
+  children: React.ReactNode;
+}
 
-  // Helpful combined loading for the "none" state so routing can wait for hydration
-  const anyLoading =
-    Boolean((navidrome as any)?.isLoading) || Boolean((jellyfin as any)?.isLoading);
+const ServerContext = createContext<ServerContextType>(null as any);
 
-  // Choose which context to expose based on Redux type
-  const value: ServerContextType =
-  serverType === 'jellyfin'
-    ? {
-        serverType: 'jellyfin',
-        ...jellyfin,
-        isLoading: (jellyfin as any)?.isLoading ?? false, // ✅ defined after spread
-      }
-    : serverType === 'navidrome'
-    ? {
-        serverType: 'navidrome',
-        ...navidrome,
-        isLoading: (navidrome as any)?.isLoading ?? false, // ✅ defined after spread
-      }
-    : {
-        serverType: 'none',
-        isAuthenticated: false,
-        isLoading:
-          Boolean((navidrome as any)?.isLoading) ||
-          Boolean((jellyfin as any)?.isLoading),
-        serverUrl: '',
-        username: '',
-        password: '',
-        setServerUrl: () => {},
-        setUsername: () => {},
-        setPassword: () => {},
-        connectToServer: async () => ({ success: false, message: 'Not connected' }),
-        pingServer: async () => false,
-        testServerUrl: async () => ({ success: false, message: 'Not connected' }),
-        startScan: async () => ({ success: false, message: 'Not connected' }),
-        getLibraries: async () => [],
-        disconnect: () => {},
-      };
+export const useServer = () => useContext(ServerContext);
+
+export const ServerProvider = ({ children }: ServerProviderProps) => {
+  const dispatch = useDispatch();
+  const state = useSelector((s: RootState) => s.server);
+
+  const value: ServerContextType = {
+    serverType: state?.type ?? 'none',
+    serverUrl: state?.serverUrl ?? '',
+    username: state?.username ?? '',
+    password: state?.password ?? '',
+    token: state?.token ?? null,
+    isAuthenticated: state?.isAuthenticated ?? false,
+
+    setServerType: (t) => dispatch(setServerType(t)),
+    setServerUrl: (url) => dispatch(setServerUrl(url)),
+    setUsername: (u) => dispatch(setUsername(u)),
+    setPassword: (p) => dispatch(setPassword(p)),
+    setToken: (t) => dispatch(setToken(t)),
+
+    disconnect: () => dispatch(disconnect())
+  };
 
   return <ServerContext.Provider value={value}>{children}</ServerContext.Provider>;
 };

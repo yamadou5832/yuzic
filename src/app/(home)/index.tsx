@@ -14,17 +14,17 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Appearance, VirtualizedList } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useLibrary } from '@/contexts/LibraryContext';
-import { usePlaylists } from "@/contexts/PlaylistContext";
 import { useSettings } from '@/contexts/SettingsContext';
 import { Ionicons } from '@expo/vector-icons';
 import BottomSheet from 'react-native-gesture-bottom-sheet';
 import { usePlaying } from '@/contexts/PlayingContext';
 import Item from "@/components/home/Item";
-import { useServer } from '@/contexts/ServerContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import AccountActionSheet from '@/components/AccountActionSheet';
 import { Loader2 } from 'lucide-react-native';
+import { RootState } from '@/utils/redux/store';
+import { useSelector } from 'react-redux';
 
 const isColorLight = (color: string) => {
     const hex = color.replace('#', '');
@@ -40,11 +40,10 @@ const isColorLight = (color: string) => {
 export default function HomeScreen() {
     const navigation = useNavigation();
     const router = useRouter();
-    const { isAuthenticated, disconnect, username, startScan } = useServer();
+    const { isAuthenticated, username } = useSelector((s: RootState) => s.server);
     const colorScheme = Appearance.getColorScheme();
     const isDarkMode = colorScheme === 'dark';
-    const { albums = [], artists = [], fetchLibrary, clearLibrary, isLoading } = useLibrary();
-    const { playlists } = usePlaylists();
+    const { albums = [], artists = [], playlists = [], fetchLibrary, clearLibrary, isLoading } = useLibrary();
     const { themeColor, gridColumns } = useSettings();
     const { currentSong, playSongInCollection, pauseSong, resetQueue } = usePlaying();
 
@@ -320,16 +319,6 @@ export default function HomeScreen() {
                     <Animated.View style={{ transform: [{ rotate: spin }] }}>
                         <Loader2 size={42} color={themeColor} />
                     </Animated.View>
-
-                    <Text
-                        style={{
-                            marginTop: 12,
-                            color: isDarkMode ? '#aaa' : '#666',
-                            fontSize: 16,
-                        }}
-                    >
-                        Loading library…
-                    </Text>
                 </View>
             ) : sortedFilteredData.length > 0 ? (
                 <FlashList

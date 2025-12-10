@@ -13,7 +13,7 @@ import { useRoute, useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { usePlaying } from '@/contexts/PlayingContext';
 import { useSettings } from '@/contexts/SettingsContext';
-import { usePlaylists } from '@/contexts/PlaylistContext';
+import { useLibrary } from '@/contexts/LibraryContext';
 import SongOptions from '@/components/options/SongOptions';
 import ThemedHeartCover from "@/components/ThemedHeartCover";
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -24,7 +24,7 @@ const PlaylistView: React.FC = () => {
     const route = useRoute();
     const { themeColor } = useSettings();
     const navigation = useNavigation();
-    const { playlists } = usePlaylists(); // Access playlists from the LibraryContext
+    const { playlists } = useLibrary();
     const colorScheme = useColorScheme();
     const isDarkMode = colorScheme === 'dark';
     const { playSongInCollection } = usePlaying();

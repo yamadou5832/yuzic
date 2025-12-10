@@ -11,7 +11,6 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useLibrary } from '@/contexts/LibraryContext';
-import {usePlaylists} from "@/contexts/PlaylistContext";
 import TrackPlayer from 'react-native-track-player';
 import { usePlaying } from '@/contexts/PlayingContext';
 import PlaylistList from '@/components/PlaylistList';
@@ -21,8 +20,7 @@ const SongOptions: React.FC<{ selectedSongId: string | null }> = ({ selectedSong
     const colorScheme = useColorScheme();
     const isDarkMode = colorScheme === 'dark';
     const playlistRef = useRef<BottomSheet>(null);
-    const { songs, starred, starItem, unstarItem } = useLibrary();
-    const {playlists, addSongToPlaylist, createPlaylist} = usePlaylists();
+    const { playlists, songs, starred, starItem, unstarItem, addSongToPlaylist, createPlaylist } = useLibrary();
     const { currentSong } = usePlaying();
 
     const [selectedSong, setSelectedSong] = useState<any | null>(null);
@@ -43,6 +41,7 @@ const SongOptions: React.FC<{ selectedSongId: string | null }> = ({ selectedSong
 
     const toggleFavorite = async () => {
         try {
+            console.log(selectedSong)
             if (isStarred) {
                 await unstarItem(selectedSongId!);
                 Alert.alert('Removed from Favorites', `${selectedSong?.title} was removed from favorites.`);

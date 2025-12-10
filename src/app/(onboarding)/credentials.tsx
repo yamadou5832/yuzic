@@ -13,28 +13,26 @@ import {
 } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useServer } from '@/contexts/ServerContext';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '@/utils/redux/store';
+import { setUsername, setPassword } from '@/utils/redux/slices/serverSlice';
+import { useApi } from '@/api';
 
 export default function CredentialsScreen() {
+    const dispatch = useDispatch();
+    const api = useApi();
+
+    const { type, username, password } = useSelector(
+        (state: RootState) => state.server
+    );
+
     const [localUsername, setLocalUsername] = useState('');
     const [localPassword, setLocalPassword] = useState('');
-    const passwordRef = useRef<TextInput>(null);
     const [isTesting, setIsTesting] = useState(false);
 
-    const {
-        setUsername,
-        setPassword,
-        username,
-        password,
-        connectToServer,
-        serverType,
-    } = useServer();
-
+    const passwordRef = useRef<TextInput>(null);
     const router = useRouter();
-    const selectedType = useSelector((state: RootState) => state.server.type);
 
     useEffect(() => {
         if (username) setLocalUsername(username);
@@ -47,22 +45,24 @@ export default function CredentialsScreen() {
             return;
         }
 
+        if (!api) {
+            Alert.alert('Error', 'No API available.');
+            return;
+        }
+
         setIsTesting(true);
         try {
-            setUsername(localUsername);
-            setPassword(localPassword);
-            const result = await connectToServer(localUsername, localPassword);
-            const success = typeof result === 'boolean' ? result : result?.success;
+            dispatch(setUsername(localUsername));
+            dispatch(setPassword(localPassword));
 
-            if (success) {
-                //router.replace('(home)');
+            const result = await api.auth.connect();
+
+            if (result?.success) {
+                router.replace('(home)');
             } else {
-                Alert.alert(
-                    'Error',
-                    result?.message || 'Connection failed. Check your credentials.'
-                );
+                Alert.alert('Error', result?.message || 'Connection failed.');
             }
-        } catch (error) {
+        } catch {
             Alert.alert('Error', 'An error occurred while testing the connection.');
         } finally {
             setIsTesting(false);
@@ -73,7 +73,7 @@ export default function CredentialsScreen() {
         router.back();
     };
 
-    const isJellyfin = serverType === 'jellyfin';
+    const isJellyfin = type === 'jellyfin';
 
     return (
         <SafeAreaView style={styles.container}>

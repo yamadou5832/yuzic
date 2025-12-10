@@ -1,4 +1,4 @@
-import { getSongsByGenre } from '@/api/navidrome/getSongsByGenre';
+import { getSongsByGenre } from '@/api/navidrome/genres/getSongsByGenre';
 import { GenreMaps } from '@/types';
 
 const API_VERSION = '1.16.0';

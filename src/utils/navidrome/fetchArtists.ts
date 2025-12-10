@@ -1,7 +1,7 @@
 import { buildCoverArtUrl } from '@/utils/urlBuilders';
 import { AlbumSummary, ArtistData } from '@/types';
 
-import { getArtists } from '@/api/navidrome/getArtists';
+import { getArtists } from '@/api/navidrome/artists/getArtists';
 import { getArtistInfo } from '@/api/lastfm/getArtistInfo';
 
 export const fetchArtists = async (

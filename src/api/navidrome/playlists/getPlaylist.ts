@@ -1,0 +1,76 @@
+import { PlaylistData, SongData, ArtistData } from "@/types";
+import { buildCoverArtUrl } from "@/utils/urlBuilders";
+
+const API_VERSION = "1.16.0";
+const CLIENT_NAME = "Yuzic";
+
+export type GetPlaylistResult = PlaylistData | null;
+
+async function fetchGetPlaylist(
+  serverUrl: string,
+  username: string,
+  password: string,
+  playlistId: string
+) {
+  const url =
+    `${serverUrl}/rest/getPlaylist.view` +
+    `?u=${encodeURIComponent(username)}` +
+    `&p=${encodeURIComponent(password)}` +
+    `&v=${API_VERSION}` +
+    `&c=${CLIENT_NAME}` +
+    `&f=json` +
+    `&id=${playlistId}`;
+
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`Navidrome getPlaylist failed: ${res.status}`);
+
+  return res.json();
+}
+
+function normalizePlaylist(
+  raw: any,
+  serverUrl: string,
+  username: string,
+  password: string
+): PlaylistData | null {
+  const playlist = raw?.["subsonic-response"]?.playlist;
+  if (!playlist) return null;
+
+  const entries = playlist.entry || [];
+
+  const cover = buildCoverArtUrl(playlist.coverArt, serverUrl, username, password);
+
+  const songs: SongData[] = entries.map((s: any) => ({
+    id: s.id,
+    title: s.title,
+    artist: s.artist,
+    duration: s.duration,
+    cover,
+    albumId: s.albumId,
+    genres: [],
+    globalPlayCount: 0,
+    userPlayCount: 0,
+    streamUrl:
+      `${serverUrl}/rest/stream.view?id=${s.id}&u=${encodeURIComponent(
+        username
+      )}&p=${encodeURIComponent(password)}&v=${API_VERSION}&c=${CLIENT_NAME}`
+  }));
+
+  return {
+    id: playlist.id,
+    cover,
+    title: playlist.name ?? "Playlist",
+    subtext: `Playlist • ${songs.length} songs`,
+    songs
+  };
+}
+
+export async function getPlaylist(
+  serverUrl: string,
+  username: string,
+  password: string,
+  playlistId: string
+): Promise<GetPlaylistResult> {
+  const raw = await fetchGetPlaylist(serverUrl, username, password, playlistId);
+  return normalizePlaylist(raw, serverUrl, username, password);
+}

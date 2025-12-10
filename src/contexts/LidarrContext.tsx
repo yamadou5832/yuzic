@@ -4,7 +4,7 @@ import { RootState } from '@/utils/redux/store';
 import { setServerUrl, setApiKey, setAuthenticated, disconnect } from '@/utils/redux/slices/lidarrSlice';
 import { toast } from '@backpackapp-io/react-native-toast';
 import { useLibrary } from "@/contexts/LibraryContext";
-import { useServer } from "@/contexts/ServerContext"
+import { useApi } from "@/api";
 import { useSettings } from "@/contexts/SettingsContext";
 
 interface LidarrContextType {
@@ -42,7 +42,7 @@ export const useLidarr = () => {
 
 export const LidarrProvider: React.FC<LidarrProviderProps> = ({ children }) => {
     const dispatch = useDispatch();
-    const { startScan } = useServer();
+    const api = useApi();
     const { fetchLibrary } = useLibrary();
     const { lidarrEnabled } = useSettings();
     const { serverUrl, apiKey, isAuthenticated } = useSelector(
@@ -330,7 +330,7 @@ export const LidarrProvider: React.FC<LidarrProviderProps> = ({ children }) => {
         if (finishedItems.length > 0) {
             toast('Download complete!', { duration: 5000 });
 
-            startScan().then((result) => {
+            api.auth.startScan().then((result) => {
                 if (result.success) {
                     console.log('Library scan complete');
                     fetchLibrary(true);

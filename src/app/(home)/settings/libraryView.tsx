@@ -16,16 +16,13 @@ import { MaterialIcons, Ionicons } from '@expo/vector-icons';
 import { useLibrary } from '@/contexts/LibraryContext';
 import { useSettings } from "@/contexts/SettingsContext";
 import { useDownload } from '@/contexts/DownloadContext';
-import { usePlaylists } from '@/contexts/PlaylistContext';
 import { Loader2 } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import CoverArt from '@/components/CoverArt';
 import ConfirmActionSheet from '@/components/ConfirmActionSheet';
-import {BottomSheetModal} from '@gorhom/bottom-sheet';
+import { BottomSheetModal } from '@gorhom/bottom-sheet';
 
 const LibraryView: React.FC = () => {
-    const { refreshLibrary, libraryServiceStats, albums } = useLibrary();
-    const { playlists } = usePlaylists();
     const { themeColor, audioQuality, setAudioQuality } = useSettings();
     const [isQualityPickerVisible, setIsQualityPickerVisible] = useState(false);
 
@@ -51,17 +48,27 @@ const LibraryView: React.FC = () => {
     const confirmSheetRef = useRef<BottomSheetModal>(null);
     const [pendingAction, setPendingAction] = useState<null | (() => void)>(null);
     const [confirmMessage, setConfirmMessage] = useState('');
+    const { albums, artists, playlists, fetchLibrary, isLoading: libLoading } = useLibrary();
 
-    const servicesAreReady = useMemo(() => {
-        const services = Object.values(libraryServiceStats);
-        if (services.length === 0) return false;
-        return services.every((stat: any) => stat.status === 'success');
-    }, [libraryServiceStats]);
+    const servicesAreReady = true;
+
+    const libraryServiceStats = useMemo(() => {
+        return {
+            navidrome: {
+                status: "success",
+                meta: {
+                    fetched: albums.length + artists.length + playlists.length,
+                    total: albums.length + artists.length + playlists.length,
+                },
+            },
+        };
+    }, [albums, artists, playlists]);
+
 
     const handleRefreshLibrary = async () => {
         setIsLoading(true);
         try {
-            await refreshLibrary();
+            await fetchLibrary();
             alert('Library refreshed successfully.');
         } catch (error) {
             alert('Failed to refresh library.');
@@ -112,7 +119,7 @@ const LibraryView: React.FC = () => {
         setPendingAction(() => () => action());
         setConfirmMessage(message);
         confirmSheetRef.current?.present();
-      };
+    };
 
     return (
         <SafeAreaView style={[styles.container, isDarkMode && styles.containerDark, Platform.OS === 'android' && { paddingTop: 24 }]}>
@@ -321,63 +328,63 @@ const LibraryView: React.FC = () => {
                     </View>
 
                     <View style={{ marginTop: 8, gap: 12 }}>
-                    {[...albums, ...playlists]
-                        .filter(item =>
-                        (item.songs?.length ?? 0) > 0 &&
-                        (markedAlbums.has(item.id) || markedPlaylists.has(item.id))
-                        )
-                        .map(item => {
-                        const isAlbum = 'artist' in item;
-                        const isDownloaded = isAlbum
-                            ? isAlbumDownloaded(item)
-                            : isPlaylistDownloaded(item);
-                        const isDownloading = downloadingIds.includes(item.id);
-                        const isIncomplete = !isDownloaded && !isDownloading;
+                        {[...albums, ...playlists]
+                            .filter(item =>
+                                (item.songs?.length ?? 0) > 0 &&
+                                (markedAlbums.has(item.id) || markedPlaylists.has(item.id))
+                            )
+                            .map(item => {
+                                const isAlbum = 'artist' in item;
+                                const isDownloaded = isAlbum
+                                    ? isAlbumDownloaded(item)
+                                    : isPlaylistDownloaded(item);
+                                const isDownloading = downloadingIds.includes(item.id);
+                                const isIncomplete = !isDownloaded && !isDownloading;
 
-                        const statusLabel = isDownloaded
-                            ? 'Downloaded'
-                            : isDownloading
-                            ? 'Downloading'
-                            : 'Incomplete';
+                                const statusLabel = isDownloaded
+                                    ? 'Downloaded'
+                                    : isDownloading
+                                        ? 'Downloading'
+                                        : 'Incomplete';
 
-                        const statusColor = isDownloaded
-                            ? '#22c55e' // green
-                            : isDownloading
-                            ? themeColor
-                            : '#f97316'; // orange
+                                const statusColor = isDownloaded
+                                    ? '#22c55e' // green
+                                    : isDownloading
+                                        ? themeColor
+                                        : '#f97316'; // orange
 
-                        return (
-                            <View key={item.id} style={[styles.downloadItemCard, isDarkMode && styles.downloadItemCardDark]}>
-                            <CoverArt source={item.cover} size={48} />
-                            <View style={{ flex: 1, marginLeft: 12 }}>
-                                <Text style={[styles.downloadItemTitle, isDarkMode && styles.downloadItemTitleDark]}>
-                                {item.title}
-                                </Text>
-                                <Text style={[styles.downloadItemSub, isDarkMode && styles.downloadItemSubDark]}>
-                                {isAlbum ? 'Album' : 'Playlist'} • {item.songs.length} songs
-                                </Text>
-                            </View>
-                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                            <View
-                                style={[
-                                styles.statusBadge,
-                                { backgroundColor: statusColor + '22', borderColor: statusColor },
-                                ]}
-                            >
-                                <Text style={{ color: statusColor, fontSize: 12, fontWeight: '600' }}>
-                                {statusLabel}
-                                </Text>
-                            </View>
+                                return (
+                                    <View key={item.id} style={[styles.downloadItemCard, isDarkMode && styles.downloadItemCardDark]}>
+                                        <CoverArt source={item.cover} size={48} />
+                                        <View style={{ flex: 1, marginLeft: 12 }}>
+                                            <Text style={[styles.downloadItemTitle, isDarkMode && styles.downloadItemTitleDark]}>
+                                                {item.title}
+                                            </Text>
+                                            <Text style={[styles.downloadItemSub, isDarkMode && styles.downloadItemSubDark]}>
+                                                {isAlbum ? 'Album' : 'Playlist'} • {item.songs.length} songs
+                                            </Text>
+                                        </View>
+                                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                                            <View
+                                                style={[
+                                                    styles.statusBadge,
+                                                    { backgroundColor: statusColor + '22', borderColor: statusColor },
+                                                ]}
+                                            >
+                                                <Text style={{ color: statusColor, fontSize: 12, fontWeight: '600' }}>
+                                                    {statusLabel}
+                                                </Text>
+                                            </View>
 
-                            {isDownloading && (
-                                <TouchableOpacity onPress={() => cancelDownload(item.id)}>
-                                <MaterialIcons name="cancel" size={18} color={statusColor} />
-                                </TouchableOpacity>
-                            )}
-                            </View>
-                            </View>
-                        );
-                        })}
+                                            {isDownloading && (
+                                                <TouchableOpacity onPress={() => cancelDownload(item.id)}>
+                                                    <MaterialIcons name="cancel" size={18} color={statusColor} />
+                                                </TouchableOpacity>
+                                            )}
+                                        </View>
+                                    </View>
+                                );
+                            })}
                     </View>
                     <View style={styles.row}>
                         <Text style={[styles.rowText, isDarkMode && styles.rowTextDark]}>
@@ -401,8 +408,8 @@ const LibraryView: React.FC = () => {
                 description={confirmMessage}
                 themeColor={themeColor}
                 onConfirm={() => {
-                pendingAction?.();
-                confirmSheetRef.current?.dismiss();
+                    pendingAction?.();
+                    confirmSheetRef.current?.dismiss();
                 }}
                 onCancel={() => confirmSheetRef.current?.dismiss()}
             />
@@ -421,7 +428,7 @@ const styles = StyleSheet.create({
         padding: 16,
         paddingTop: 6,
     },
-    headerDark: { 
+    headerDark: {
         // No background, keep it transparent like OpenAI
     },
     headerTitle: {
@@ -447,43 +454,43 @@ const styles = StyleSheet.create({
         backgroundColor: '#f7f7f7',
         borderWidth: 1,
         borderColor: '#ddd',
-      },
-      downloadItemCardDark: {
+    },
+    downloadItemCardDark: {
         backgroundColor: '#1a1a1a',
         borderColor: '#333',
-      },
-      statusBadge: {
+    },
+    statusBadge: {
         borderWidth: 1,
         borderRadius: 999,
         paddingHorizontal: 10,
         paddingVertical: 4,
-      },
-      downloadItemSub: {
+    },
+    downloadItemSub: {
         fontSize: 12,
         color: '#666',
         marginTop: 2,
-      },
-      downloadItemSubDark: {
+    },
+    downloadItemSubDark: {
         color: '#aaa',
-      },
-      downloadItemRow: {
+    },
+    downloadItemRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
         paddingVertical: 10,
         borderBottomWidth: 1,
         borderColor: '#eee',
-      },
-      downloadItemRowDark: {
+    },
+    downloadItemRowDark: {
         borderColor: '#333',
-      },
-      downloadItemTitle: {
+    },
+    downloadItemTitle: {
         fontSize: 14,
         color: '#444',
-      },
-      downloadItemTitleDark: {
+    },
+    downloadItemTitleDark: {
         color: '#ccc',
-      },      
+    },
     infoText: {
         fontSize: 13,
         color: '#555',

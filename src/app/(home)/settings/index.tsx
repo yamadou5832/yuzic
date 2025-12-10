@@ -12,16 +12,18 @@ import {
 } from 'react-native';
 import { useLidarr } from '@/contexts/LidarrContext';
 import { useSettings } from '@/contexts/SettingsContext';
-import { useServer } from '@/contexts/ServerContext'
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Appearance } from 'react-native';
 import { Ionicons, Entypo, MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/utils/redux/store';
 
 export default function SettingsScreen() {
     const router = useRouter();
     const { isAuthenticated } = useLidarr();
-    const { serverType, username, serverUrl } = useServer()
+    const { type: serverType, username, serverUrl, isAuthenticated: isServerAuthenticated } =
+        useSelector((s: RootState) => s.server);
     const { themeColor, lidarrEnabled, setLidarrEnabled } = useSettings();
     const [tempLidarrEnabled, setTempLidarrEnabled] = useState(lidarrEnabled);
     const colorScheme = Appearance.getColorScheme();

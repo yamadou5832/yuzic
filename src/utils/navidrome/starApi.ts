@@ -1,6 +1,6 @@
-import { star } from '@/api/navidrome/star';
-import { unstar } from '@/api/navidrome/unstar';
-import { getStarredItems } from '@/api/navidrome/getStarredItems';
+import { star } from '@/api/navidrome/starred/star';
+import { unstar } from '@/api/navidrome/starred/unstar';
+import { getStarredItems } from '@/api/navidrome/starred/getStarredItems';
 
 export const starItem = async (
     serverUrl: string,

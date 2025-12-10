@@ -1,30 +1,31 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'expo-router';
-import { useServer } from '@/contexts/ServerContext';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/utils/redux/store';
 import { View, ActivityIndicator } from 'react-native';
 
 export default function Index() {
-  const { isAuthenticated, isLoading } = useServer();
-  const { type, serverUrl } = useSelector((s: RootState) => s.server);
   const router = useRouter();
   const [isMounted, setIsMounted] = useState(false);
 
+  const { type, serverUrl, isAuthenticated } = useSelector(
+    (s: RootState) => s.server
+  );
+
   useEffect(() => {
-    const timeout = setTimeout(() => setIsMounted(true), 100);
+    const timeout = setTimeout(() => setIsMounted(true), 150);
     return () => clearTimeout(timeout);
   }, []);
 
   useEffect(() => {
-    if (!isMounted || isLoading) return;
+    if (!isMounted) return;
 
-    if (isAuthenticated && type && serverUrl) {
-      router.replace('/(home)');
+    if (isAuthenticated && type !== "none" && serverUrl) {
+      router.replace("/(home)");
     } else {
-      router.replace('/(onboarding)');
+      router.replace("/(onboarding)");
     }
-  }, [isMounted, isLoading, isAuthenticated, type, serverUrl]);
+  }, [isMounted, isAuthenticated, type, serverUrl]);
 
   return (
     <View

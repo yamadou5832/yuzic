@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { useLibrary } from '@/contexts/LibraryContext';
-import { usePlaylists } from '@/contexts/PlaylistContext';
 import { AlbumData, ArtistData, PlaylistData, SongData } from '@/types';
 
 interface SearchContextType {
@@ -36,8 +35,7 @@ export const useSearch = () => {
 };
 
 export const SearchProvider: React.FC<SearchProviderProps> = ({ children }) => {
-    const { albums, artists, songs } = useLibrary();
-    const { playlists } = usePlaylists();
+    const { albums, artists, playlists, songs } = useLibrary();
     const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(false);
 

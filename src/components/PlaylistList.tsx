@@ -10,10 +10,10 @@ import {
     Dimensions
 } from 'react-native';
 import BottomSheet from 'react-native-gesture-bottom-sheet';
-import { usePlaylists } from '@/contexts/PlaylistContext';
 import { useSettings } from '@/contexts/SettingsContext';
 import { Ionicons } from '@expo/vector-icons';
 import CoverArt from "@/components/CoverArt";
+import { useLibrary } from '@/contexts/LibraryContext';
 
 type PlaylistListProps = {
     selectedSong: any;
@@ -29,7 +29,7 @@ const PlaylistList = forwardRef<BottomSheet, PlaylistListProps>(
         const { themeColor } = useSettings();
         const isDarkMode = colorScheme === 'dark';
 
-        const { playlists, addSongToPlaylist, removeSongFromPlaylist, createPlaylist } = usePlaylists();
+        const { playlists, addSongToPlaylist, removeSongFromPlaylist, createPlaylist } = useLibrary();
 
         const [searchQuery, setSearchQuery] = useState('');
         const [newPlaylistName, setNewPlaylistName] = useState('');

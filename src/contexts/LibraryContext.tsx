@@ -1,92 +1,93 @@
-import React, { createContext, useContext, ReactNode, useEffect, useRef, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { useServer } from '@/contexts/ServerContext';
-import { RootState } from '@/utils/redux/store';
-import { useStore } from 'react-redux';
+import React, {
+    createContext,
+    useContext,
+    ReactNode,
+    useEffect,
+    useRef,
+    useState,
+} from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "@/utils/redux/store";
+import { useApi } from "@/api";
 import {
     resetLibraryState,
-} from '@/utils/redux/slices/librarySlice';
-import { resetGenreMaps } from '@/utils/redux/slices/genreSlice';
-import { resetStatsMap } from '@/utils/redux/slices/statsSlice';
-import { fetchStarredService } from '@/utils/library/starredService';
-import {
-    starItem,
-    unstarItem,
-} from "@/utils/navidrome/starApi";
-import {
-    favoriteItemJellyfin,
-    unfavoriteItemJellyfin,
-} from "@/utils/jellyfin/starApi";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { runLibraryServices } from '@/utils/library/runLibraryServices';
-import { fetchAlbumsService } from '@/utils/library/albumsService';
-import { fetchGenresService } from '@/utils/library/genresService';
-import { fetchStatsService } from '@/utils/library/statsService';
-import { fetchArtistsService } from '@/utils/library/artistsService';
-import { AlbumData, SongData, ArtistData } from '@/types';
+    setAlbums,
+    setArtists,
+    setStarred,
+    setPlaylists,
+} from "@/utils/redux/slices/librarySlice";
+import { resetGenreMaps } from "@/utils/redux/slices/genreSlice";
+import { resetStatsMap } from "@/utils/redux/slices/statsSlice";
+import { AlbumData, ArtistData, PlaylistData, SongData } from "@/types";
 
 interface LibraryContextType {
     albums: AlbumData[];
     artists: ArtistData[];
-    starred: { albums: AlbumData[]; artists: ArtistData[]; songs: SongData[] };
+    playlists: PlaylistData[];
+    starred: {
+        albums: AlbumData[];
+        artists: ArtistData[];
+        songs: SongData[];
+    };
     songs: SongData[];
+
     fetchLibrary: (force?: boolean) => Promise<void>;
     refreshLibrary: () => void;
     clearLibrary: () => void;
+
     starItem: (id: string) => Promise<void>;
     unstarItem: (id: string) => Promise<void>;
-    libraryServiceStats: Record<string, any>;
-    isLoading: boolean;
-}
 
-interface LibraryProviderProps {
-    children: ReactNode;
+    addSongToPlaylist: (playlistId: string, song: SongData) => Promise<void>;
+    removeSongFromPlaylist: (playlistId: string, songId: string) => Promise<void>;
+    createPlaylist: (name: string) => Promise<void>;
+
+    isLoading: boolean;
 }
 
 const LibraryContext = createContext<LibraryContextType | undefined>(undefined);
 
 export const useLibrary = () => {
-    const context = useContext(LibraryContext);
-    if (!context) {
-        throw new Error('useLibrary must be used within a LibraryProvider');
-    }
-    return context;
+    const ctx = useContext(LibraryContext);
+    if (!ctx) throw new Error("useLibrary must be used within LibraryProvider");
+    return ctx;
 };
 
-export const LibraryProvider: React.FC<LibraryProviderProps> = ({ children }) => {
-    const { serverType, serverUrl, username, password } = useServer();
+export const LibraryProvider = ({ children }: { children: ReactNode }) => {
     const dispatch = useDispatch();
-    const reduxStore = useStore();
-    const { albums, artists, starred } = useSelector((state: RootState) => state.library);
-    const { services: libraryServiceStats } = useSelector((state: RootState) => state.libraryStatus);
+
+    const serverState = useSelector(
+        (s: RootState) => s.server
+    );
+
+    const { albums, artists, starred, playlists } = useSelector(
+        (state: RootState) => state.library
+    );
+
     const isLibraryFetchedRef = useRef(false);
     const [isLoading, setIsLoading] = useState(false);
 
-    const context = {
-        serverType,
-        serverUrl,
-        username,
-        password,
-        dispatch,
-        getState: () => reduxStore.getState() as RootState,
-    };
+    const api = useApi();
 
     const fetchLibrary = async (force = false) => {
-        if (!serverType || !serverUrl || !username || !password || (isLibraryFetchedRef.current && !force))
-            return;
+        if (isLibraryFetchedRef.current && !force) return;
 
         setIsLoading(true);
         isLibraryFetchedRef.current = true;
 
         try {
-            await runLibraryServices([fetchAlbumsService], context);
+            const [albumList, artistList, starredList, playlistList] =
+                await Promise.all([
+                    api.albums.list(),
+                    api.artists.list(),
+                    api.starred.list(),
+                    api.playlists.list(),
+                ]);
 
-            await runLibraryServices(
-                [fetchGenresService, fetchArtistsService, fetchStarredService],
-                context
-            );
-
-            runLibraryServices([fetchStatsService], context);
+            dispatch(setAlbums(albumList));
+            dispatch(setArtists(artistList));
+            dispatch(setStarred(starredList));
+            dispatch(setPlaylists(playlistList));
         } finally {
             setIsLoading(false);
         }
@@ -100,44 +101,6 @@ export const LibraryProvider: React.FC<LibraryProviderProps> = ({ children }) =>
         fetchLibrary();
     };
 
-    const allSongs: SongData[] = albums.flatMap(album => album.songs || []);
-
-    const handleStarItem = async (id: string) => {
-        if (!serverType || !serverUrl || !username || !password) return;
-
-        if (serverType === "jellyfin") {
-            const token = await AsyncStorage.getItem("jellyfin_token");
-            const userId = await AsyncStorage.getItem("jellyfin_userId");
-            if (!token || !userId) {
-                console.warn("[Library] Missing Jellyfin credentials for starItem");
-                return;
-            }
-            await favoriteItemJellyfin(serverUrl, userId, token, id);
-        } else {
-            await starItem(serverUrl, username, password, id);
-        }
-
-        await runLibraryServices([fetchStarredService], context);
-    };
-
-    const handleUnstarItem = async (id: string) => {
-        if (!serverType || !serverUrl || !username || !password) return;
-
-        if (serverType === "jellyfin") {
-            const token = await AsyncStorage.getItem("jellyfin_token");
-            const userId = await AsyncStorage.getItem("jellyfin_userId");
-            if (!token || !userId) {
-                console.warn("[Library] Missing Jellyfin credentials for unstarItem");
-                return;
-            }
-            await unfavoriteItemJellyfin(serverUrl, userId, token, id);
-        } else {
-            await unstarItem(serverUrl, username, password, id);
-        }
-
-        await runLibraryServices([fetchStarredService], context);
-    };
-
     const clearLibrary = () => {
         dispatch(resetLibraryState());
         dispatch(resetGenreMaps());
@@ -145,20 +108,75 @@ export const LibraryProvider: React.FC<LibraryProviderProps> = ({ children }) =>
         isLibraryFetchedRef.current = false;
     };
 
+    const starItem = async (id: string) => {
+        await api.starred.add(id);
+        dispatch(setStarred(await api.starred.list()));
+        dispatch(setPlaylists(await api.playlists.list()));
+    };
+
+    const unstarItem = async (id: string) => {
+        await api.starred.remove(id);
+        dispatch(setStarred(await api.starred.list()));
+        dispatch(setPlaylists(await api.playlists.list()));
+    };
+
+    const addSongToPlaylist = async (playlistId: string, song: SongData) => {
+        await api.playlists.addSong(playlistId, song.id);
+        dispatch(setPlaylists(await api.playlists.list()));
+    };
+
+    const removeSongFromPlaylist = async (playlistId: string, songId: string) => {
+        await api.playlists.removeSong(playlistId, songId);
+        dispatch(setPlaylists(await api.playlists.list()));
+    };
+
+    const createPlaylist = async (name: string) => {
+        await api.playlists.create(name);
+        dispatch(setPlaylists(await api.playlists.list()));
+    };
+
+    const allSongs: SongData[] = albums.flatMap((a) => a.songs || []);
+
+    const safeStarred = {
+        albumIds: starred?.albumIds ?? [],
+        artistIds: starred?.artistIds ?? [],
+        songIds: starred?.songIds ?? [],
+    };
+
+    const hydratedStarred = {
+        albums: albums.filter((a) => safeStarred.albumIds.includes(a.id)),
+        artists: artists.filter((a) => safeStarred.artistIds.includes(a.id)),
+        songs: allSongs.filter((s) => safeStarred.songIds.includes(s.id)),
+    };
+
+    const favoritesPlaylist: PlaylistData = {
+        id: "favorite",
+        title: "Favorites",
+        subtext: `Playlist • ${hydratedStarred.songs.length} songs`,
+        cover: "heart-icon",
+        songs: hydratedStarred.songs,
+    };
+
     return (
         <LibraryContext.Provider
             value={{
                 albums,
                 artists,
-                starred,
+                playlists: [favoritesPlaylist, ...playlists],
+                starred: hydratedStarred,
                 songs: allSongs,
+
                 fetchLibrary,
                 refreshLibrary,
                 clearLibrary,
-                starItem: handleStarItem,
-                unstarItem: handleUnstarItem,
-                libraryServiceStats,
-                isLoading
+
+                starItem,
+                unstarItem,
+                addSongToPlaylist,
+                removeSongFromPlaylist,
+                createPlaylist,
+
+                isLoading,
             }}
         >
             {children}

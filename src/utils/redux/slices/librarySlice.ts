@@ -1,24 +1,24 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { AlbumData, PlaylistData, SongData, ArtistData } from "@/types";
 
-interface StarredData {
-    albums: AlbumData[];
-    artists: ArtistData[];
-    songs: SongData[];
+interface StarredState {
+  albumIds: string[];
+  artistIds: string[];
+  songIds: string[];
 }
 
 interface LibraryState {
     albums: AlbumData[];
     artists: ArtistData[];
     playlists: PlaylistData[];
-    starred: StarredData;
+    starred: StarredState;
 }
 
 const initialState: LibraryState = {
     albums: [],
     artists: [],
     playlists: [],
-    starred: { albums: [], artists: [], songs: [] },
+    starred: { albumIds: [], artistIds: [], songIds: [] },
 };
 
 const librarySlice = createSlice({
@@ -34,14 +34,11 @@ const librarySlice = createSlice({
         setPlaylists(state, action: PayloadAction<PlaylistData[]>) {
             state.playlists = action.payload;
         },
-        setStarred(state, action: PayloadAction<StarredData>) {
+        setStarred(state, action: PayloadAction<StarredState>) {
             state.starred = action.payload;
         },
         resetLibraryState(state) {
-            state.albums = [];
-            state.artists = [];
-            state.playlists = [];
-            state.starred = { albums: [], artists: [], songs: [] };
+            return initialState;
         },
     },
 });

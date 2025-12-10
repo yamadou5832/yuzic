@@ -1,17 +1,69 @@
-export const getAlbumSongs = async (
-    serverUrl: string,
-    token: string,
-    albumId: string
-) => {
-    const response = await fetch(
-        `${serverUrl}/Items?ParentId=${albumId}` +
-        `&IncludeItemTypes=Audio&Recursive=true&SortBy=IndexNumber&` +
-        `Fields=Path,MediaSources,RunTimeTicks,Genres,Album,AlbumArtist,PlayCount`,
-        { headers: { 'X-Emby-Token': token } }
-    );
+import { SongData } from "@/types";
+import { buildJellyfinStreamUrl } from "@/utils/urlBuilders";
 
-    if (!response.ok) return null;
+export type GetAlbumSongsResult = SongData[];
 
-    const json = await response.json();
-    return json?.Items || [];
-};
+async function fetchGetAlbumSongs(
+  serverUrl: string,
+  token: string,
+  albumId: string
+) {
+  const url =
+    `${serverUrl}/Items` +
+    `?ParentId=${albumId}` +
+    `&IncludeItemTypes=Audio` +
+    `&Recursive=true` +
+    `&SortBy=IndexNumber` +
+    `&Fields=MediaSources,RunTimeTicks,Genres,Album,AlbumArtist,Artists,UserData,PlayCount` +
+    `&X-Emby-Token=${token}`;
+
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`Jellyfin getAlbumSongs failed: ${res.status}`);
+  return res.json();
+}
+
+function normalizeSongEntry(
+  s: any,
+  albumId: string,
+  cover: string,
+  serverUrl: string,
+  token: string
+): SongData {
+  const ticks =
+    s.RunTimeTicks ??
+    s.MediaSources?.[0]?.RunTimeTicks ??
+    0;
+
+  return {
+    id: s.Id,
+    title: s.Name,
+    artist: s.AlbumArtist || s.Artists?.[0] || "Unknown Artist",
+    cover,
+    duration: String(Math.round(Number(ticks) / 10_000_000)),
+    streamUrl: buildJellyfinStreamUrl(serverUrl, token, s.Id),
+    albumId,
+    genres: s.Genres || [],
+    globalPlayCount: s.PlayCount ?? 0,
+    userPlayCount: s.UserData?.PlayCount ?? 0,
+  };
+}
+
+export async function getAlbumSongs(
+  serverUrl: string,
+  token: string,
+  albumId: string,
+  cover?: string
+): Promise<GetAlbumSongsResult> {
+  const raw = await fetchGetAlbumSongs(serverUrl, token, albumId);
+  const items = raw?.Items ?? [];
+
+  return items.map((s: any) =>
+    normalizeSongEntry(
+      s,
+      albumId,
+      cover ?? "",
+      serverUrl,
+      token
+    )
+  );
+}

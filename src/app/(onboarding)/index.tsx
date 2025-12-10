@@ -2,9 +2,7 @@ import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
-  ActivityIndicator,
   TouchableWithoutFeedback,
-  TouchableOpacity,
   StyleSheet,
   Platform,
   Image,
@@ -12,13 +10,14 @@ import {
 import { useRouter } from 'expo-router';
 import { useSettings } from '@/contexts/SettingsContext';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useServer } from '@/contexts/ServerContext';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/utils/redux/store';
 
 export default function WelcomeScreen() {
   const router = useRouter();
   const { themeColor } = useSettings();
   const [isPressed, setIsPressed] = useState(false);
-  const { isAuthenticated } = useServer();
+  const { isAuthenticated } = useSelector((s: RootState) => s.server);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -80,12 +79,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#000',
     paddingHorizontal: 20,
   },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#000',
-  },
   content: {
     flex: 1,
     justifyContent: 'center',
@@ -124,7 +117,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 6,
     width: '100%',
-    backgroundColor: '#D06CB0',
     height: 48,
     borderRadius: 8,
     zIndex: -1,
@@ -148,12 +140,6 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: '600',
     fontSize: 16,
-  },
-  demoText: {
-    color: '#aaa',
-    fontSize: 14,
-    textDecorationLine: 'underline',
-    marginTop: 8,
   },
   termsText: {
     color: '#888',

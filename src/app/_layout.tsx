@@ -7,9 +7,7 @@ import { useEffect } from 'react';
 import 'react-native-reanimated';
 import { Toasts } from '@backpackapp-io/react-native-toast';
 import { useColorScheme } from '@/hooks/useColorScheme';
-import { ServerProvider } from '@/contexts/ServerContext';
 import { LibraryProvider } from "@/contexts/LibraryContext";
-import { PlaylistProvider } from "@/contexts/PlaylistContext";
 import { PlayingProvider } from "@/contexts/PlayingContext";
 import { SettingsProvider } from "@/contexts/SettingsContext";
 import { SearchProvider } from "@/contexts/SearchContext";
@@ -24,10 +22,6 @@ import { Alert, Platform, Dimensions, View } from 'react-native';
 import { setJSExceptionHandler, setNativeExceptionHandler } from 'react-native-exception-handler';
 import RNRestart from 'react-native-restart';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
-import { NavidromeProvider } from '@/contexts/NavidromeContext';
-import { JellyfinProvider } from '@/contexts/JellyfinContext';
-
-
 
 SplashScreen.preventAutoHideAsync();
 
@@ -82,64 +76,56 @@ We will need to restart the app.
             <Provider store={store}>
                 <PersistGate loading={null} persistor={persistor}>
                     <SettingsProvider>
-                        <NavidromeProvider>
-                            <JellyfinProvider>
-                                <ServerProvider>
-                                    <LibraryProvider>
-                                        <LidarrProvider>
-                                            <PlaylistProvider>
-                                                <DownloadProvider>
-                                                    <PlayingProvider>
-                                                        <AIProvider>
-                                                            <SearchProvider>
-                                                                <GestureHandlerRootView style={{ flex: 1 }}>
-                                                                    <BottomSheetModalProvider>
-                                                                        <Stack>
-                                                                            <Stack.Screen name="(onboarding)" options={{ headerShown: false }} />
-                                                                            <Stack.Screen name="(home)" options={{ headerShown: false }} />
-                                                                            <Stack.Screen name="index" options={{ headerShown: false }} />
-                                                                            <Stack.Screen name="+not-found" />
-                                                                        </Stack>
-                                                                        <StatusBar style="auto" />
-                                                                        <Toasts
-                                                                            defaultStyle={{
-                                                                                view: {
-                                                                                    backgroundColor: isDarkMode ? 'rgba(32,32,32,0.9)' : 'rgba(255,255,255,0.9)',
-                                                                                    borderRadius: 10,
-                                                                                    paddingVertical: 14,
-                                                                                    paddingHorizontal: 20,
-                                                                                    marginHorizontal: 16,
-                                                                                    marginBottom: 24,
-                                                                                    shadowColor: '#000',
-                                                                                    shadowOpacity: 0.15,
-                                                                                    shadowRadius: 10,
-                                                                                    elevation: 4,
-                                                                                },
-                                                                                pressable: {
-                                                                                    backgroundColor: 'transparent', // <-- ADD THIS
-                                                                                },
-                                                                                text: {
-                                                                                    color: isDarkMode ? 'white' : 'black',
-                                                                                    fontSize: 16,
-                                                                                    fontWeight: '500',
-                                                                                },
-                                                                                indicator: {
-                                                                                    marginRight: 12,
-                                                                                },
-                                                                            }}
-                                                                        />
-                                                                    </BottomSheetModalProvider>
-                                                                </GestureHandlerRootView>
-                                                            </SearchProvider>
-                                                        </AIProvider>
-                                                    </PlayingProvider>
-                                                </DownloadProvider>
-                                            </PlaylistProvider>
-                                        </LidarrProvider>
-                                    </LibraryProvider>
-                                </ServerProvider>
-                            </JellyfinProvider>
-                        </NavidromeProvider>
+                        <LibraryProvider>
+                            <LidarrProvider>
+                                <DownloadProvider>
+                                    <PlayingProvider>
+                                        <AIProvider>
+                                            <SearchProvider>
+                                                <GestureHandlerRootView style={{ flex: 1 }}>
+                                                    <BottomSheetModalProvider>
+                                                        <Stack>
+                                                            <Stack.Screen name="(onboarding)" options={{ headerShown: false }} />
+                                                            <Stack.Screen name="(home)" options={{ headerShown: false }} />
+                                                            <Stack.Screen name="index" options={{ headerShown: false }} />
+                                                            <Stack.Screen name="+not-found" />
+                                                        </Stack>
+                                                        <StatusBar style="auto" />
+                                                        <Toasts
+                                                            defaultStyle={{
+                                                                view: {
+                                                                    backgroundColor: isDarkMode ? 'rgba(32,32,32,0.9)' : 'rgba(255,255,255,0.9)',
+                                                                    borderRadius: 10,
+                                                                    paddingVertical: 14,
+                                                                    paddingHorizontal: 20,
+                                                                    marginHorizontal: 16,
+                                                                    marginBottom: 24,
+                                                                    shadowColor: '#000',
+                                                                    shadowOpacity: 0.15,
+                                                                    shadowRadius: 10,
+                                                                    elevation: 4,
+                                                                },
+                                                                pressable: {
+                                                                    backgroundColor: 'transparent', // <-- ADD THIS
+                                                                },
+                                                                text: {
+                                                                    color: isDarkMode ? 'white' : 'black',
+                                                                    fontSize: 16,
+                                                                    fontWeight: '500',
+                                                                },
+                                                                indicator: {
+                                                                    marginRight: 12,
+                                                                },
+                                                            }}
+                                                        />
+                                                    </BottomSheetModalProvider>
+                                                </GestureHandlerRootView>
+                                            </SearchProvider>
+                                        </AIProvider>
+                                    </PlayingProvider>
+                                </DownloadProvider>
+                            </LidarrProvider>
+                        </LibraryProvider>
                     </SettingsProvider>
                 </PersistGate>
             </Provider>
