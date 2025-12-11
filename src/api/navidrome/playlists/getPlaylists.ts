@@ -37,14 +37,13 @@ function normalizePlaylists(
   return list.map((pl: any) => {
     const cover = buildCoverArtUrl(pl.coverArt, serverUrl, username, password);
 
-    const songs: SongData[] = [];
-
     return {
       id: pl.id,
       cover,
       title: pl.name ?? "Playlist",
       subtext: "Playlist",
-      songs,
+      songs: [],
+      songCount: pl.songCount
     };
   });
 }

@@ -54,16 +54,7 @@ export const createNavidromeAdapter = (adapter: AdapterType): ApiAdapter => {
 
   const albums: AlbumsApi = {
     list: async () => {
-      const basicList = await getAlbumList(serverUrl, username, password);
-
-      const hydrated = await Promise.all(
-        basicList.map(async (album) => {
-          const full = await getAlbum(serverUrl, username, password, album.id);
-          return full;
-        })
-      );
-
-      return hydrated.filter((a): a is AlbumData => a !== null);
+      return getAlbumList(serverUrl, username, password);
     },
 
     get: async (id: string) => {
@@ -130,6 +121,7 @@ export const createNavidromeAdapter = (adapter: AdapterType): ApiAdapter => {
             subtext: full.subtext ?? "Playlist",
             cover: full.songs[0]?.cover ?? "",
             songs: full.songs,
+            songCount: full.songCount
           } satisfies PlaylistData;
         })
       );

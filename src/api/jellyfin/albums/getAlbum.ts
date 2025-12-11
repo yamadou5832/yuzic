@@ -34,29 +34,22 @@ function normalizeAlbum(
   const a = raw?.Items?.[0];
   if (!a) return null;
 
-  const albumId = a.Id;
-  const albumTitle = a.Name;
-  const artistName = a.AlbumArtist || a.Artists?.[0] || "Unknown Artist";
-
   const cover =
-    `${serverUrl}/Items/${albumId}/Images/Primary?quality=90&X-Emby-Token=${token}` +
+    `${serverUrl}/Items/${a.Id}/Images/Primary?quality=90&X-Emby-Token=${token}` +
     (a.ImageTags?.Primary ? `&tag=${a.ImageTags.Primary}` : "");
 
+  const artist = a.ArtistItems[0].Name || "Unknown Artist";
+
   return {
-    id: albumId,
+    id: a.Id,
     cover,
-    title: albumTitle,
-    subtext: `Album • ${artistName}`,
-    artist: {
-      id: a.AlbumArtistId || a.ArtistItems?.[0]?.Id || "",
-      name: artistName,
-      cover,
-    },
+    title: a.Name,
+    subtext: `Album • ${artist}`,
+    artist,
+    artistId: a.ArtistItems[0].Id,
     songs: [],
-    genres: a.Genres || [],
-    musicBrainzId: null,
-    lastFmUrl: null,
-    userPlayCount: 0,
+    songCount: 0,
+    userPlayCount: a.UserData.PlayCount,
   };
 }
 
@@ -69,39 +62,14 @@ export async function getAlbum(
   const base = normalizeAlbum(raw, serverUrl, token);
   if (!base) return null;
 
-  const songItems = await getAlbumSongs(serverUrl, token, albumId);
-
-  const songs: SongData[] = songItems.map((s: any) => ({
-    id: s.Id,
-    title: s.Name,
-    artist: s.AlbumArtist || s.Artists?.[0] || "Unknown Artist",
-    cover: base.cover,
-    duration: String(
-      Math.round(
-        Number(
-          s.RunTimeTicks ??
-            s.MediaSources?.[0]?.RunTimeTicks ??
-            0
-        ) / 10_000_000
-      )
-    ),
-    streamUrl: buildJellyfinStreamUrl(serverUrl, token, s.Id),
-    albumId,
-    genres: s.Genres || [],
-    globalPlayCount: s.PlayCount ?? 0,
-    userPlayCount: s.UserData?.PlayCount ?? 0,
-  }));
+  const songs = await getAlbumSongs(serverUrl, token, albumId);
 
   return {
     ...base,
     subtext:
       songs.length > 1
-        ? `Album • ${base.artist.name}`
-        : `Single • ${base.artist.name}`,
+        ? `Album • ${base.artist}`
+        : `Single • ${base.artist}`,
     songs,
-    userPlayCount: songs.reduce(
-      (sum, s) => sum + (s.userPlayCount || 0),
-      0
-    ),
   };
 }

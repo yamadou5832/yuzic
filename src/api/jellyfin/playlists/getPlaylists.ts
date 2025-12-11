@@ -42,7 +42,8 @@ function normalizePlaylistEntry(
     cover,
     title: p.Name ?? "Playlist",
     subtext: "Playlist",
-    songs: []
+    songs: [],
+    songCount: 0,
   };
 }
 

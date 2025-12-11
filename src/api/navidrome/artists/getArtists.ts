@@ -6,6 +6,7 @@ import { buildCoverArtUrl } from "@/utils/urlBuilders";
 const API_VERSION = "1.16.0";
 const CLIENT_NAME = "Yuzic";
 
+export type GetArtistResult = ArtistData;
 export type GetArtistsResult = ArtistData[];
 
 async function fetchGetArtists(
@@ -27,38 +28,21 @@ async function fetchGetArtists(
   return res.json();
 }
 
-async function normalizeArtists(
-  raw: any,
+async function normalizeArtistEntry(
+  a: any,
   serverUrl: string,
   username: string,
   password: string
-): Promise<GetArtistsResult> {
-  const root = raw?.["subsonic-response"]?.artists;
-  if (!root) return [];
+): Promise<GetArtistResult> {
+  const cover = buildCoverArtUrl(a.coverArt, serverUrl, username, password);
 
-  const letters = root.index || [];
-
-  const artistIds: string[] = [];
-  for (const group of letters) {
-    const items = group.artist || [];
-    for (const a of items) {
-      if (a.id) artistIds.push(a.id);
-    }
-  }
-
-  const fullArtists = await Promise.all(
-    artistIds.map(async (id) => {
-      try {
-        const info = await getArtist(serverUrl, username, password, id);
-        return info!;
-      } catch (err) {
-        console.warn("Failed to load artist", id, err);
-        return null;
-      }
-    })
-  );
-
-  return fullArtists.filter((x) => x !== null) as ArtistData[];
+  return {
+    id: a.id,
+    cover,
+    name: a.name,
+    subtext: "Artist",
+    bio: "",
+  };
 }
 
 export async function getArtists(
@@ -67,5 +51,17 @@ export async function getArtists(
   password: string
 ): Promise<GetArtistsResult> {
   const raw = await fetchGetArtists(serverUrl, username, password);
-  return normalizeArtists(raw, serverUrl, username, password);
+
+  const indexes = raw?.["subsonic-response"]?.artists?.index;
+  if (!indexes) return [];
+
+  const flattened = indexes.flatMap((bucket: any) => bucket.artist || []);
+
+  const normalized = await Promise.all(
+    flattened.map((a: any) =>
+      normalizeArtistEntry(a, serverUrl, username, password)
+    )
+  );
+
+  return normalized;
 }

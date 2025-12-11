@@ -3,12 +3,11 @@ export interface AlbumData {
     cover: string;
     title: string;
     subtext: string;
-    artist: ArtistData;
-    songs: SongData[];
-    musicBrainzId?: string | null;
-    lastFmUrl?: string | null;
-    genres?: string[];
-    userPlayCount?: number;
+    artist: string;
+    artistId: string;
+    userPlayCount: number;
+    songs: SongData[]
+    songCount: number;
 }
 
 export interface PlaylistData {
@@ -16,18 +15,16 @@ export interface PlaylistData {
     cover: string;
     title: string;
     subtext: string;
-    songs: SongData[];
+    songs: SongData[]
+    songCount: number;
 }
 
 export interface ArtistData {
     id: string;
     name: string;
     cover: string;
-    subtext?: string;
-    bio?: string;
-    albums?: AlbumSummary[];
-    eps?: AlbumSummary[];
-    singles?: AlbumSummary[];
+    subtext: string;
+    bio: string;
 }
 
 export interface SongData {
@@ -36,10 +33,8 @@ export interface SongData {
     artist: string;
     cover: string;
     duration: string;
-    streamUrl?: string;
-    albumId?: string;
-    genres?: string[]
-    globalPlayCount: number | null;
+    streamUrl: string;
+    albumId: string;
     userPlayCount: number;
 }
 export interface GenreMaps {
@@ -47,17 +42,6 @@ export interface GenreMaps {
     albumGenresMap: Record<string, string[]>;
     albumKeyGenresMap: Record<string, string[]>;
     fetchedGenres: string[];
-}
-
-
-export interface AlbumSummary {
-    id: string;
-    cover: string;
-    title: string;
-    subtext: string;
-    artist: string;
-    playcount?: number;
-    isDownloaded?: boolean;
 }
 
 export interface ServerContextType {

@@ -84,6 +84,7 @@ export const LibraryProvider = ({ children }: { children: ReactNode }) => {
                     api.playlists.list(),
                 ]);
 
+            console.log(albumList)
             dispatch(setAlbums(albumList));
             dispatch(setArtists(artistList));
             dispatch(setStarred(starredList));
@@ -155,6 +156,7 @@ export const LibraryProvider = ({ children }: { children: ReactNode }) => {
         subtext: `Playlist • ${hydratedStarred.songs.length} songs`,
         cover: "heart-icon",
         songs: hydratedStarred.songs,
+        songCount: hydratedStarred.songs.length
     };
 
     return (

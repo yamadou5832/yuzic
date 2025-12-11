@@ -33,48 +33,22 @@ async function normalizeAlbum(
     const albumId = a.Id;
     if (!albumId) return null;
 
-    const artistName = a.AlbumArtist || a.Artists?.[0] || "Unknown Artist";
-
     const cover =
       `${serverUrl}/Items/${albumId}/Images/Primary?quality=90&X-Emby-Token=${token}` +
       (a.ImageTags?.Primary ? `&tag=${a.ImageTags.Primary}` : "");
 
-    let songItems: SongData[] = [];
-    try {
-      songItems = await getAlbumSongs(serverUrl, token, albumId, cover);
-    } catch (error) {
-      console.warn(`Failed to fetch songs for album ${albumId}:`, error);
-    }
-
-    const songs: SongData[] = songItems.map((s: SongData) => ({
-      ...s,
-      albumId,
-      cover,
-    }));
-
-    const artist: ArtistData = {
-      id: a.AlbumArtistId || a.ArtistItems?.[0]?.Id || "",
-      name: artistName,
-      cover,
-    };
+    const artist = a.ArtistItems[0].Name || "Unknown Artist";
 
     return {
       id: albumId,
       cover,
       title: a.Name ?? "Unknown Album",
-      subtext:
-        songs.length > 1
-          ? `Album • ${artistName}`
-          : `Single • ${artistName}`,
+      subtext: `Album • ${artist}`,
       artist,
-      songs,
-      genres: a.Genres || [],
-      musicBrainzId: null,
-      lastFmUrl: null,
-      userPlayCount: songs.reduce(
-        (sum, s) => sum + (s.userPlayCount || 0),
-        0
-      ),
+      artistId: a.ArtistItems[0].Id,
+      songs: [],
+      songCount: 0,
+      userPlayCount: a.UserData.PlayCount ?? 0,
     };
   } catch (error) {
     console.error(`Failed to normalize album:`, error);
@@ -89,18 +63,12 @@ export async function getAlbums(
   try {
     const raw = await fetchGetAlbums(serverUrl, token);
     const items = raw?.Items ?? [];
-    
-    // Use Promise.allSettled instead of Promise.all to handle individual failures gracefully
-    const albumPromises = items.map((a: any) => normalizeAlbum(a, serverUrl, token));
-    const results = await Promise.allSettled(albumPromises);
-    
-    const albums = results
-      .filter((result): result is PromiseFulfilledResult<AlbumData | null> => 
-        result.status === 'fulfilled' && result.value !== null
-      )
-      .map(result => result.value);
 
-    return albums.filter(Boolean) as AlbumData[];
+    const albums = await Promise.all(
+      items.map((a: any) => normalizeAlbum(a, serverUrl, token))
+    );
+
+    return albums.filter((a): a is AlbumData => a !== null);
   } catch (error) {
     console.error(`Failed to fetch albums:`, error);
     return [];

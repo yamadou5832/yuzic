@@ -130,9 +130,7 @@ export const PlayingProvider: React.FC<{ children: ReactNode }> = ({ children })
 
             const next = await TrackPlayer.getTrack(nextIndex);
             if (!next) return;
-
-            console.log("TRACK DEBUG", next);
-
+            
             dispatch(incrementUserPlayCount(next.id));
 
             const localUri = await getSongLocalUri(next.id);
@@ -171,17 +169,6 @@ export const PlayingProvider: React.FC<{ children: ReactNode }> = ({ children })
         };
         setup();
     }, []);
-
-    const logQueueState = async (label: string) => {
-        const queue = await TrackPlayer.getQueue();
-        const currentTrack = await TrackPlayer.getActiveTrack();
-        const index = await TrackPlayer.getActiveTrackIndex();
-
-        console.log(label);
-        console.log('Current Track:', currentTrack?.title, 'ID:', currentTrack?.id);
-        console.log('Index:', index);
-        console.log('Full Queue:', queue.map(q => q.title));
-    };
 
     const toggleRepeat = async () => {
         const nextMode = repeatMode === 'off' ? 'all' : 'off';
@@ -285,7 +272,6 @@ export const PlayingProvider: React.FC<{ children: ReactNode }> = ({ children })
 
             if (currentActiveIndex !== targetActiveIndex) {
                 await move(currentActiveIndex, targetActiveIndex);
-                logQueueState("moved-active-first");
 
                 // Update working copy of the queue after active move
                 const newQueue = [...queue];
@@ -304,12 +290,8 @@ export const PlayingProvider: React.FC<{ children: ReactNode }> = ({ children })
                     // Reflect move in our local working queue
                     const item = queue.splice(actualIndex, 1)[0];
                     queue.splice(i, 0, item);
-
-                    logQueueState(`moved-${item.id}-to-${i}`);
                 }
             }
-
-            logQueueState("done");
         } catch (err) {
             console.error('[moveTrack error]', err);
         }
@@ -414,13 +396,11 @@ export const PlayingProvider: React.FC<{ children: ReactNode }> = ({ children })
         } catch (error) {
             console.error('[playSongInCollection error]', error);
         }
-        logQueueState("collection")
     };
 
     const skipToNext = async () => {
         try {
             await TrackPlayer.skipToNext();
-            logQueueState("skip-to-next")
         } catch (error) {
             console.error('[skipToNext error]', error);
         }

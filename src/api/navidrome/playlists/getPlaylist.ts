@@ -47,8 +47,6 @@ function normalizePlaylist(
     duration: s.duration,
     cover,
     albumId: s.albumId,
-    genres: [],
-    globalPlayCount: 0,
     userPlayCount: 0,
     streamUrl:
       `${serverUrl}/rest/stream.view?id=${s.id}&u=${encodeURIComponent(
@@ -61,7 +59,8 @@ function normalizePlaylist(
     cover,
     title: playlist.name ?? "Playlist",
     subtext: `Playlist • ${songs.length} songs`,
-    songs
+    songs,
+    songCount: playlist.songcount
   };
 }
 

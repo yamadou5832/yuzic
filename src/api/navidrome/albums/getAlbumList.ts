@@ -35,43 +35,19 @@ function normalizeAlbumEntry(
 ): AlbumData {
   const cover = buildCoverArtUrl(a.coverArt, serverUrl, username, password);
 
-  const artist: ArtistData = {
-    id: a.artistId ?? "",
-    name: a.artist ?? "Unknown Artist",
-    cover,
-  };
-
-  const songs: SongData[] = (a.song ?? []).map((s: any) => ({
-    id: s.id,
-    title: s.title,
-    artist: s.artist,
-    duration: s.duration,
-    cover,
-    albumId: s.albumId,
-    genres: [],
-    globalPlayCount: 0,
-    userPlayCount: 0,
-
-    streamUrl:
-      `${serverUrl}/rest/stream.view?id=${s.id}&u=${encodeURIComponent(
-        username
-      )}&p=${encodeURIComponent(password)}&v=${API_VERSION}&c=${CLIENT_NAME}`,
-  }));
-
   return {
     id: a.id,
     cover,
     title: a.title,
     subtext:
-      songs.length > 1
-        ? `Album • ${artist.name}`
-        : `Single • ${artist.name}`,
-    artist,
-    songs,
-    genres: [],
-    musicBrainzId: null,
-    lastFmUrl: null,
-    userPlayCount: songs.reduce((acc, cur) => acc + (cur.userPlayCount ?? 0), 0),
+      a.songCount > 1
+        ? `Album • ${a.artist}`
+        : `Single • ${a.artist}`,
+    artist: a.artist,
+    artistId: a.artistId,
+    userPlayCount: a.playCount,
+    songs: [],
+    songCount: a.songCount
   };
 }
 

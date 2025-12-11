@@ -46,7 +46,7 @@ function normalizeArtistAlbumEntry(
     title,
     subtext: `Album • ${artist}`,
     artist,
-    playcount: a.UserData?.PlayCount ?? 0,
+    playcount: a.UserData.PlayCount ?? 0,
   };
 }
 

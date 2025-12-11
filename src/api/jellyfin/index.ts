@@ -13,23 +13,23 @@ import {
 
 import { AdapterType, PlaylistData } from "@/types";
 
-import { connect } from "./connect";
-import { ping } from "./ping";
-import { testServerUrl } from "./testServerUrl";
-import { startScan } from "./startScan";
-import { getAlbum } from "./getAlbum";
-import { getAlbums } from "./getAlbums";
-import { getArtists } from "./getArtists";
-import { getArtistAlbums } from "./getArtistAlbums";
-import { getPlaylists } from "./getPlaylists";
-import { getPlaylistItems } from "./getPlaylistItems";
-import { createPlaylist } from "./createPlaylist"
-import { addPlaylistItems } from "./addPlaylistItems";
-import { removePlaylistItems } from "./removePlaylistItems";
-import { getStarredItems } from "./getStarredItems";
-import { star } from "./star";
-import { unstar } from "./unstar";
-import { getSongsByGenre } from "./getSongsByGenre";
+import { connect } from "./auth/connect";
+import { ping } from "./auth/ping";
+import { testServerUrl } from "./auth/testServerUrl";
+import { startScan } from "./auth/startScan";
+import { getAlbum } from "./albums/getAlbum";
+import { getAlbums } from "./albums/getAlbums";
+import { getArtists } from "./artists/getArtists";
+import { getArtistAlbums } from "./albums/getArtistAlbums";
+import { getPlaylists } from "./playlists/getPlaylists";
+import { getPlaylistItems } from "./playlists/getPlaylistItems";
+import { createPlaylist } from "./playlists/createPlaylist"
+import { addPlaylistItems } from "./playlists/addPlaylistItems";
+import { removePlaylistItems } from "./playlists/removePlaylistItems";
+import { getStarredItems } from "./starred/getStarredItems";
+import { star } from "./starred/star";
+import { unstar } from "./starred/unstar";
+import { getSongsByGenre } from "./genres/getSongsByGenre";
 
 export const createJellyfinAdapter = (adapter: AdapterType): ApiAdapter => {
   const { serverUrl, username, password, token, userId } = adapter;

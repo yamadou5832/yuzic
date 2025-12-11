@@ -38,22 +38,14 @@ function normalizeAlbum(
 
   const cover = buildCoverArtUrl(album.coverArt, serverUrl, username, password);
 
-  const artist: ArtistData = {
-    id: album.artistId ?? "",
-    name: album.artist ?? "Unknown Artist",
-    cover,
-  };
-
   const songs: SongData[] = (album.song || []).map((s: any) => ({
     id: s.id,
     title: s.title,
     artist: s.artist,
     duration: s.duration,
     cover,
-    albumId: s.albumId,
-    globalPlayCount: 0,
+    albumId: album.id,
     userPlayCount: 0,
-    genres: [],
     streamUrl:
       `${serverUrl}/rest/stream.view?id=${s.id}&u=${encodeURIComponent(
         username
@@ -66,14 +58,13 @@ function normalizeAlbum(
     title: album.name,
     subtext:
       songs.length > 1
-        ? `Album • ${artist.name}`
-        : `Single • ${artist.name}`,
-    artist,
+        ? `Album • ${album.artist}`
+        : `Single • ${album.artist}`,
+    artist: album.artist,
+    artistId: album.artistId,
+    userPlayCount: 0,
     songs,
-    genres: [],
-    musicBrainzId: null,
-    lastFmUrl: null,
-    userPlayCount: songs.reduce((a, b) => a + (b.userPlayCount ?? 0), 0),
+    songCount: album.songCount
   };
 }
 
