@@ -11,10 +11,16 @@ async function fetchGetArtists(
     `?IncludeItemTypes=MusicArtist` +
     `&Recursive=true` +
     `&SortBy=SortName` +
-    `&Fields=PrimaryImageTag,Overview,Genres,DateCreated` +
-    `&X-Emby-Token=${token}`;
+    `&Fields=PrimaryImageTag,Overview,Genres,DateCreated`;
 
-  const res = await fetch(url);
+  const res = await fetch(url, {
+    headers: {
+      "X-Emby-Token": token,
+      "X-Emby-Authorization":
+        `MediaBrowser Client="Yuzic", Device="Mobile", DeviceId="yuzic-device", Version="1.0.0", Token="${token}"`
+    }
+  });
+
   if (!res.ok) throw new Error(`Jellyfin getArtists failed: ${res.status}`);
   return res.json();
 }
@@ -44,9 +50,14 @@ export async function getArtists(
   serverUrl: string,
   token: string
 ): Promise<GetArtistsResult> {
-  const raw = await fetchGetArtists(serverUrl, token);
-  const items = raw?.Items ?? [];
-  return items.map((a: any) =>
-    normalizeArtistEntry(a, serverUrl, token)
-  );
+  try {
+    const raw = await fetchGetArtists(serverUrl, token);
+    const items = raw?.Items ?? [];
+    return items.map((a: any) =>
+      normalizeArtistEntry(a, serverUrl, token)
+    );
+  } catch (error) {
+    console.error(`Failed to fetch artists:`, error);
+    return [];
+  }
 }

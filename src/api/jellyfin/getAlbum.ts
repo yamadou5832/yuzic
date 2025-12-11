@@ -12,10 +12,16 @@ async function fetchGetAlbum(
   const url =
     `${serverUrl}/Items` +
     `?Ids=${albumId}` +
-    `&Fields=Genres,AlbumArtist,ArtistItems,Artists,PrimaryImageAspectRatio,PrimaryImageTag` +
-    `&X-Emby-Token=${token}`;
+    `&Fields=Genres,AlbumArtist,ArtistItems,Artists,PrimaryImageAspectRatio,PrimaryImageTag`;
 
-  const res = await fetch(url);
+  const res = await fetch(url, {
+    headers: {
+      "X-Emby-Token": token,
+      "X-Emby-Authorization":
+        `MediaBrowser Client="Yuzic", Device="Mobile", DeviceId="yuzic-device", Version="1.0.0", Token="${token}"`
+    }
+  });
+
   if (!res.ok) throw new Error(`Jellyfin getAlbum failed: ${res.status}`);
   return res.json();
 }

@@ -11,7 +11,7 @@ import {
   AuthApi,
 } from "../types";
 
-import { AdapterType } from "@/types";
+import { AdapterType, PlaylistData } from "@/types";
 
 import { connect } from "./connect";
 import { ping } from "./ping";
@@ -76,7 +76,7 @@ export const createJellyfinAdapter = (adapter: AdapterType): ApiAdapter => {
 
   const genres: GenresApi = {
     list: async () => {
-      const names = [];
+      const names: string[] = [];
       return {
         songGenresMap: {},
         albumGenresMap: {},
@@ -88,7 +88,30 @@ export const createJellyfinAdapter = (adapter: AdapterType): ApiAdapter => {
 
   const playlists: PlaylistsApi = {
     list: async () => {
-      return getPlaylists(serverUrl, userId, token);
+      const raw = await getPlaylists(serverUrl, userId, token);
+
+      const hydrated = await Promise.allSettled(
+        raw.map(async (p) => {
+          try {
+            const songs = await getPlaylistItems(serverUrl, p.id, userId, token);
+            return {
+              ...p,
+              songs,
+              subtext: `Playlist • ${songs.length} songs`,
+            };
+          } catch (error) {
+            console.warn(`Failed to fetch items for playlist ${p.id}:`, error);
+            // Return playlist with empty songs array rather than failing entirely
+            return p;
+          }
+        })
+      );
+
+      return hydrated
+        .filter((result): result is PromiseFulfilledResult<PlaylistData> =>
+          result.status === 'fulfilled'
+        )
+        .map(result => result.value);
     },
     create: async () => {
       throw new Error("Jellyfin playlists.create not implemented");

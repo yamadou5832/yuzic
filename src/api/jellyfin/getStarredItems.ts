@@ -14,11 +14,14 @@ async function fetchGetStarred(
     `?Recursive=true` +
     `&Filters=IsFavorite` +
     `&IncludeItemTypes=Audio,MusicAlbum,MusicArtist` +
-    `&Fields=Id` +
-    `&X-Emby-Token=${token}`;
+    `&Fields=Id`;
 
   const res = await fetch(url, {
-    headers: { "X-Emby-Token": token }
+    headers: {
+      "X-Emby-Token": token,
+      "X-Emby-Authorization":
+        `MediaBrowser Client="Yuzic", Device="Mobile", DeviceId="yuzic-device", Version="1.0.0", Token="${token}"`
+    }
   });
 
   if (!res.ok) throw new Error(`Jellyfin getStarred failed: ${res.status}`);
@@ -46,6 +49,16 @@ export async function getStarredItems(
   userId: string,
   token: string
 ): Promise<GetStarredItemsResult> {
-  const raw = await fetchGetStarred(serverUrl, userId, token);
-  return normalizeStarred(raw);
+  try {
+    const raw = await fetchGetStarred(serverUrl, userId, token);
+    return normalizeStarred(raw);
+  } catch (error) {
+    console.error(`Failed to fetch starred items:`, error);
+    // Return empty arrays rather than failing entirely
+    return {
+      albumIds: [],
+      artistIds: [],
+      songIds: [],
+    };
+  }
 }

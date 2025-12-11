@@ -12,11 +12,14 @@ async function fetchGetSongsByGenre(
     `${serverUrl}/Items` +
     `?IncludeItemTypes=Audio` +
     `&Genres=${encodeURIComponent(genre)}` +
-    `&Fields=MediaSources,RunTimeTicks,Genres,Album,AlbumArtist,Artists,UserData,PlayCount` +
-    `&X-Emby-Token=${token}`;
+    `&Fields=MediaSources,RunTimeTicks,Genres,Album,AlbumArtist,Artists,UserData,PlayCount`;
 
   const res = await fetch(url, {
-    headers: { "X-Emby-Token": token }
+    headers: {
+      "X-Emby-Token": token,
+      "X-Emby-Authorization":
+        `MediaBrowser Client="Yuzic", Device="Mobile", DeviceId="yuzic-device", Version="1.0.0", Token="${token}"`
+    }
   });
 
   if (!res.ok) throw new Error(`Jellyfin getSongsByGenre failed: ${res.status}`);

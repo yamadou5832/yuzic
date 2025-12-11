@@ -29,56 +29,80 @@ async function normalizeAlbum(
   serverUrl: string,
   token: string
 ): Promise<AlbumData | null> {
-  const albumId = a.Id;
-  const artistName = a.AlbumArtist || a.Artists?.[0] || "Unknown Artist";
+  try {
+    const albumId = a.Id;
+    if (!albumId) return null;
 
-  const cover =
-    `${serverUrl}/Items/${albumId}/Images/Primary?quality=90&X-Emby-Token=${token}` +
-    (a.ImageTags?.Primary ? `&tag=${a.ImageTags.Primary}` : "");
+    const artistName = a.AlbumArtist || a.Artists?.[0] || "Unknown Artist";
 
-  const songItems = await getAlbumSongs(serverUrl, token, albumId, cover);
+    const cover =
+      `${serverUrl}/Items/${albumId}/Images/Primary?quality=90&X-Emby-Token=${token}` +
+      (a.ImageTags?.Primary ? `&tag=${a.ImageTags.Primary}` : "");
 
-  const songs: SongData[] = songItems.map((s: SongData) => ({
-    ...s,
-    albumId,
-    cover,
-  }));
+    let songItems: SongData[] = [];
+    try {
+      songItems = await getAlbumSongs(serverUrl, token, albumId, cover);
+    } catch (error) {
+      console.warn(`Failed to fetch songs for album ${albumId}:`, error);
+    }
 
-  const artist: ArtistData = {
-    id: a.AlbumArtistId || a.ArtistItems?.[0]?.Id || "",
-    name: artistName,
-    cover,
-  };
+    const songs: SongData[] = songItems.map((s: SongData) => ({
+      ...s,
+      albumId,
+      cover,
+    }));
 
-  return {
-    id: albumId,
-    cover,
-    title: a.Name ?? "Unknown Album",
-    subtext:
-      songs.length > 1
-        ? `Album • ${artistName}`
-        : `Single • ${artistName}`,
-    artist,
-    songs,
-    genres: a.Genres || [],
-    musicBrainzId: null,
-    lastFmUrl: null,
-    userPlayCount: songs.reduce(
-      (sum, s) => sum + (s.userPlayCount || 0),
-      0
-    ),
-  };
+    const artist: ArtistData = {
+      id: a.AlbumArtistId || a.ArtistItems?.[0]?.Id || "",
+      name: artistName,
+      cover,
+    };
+
+    return {
+      id: albumId,
+      cover,
+      title: a.Name ?? "Unknown Album",
+      subtext:
+        songs.length > 1
+          ? `Album • ${artistName}`
+          : `Single • ${artistName}`,
+      artist,
+      songs,
+      genres: a.Genres || [],
+      musicBrainzId: null,
+      lastFmUrl: null,
+      userPlayCount: songs.reduce(
+        (sum, s) => sum + (s.userPlayCount || 0),
+        0
+      ),
+    };
+  } catch (error) {
+    console.error(`Failed to normalize album:`, error);
+    return null;
+  }
 }
 
 export async function getAlbums(
   serverUrl: string,
   token: string
 ): Promise<GetAlbumsResult> {
-  const raw = await fetchGetAlbums(serverUrl, token);
-  const items = raw?.Items ?? [];
-  const albums = await Promise.all(
-    items.map((a: any) => normalizeAlbum(a, serverUrl, token))
-  );
+  try {
+    const raw = await fetchGetAlbums(serverUrl, token);
+    const items = raw?.Items ?? [];
+    
+    // Use Promise.allSettled instead of Promise.all to handle individual failures gracefully
+    const albumPromises = items.map((a: any) => normalizeAlbum(a, serverUrl, token));
+    const results = await Promise.allSettled(albumPromises);
+    
+    const albums = results
+      .filter((result): result is PromiseFulfilledResult<AlbumData | null> => 
+        result.status === 'fulfilled' && result.value !== null
+      )
+      .map(result => result.value);
 
-  return albums.filter(Boolean) as AlbumData[];
+    return albums.filter(Boolean) as AlbumData[];
+  } catch (error) {
+    console.error(`Failed to fetch albums:`, error);
+    return [];
+  }
 }

@@ -14,7 +14,12 @@ async function fetchGetPlaylistItems(
     `?userId=${userId}`;
 
   const res = await fetch(url, {
-    headers: { "X-Emby-Token": token, "Content-Type": "application/json" }
+    headers: {
+      "X-Emby-Token": token,
+      "X-Emby-Authorization":
+        `MediaBrowser Client="Yuzic", Device="Mobile", DeviceId="yuzic-device", Version="1.0.0", Token="${token}"`,
+      "Content-Type": "application/json"
+    }
   });
 
   if (!res.ok) throw new Error(`Jellyfin getPlaylistItems failed: ${res.status}`);
