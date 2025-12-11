@@ -1,5 +1,6 @@
 import { ArtistData, AlbumSummary } from "@/types";
 import { buildCoverArtUrl } from "@/utils/urlBuilders";
+import { getArtistInfo } from "@/api/lastfm/getArtistInfo";
 
 const API_VERSION = "1.16.0";
 const CLIENT_NAME = "Yuzic";
@@ -46,28 +47,69 @@ function toAlbumSummary(
   };
 }
 
+function fromLastFmSummary(album: any, artistName: string): AlbumSummary {
+  const cover =
+    album.image?.find((img: any) => img.size === "extralarge")?.["#text"] || "";
+
+  const title = album.name ?? "";
+  const artist = album.artist?.name ?? artistName;
+
+  let subtext = "Album";
+  const lower = title.toLowerCase();
+  if (lower.includes("ep")) subtext = "EP";
+  else if (lower.includes("single")) subtext = "Single";
+
+  return {
+    id: album.mbid || `${artist}-${title}`,
+    cover,
+    title,
+    subtext,
+    artist,
+    playcount: album.playcount ? Number(album.playcount) : undefined,
+    isDownloaded: false
+  };
+}
+
 function normalizeArtist(
   raw: any,
   serverUrl: string,
   username: string,
-  password: string
+  password: string,
+  lastFmData: { albums: any[]; bio: string | null }
 ): GetArtistResult {
   const artist = raw?.["subsonic-response"]?.artist;
   if (!artist) return null;
 
   const cover = buildCoverArtUrl(artist.coverArt, serverUrl, username, password);
 
-  const albums: AlbumSummary[] = (artist.album || []).map((a: any) =>
+  const ndAlbums: AlbumSummary[] = (artist.album || []).map((a: any) =>
     toAlbumSummary(a, serverUrl, username, password)
   );
+
+  const lfSummaries: AlbumSummary[] = (lastFmData.albums || []).map((a: any) =>
+    fromLastFmSummary(a, artist.name)
+  );
+
+  const albums = [];
+  const eps = [];
+  const singles = [];
+
+  for (const alb of lfSummaries) {
+    const lower = alb.title.toLowerCase();
+
+    if (alb.subtext === "EP") eps.push(alb);
+    else if (alb.subtext === "Single") singles.push(alb);
+    else albums.push(alb);
+  }
 
   return {
     id: artist.id ?? "",
     name: artist.name ?? "Unknown Artist",
     cover,
-    albums,
-    eps: [],
-    singles: []
+    bio: lastFmData.bio ?? "",
+    albums: [...ndAlbums, ...albums],
+    eps,
+    singles
   };
 }
 
@@ -78,5 +120,12 @@ export async function getArtist(
   artistId: string
 ): Promise<GetArtistResult> {
   const raw = await fetchGetArtist(serverUrl, username, password, artistId);
-  return normalizeArtist(raw, serverUrl, username, password);
+
+  const artistName =
+    raw?.["subsonic-response"]?.artist?.name ?? "";
+  const lastFmData = artistName
+    ? await getArtistInfo(artistName)
+    : { albums: [], bio: null };
+
+  return normalizeArtist(raw, serverUrl, username, password, lastFmData);
 }

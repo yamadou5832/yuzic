@@ -54,7 +54,7 @@ const LibraryView: React.FC = () => {
 
     const libraryServiceStats = useMemo(() => {
         return {
-            navidrome: {
+            library: {
                 status: "success",
                 meta: {
                     fetched: albums.length + artists.length + playlists.length,

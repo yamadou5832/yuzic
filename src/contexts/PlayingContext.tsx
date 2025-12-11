@@ -17,7 +17,7 @@ import TrackPlayer, {
 import { PlaybackService } from '@/utils/track-player/PlaybackService';
 import { SongData } from '@/types';
 import shuffleArray from '@/utils/shuffleArray';
-import { scrobble } from '@/utils/navidrome/scrobble';
+import { useApi } from '@/api';
 import { useSelector } from "react-redux";
 import { RootState } from "@/utils/redux/store";
 import { incrementUserPlayCount } from '@/utils/redux/slices/userStatsSlice';
@@ -76,6 +76,7 @@ export const PlayingProvider: React.FC<{ children: ReactNode }> = ({ children })
     const [shuffleOn, setShuffleOn] = useState<boolean>(false);
     const playbackState = usePlaybackState();
     const dispatch = useDispatch();
+    const api = useApi();
     const { serverUrl, username, password } = useSelector(
         (state: RootState) => state.server
     );
@@ -111,7 +112,7 @@ export const PlayingProvider: React.FC<{ children: ReactNode }> = ({ children })
             const elapsed = Date.now() - start;
             if (elapsed >= thresholdMs) {
                 try {
-                    await scrobble(currentSong.id, serverUrl, username, password, false).catch(() => { });
+                    await api.scrobble.submit(currentSong.id).catch(() => { });
                     hasScrobbledRef.current = true;
                 } catch (err) {
                     console.warn('Scrobble failed:', err);
@@ -130,6 +131,8 @@ export const PlayingProvider: React.FC<{ children: ReactNode }> = ({ children })
             const next = await TrackPlayer.getTrack(nextIndex);
             if (!next) return;
 
+            console.log("TRACK DEBUG", next);
+
             dispatch(incrementUserPlayCount(next.id));
 
             const localUri = await getSongLocalUri(next.id);
@@ -147,7 +150,7 @@ export const PlayingProvider: React.FC<{ children: ReactNode }> = ({ children })
             playbackStartTimeRef.current = Date.now();
             hasScrobbledRef.current = false;
 
-            await scrobble(next.id, serverUrl, username, password, true);
+            await api.scrobble.submit(next.id);
         } catch (err) {
             console.error('[PlaybackActiveTrackChanged Error]', err);
         }

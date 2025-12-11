@@ -23,6 +23,7 @@ import { getArtists } from "./getArtists";
 import { getArtistAlbums } from "./getArtistAlbums";
 import { getPlaylists } from "./getPlaylists";
 import { getPlaylistItems } from "./getPlaylistItems";
+import { createPlaylist } from "./createPlaylist"
 import { addPlaylistItems } from "./addPlaylistItems";
 import { removePlaylistItems } from "./removePlaylistItems";
 import { getStarredItems } from "./getStarredItems";
@@ -101,7 +102,6 @@ export const createJellyfinAdapter = (adapter: AdapterType): ApiAdapter => {
             };
           } catch (error) {
             console.warn(`Failed to fetch items for playlist ${p.id}:`, error);
-            // Return playlist with empty songs array rather than failing entirely
             return p;
           }
         })
@@ -113,8 +113,8 @@ export const createJellyfinAdapter = (adapter: AdapterType): ApiAdapter => {
         )
         .map(result => result.value);
     },
-    create: async () => {
-      throw new Error("Jellyfin playlists.create not implemented");
+    create: async (name) => {
+      return createPlaylist(serverUrl, userId, token, name)
     },
     addSong: async (playlistId, songId) => {
       await addPlaylistItems(serverUrl, playlistId, userId, token, [songId]);

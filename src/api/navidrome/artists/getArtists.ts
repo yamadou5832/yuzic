@@ -1,4 +1,6 @@
 import { ArtistData } from "@/types";
+import { getArtist } from "./getArtist";
+import { getArtistInfo } from "@/api/lastfm/getArtistInfo";
 import { buildCoverArtUrl } from "@/utils/urlBuilders";
 
 const API_VERSION = "1.16.0";
@@ -25,38 +27,38 @@ async function fetchGetArtists(
   return res.json();
 }
 
-function normalizeArtists(
+async function normalizeArtists(
   raw: any,
   serverUrl: string,
   username: string,
   password: string
-): GetArtistsResult {
+): Promise<GetArtistsResult> {
   const root = raw?.["subsonic-response"]?.artists;
   if (!root) return [];
 
   const letters = root.index || [];
 
-  const result: ArtistData[] = [];
-
+  const artistIds: string[] = [];
   for (const group of letters) {
     const items = group.artist || [];
     for (const a of items) {
-      const cover = buildCoverArtUrl(a.coverArt, serverUrl, username, password);
-
-      result.push({
-        id: a.id ?? "",
-        name: a.name ?? "Unknown Artist",
-        cover,
-        subtext: "",
-        bio: "",
-        albums: [],
-        eps: [],
-        singles: []
-      });
+      if (a.id) artistIds.push(a.id);
     }
   }
 
-  return result;
+  const fullArtists = await Promise.all(
+    artistIds.map(async (id) => {
+      try {
+        const info = await getArtist(serverUrl, username, password, id);
+        return info!;
+      } catch (err) {
+        console.warn("Failed to load artist", id, err);
+        return null;
+      }
+    })
+  );
+
+  return fullArtists.filter((x) => x !== null) as ArtistData[];
 }
 
 export async function getArtists(
