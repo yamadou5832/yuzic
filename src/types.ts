@@ -3,8 +3,7 @@ export interface AlbumData {
     cover: string;
     title: string;
     subtext: string;
-    artist: string;
-    artistId: string;
+    artist: ArtistData;
     userPlayCount: number;
     songs: SongData[]
     songCount: number;

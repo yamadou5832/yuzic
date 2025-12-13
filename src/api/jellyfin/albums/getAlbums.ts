@@ -37,15 +37,20 @@ async function normalizeAlbum(
       `${serverUrl}/Items/${albumId}/Images/Primary?quality=90&X-Emby-Token=${token}` +
       (a.ImageTags?.Primary ? `&tag=${a.ImageTags.Primary}` : "");
 
-    const artist = a.ArtistItems[0].Name || "Unknown Artist";
-
+    const artist: ArtistData = {
+      id: a.ArtistItems[0].Id,
+      name: a.ArtistItems[0].Name || "Unknown Artist",
+      cover: "",
+      subtext: "Artist",
+      bio: ""
+    }
+    
     return {
       id: albumId,
       cover,
       title: a.Name ?? "Unknown Album",
       subtext: `Album • ${artist}`,
       artist,
-      artistId: a.ArtistItems[0].Id,
       songs: [],
       songCount: 0,
       userPlayCount: a.UserData.PlayCount ?? 0,

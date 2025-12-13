@@ -22,7 +22,7 @@ import Item from "@/components/home/Item";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import AccountActionSheet from '@/components/AccountActionSheet';
-import { Loader2 } from 'lucide-react-native';
+import Loader from '@/components/Loader'
 import { RootState } from '@/utils/redux/store';
 import { useSelector } from 'react-redux';
 
@@ -32,9 +32,8 @@ const isColorLight = (color: string) => {
     const g = parseInt(hex.substring(2, 4), 16);
     const b = parseInt(hex.substring(4, 6), 16);
 
-    // Calculate luminance
     const luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
-    return luminance > 128; // Brightness threshold
+    return luminance > 128;
 };
 
 export default function HomeScreen() {
@@ -85,24 +84,6 @@ export default function HomeScreen() {
         const subscription = Dimensions.addEventListener('change', onChange);
         return () => subscription?.remove?.();
     }, []);
-
-    const spinAnim = useRef(new Animated.Value(0)).current;
-
-    useEffect(() => {
-        Animated.loop(
-            Animated.timing(spinAnim, {
-                toValue: 1,
-                duration: 1000,
-                easing: Easing.linear,
-                useNativeDriver: true,
-            })
-        ).start();
-    }, []);
-
-    const spin = spinAnim.interpolate({
-        inputRange: [0, 1],
-        outputRange: ['0deg', '360deg'],
-    });
 
     const allData = useMemo(() => [
         ...albums.map((item) => ({ ...item, type: 'Album' })),
@@ -175,9 +156,9 @@ export default function HomeScreen() {
 
     const handleItemPress = (item) => {
         if (item.type === 'Album') {
-            navigation.navigate('collectionView', { type: item.type.toLowerCase(), collection: item });
+            navigation.navigate('albumView', { id: item.id });
         } else if (item.type === 'Playlist') {
-            navigation.navigate('collectionView', { type: item.type.toLowerCase(), collection: item });
+            navigation.navigate('playlistView', { id: item.id });
         } else if (item.type === 'Artist') {
             navigation.navigate('artistView', { id: item.id });
         }
@@ -315,10 +296,8 @@ export default function HomeScreen() {
             </View>
 
             {isLoading ? (
-                <View style={{ flex: 1, justifyContent: 'flex-start', alignItems: 'center', marginTop: 32 }} >
-                    <Animated.View style={{ transform: [{ rotate: spin }] }}>
-                        <Loader2 size={42} color={themeColor} />
-                    </Animated.View>
+                <View style={{ flex: 1 }}>
+                <Loader/>
                 </View>
             ) : sortedFilteredData.length > 0 ? (
                 <FlashList

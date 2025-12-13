@@ -163,7 +163,7 @@ export default function OnboardingScreen() {
                                             type === 'jellyfin' && jellyfinDisabled && { color: '#777' },
                                         ]}
                                     >
-                                        {type === 'navidrome' ? 'Navidrome' : 'Jellyfin (wip)'}
+                                        {type === 'navidrome' ? 'Navidrome' : 'Jellyfin'}
                                     </Text>
                                 </TouchableOpacity>
                             );

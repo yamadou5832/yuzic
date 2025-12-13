@@ -38,14 +38,12 @@ function normalizePlaylist(
 
   const entries = playlist.entry || [];
 
-  const cover = buildCoverArtUrl(playlist.coverArt, serverUrl, username, password);
-
   const songs: SongData[] = entries.map((s: any) => ({
     id: s.id,
     title: s.title,
     artist: s.artist,
     duration: s.duration,
-    cover,
+    cover: buildCoverArtUrl(s.coverArt, serverUrl, username, password),
     albumId: s.albumId,
     userPlayCount: 0,
     streamUrl:
@@ -56,7 +54,7 @@ function normalizePlaylist(
 
   return {
     id: playlist.id,
-    cover,
+    cover: buildCoverArtUrl(playlist.coverArt, serverUrl, username, password),
     title: playlist.name ?? "Playlist",
     subtext: `Playlist • ${songs.length} songs`,
     songs,

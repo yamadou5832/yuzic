@@ -45,7 +45,7 @@ export const SearchProvider: React.FC<SearchProviderProps> = ({ children }) => {
         const albumResults: SearchResult[] = albums.map((album: AlbumData) => ({
             id: album.id,
             title: album.title,
-            subtext: album.artist.name,
+            subtext: album.artist,
             cover: album.cover,
             type: 'album',
             isDownloaded: true,

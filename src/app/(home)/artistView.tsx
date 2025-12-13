@@ -45,7 +45,7 @@ const ArtistView: React.FC = () => {
 
     const navigateToAlbum = (album: any) => {
         if (album.isDownloaded) {
-            navigation.navigate('collectionView', { type: "album", collection: album });
+            navigation.navigate('albumView', { id: album.id });
         } else {
             navigation.navigate('externalAlbumView', {
                 title: album.title,

@@ -1,17 +1,18 @@
 import { AlbumData, ArtistData, SongData } from "@/types";
 import { buildCoverArtUrl } from "@/utils/urlBuilders";
+import { getArtist } from "../artists/getArtist";
 
 const API_VERSION = "1.16.0";
 const CLIENT_NAME = "Yuzic";
 
 export type GetAlbumResult = AlbumData | null;
 
-async function fetchGetAlbum(
+export async function getAlbum(
   serverUrl: string,
   username: string,
   password: string,
   albumId: string
-) {
+): Promise<GetAlbumResult> {
   const url =
     `${serverUrl}/rest/getAlbum.view` +
     `?u=${encodeURIComponent(username)}` +
@@ -24,17 +25,12 @@ async function fetchGetAlbum(
   const res = await fetch(url);
   if (!res.ok) throw new Error(`Navidrome getAlbum failed: ${res.status}`);
 
-  return res.json();
-}
-
-function normalizeAlbum(
-  raw: any,
-  serverUrl: string,
-  username: string,
-  password: string
-): GetAlbumResult {
+  const raw = await res.json();
   const album = raw?.["subsonic-response"]?.album;
   if (!album) return null;
+
+  const artist = await getArtist(serverUrl, username, password, album.artistId);
+  if (!artist) return null;
 
   const cover = buildCoverArtUrl(album.coverArt, serverUrl, username, password);
 
@@ -60,20 +56,9 @@ function normalizeAlbum(
       songs.length > 1
         ? `Album • ${album.artist}`
         : `Single • ${album.artist}`,
-    artist: album.artist,
-    artistId: album.artistId,
+    artist,
     userPlayCount: 0,
     songs,
     songCount: album.songCount
   };
-}
-
-export async function getAlbum(
-  serverUrl: string,
-  username: string,
-  password: string,
-  albumId: string
-): Promise<GetAlbumResult> {
-  const raw = await fetchGetAlbum(serverUrl, username, password, albumId);
-  return normalizeAlbum(raw, serverUrl, username, password);
 }

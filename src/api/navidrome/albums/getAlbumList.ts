@@ -35,6 +35,14 @@ function normalizeAlbumEntry(
 ): AlbumData {
   const cover = buildCoverArtUrl(a.coverArt, serverUrl, username, password);
 
+  const artist: ArtistData = {
+    id: a.artistId,
+    name: a.artist,
+    cover: "",
+    subtext: "Artist",
+    bio: ""
+  }
+
   return {
     id: a.id,
     cover,
@@ -43,8 +51,7 @@ function normalizeAlbumEntry(
       a.songCount > 1
         ? `Album • ${a.artist}`
         : `Single • ${a.artist}`,
-    artist: a.artist,
-    artistId: a.artistId,
+    artist,
     userPlayCount: a.playCount,
     songs: [],
     songCount: a.songCount

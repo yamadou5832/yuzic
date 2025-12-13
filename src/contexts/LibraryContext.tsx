@@ -84,7 +84,6 @@ export const LibraryProvider = ({ children }: { children: ReactNode }) => {
                     api.playlists.list(),
                 ]);
 
-            console.log(albumList)
             dispatch(setAlbums(albumList));
             dispatch(setArtists(artistList));
             dispatch(setStarred(starredList));

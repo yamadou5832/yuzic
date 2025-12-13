@@ -160,10 +160,10 @@ const SearchPage = () => {
                                 <CoverArt source={result.cover} size={50} />
 
                                 <View style={styles.resultTextContainer}>
-                                    <Text style={[styles.resultTitle, isDarkMode && styles.resultTitleDark]}>
+                                    <Text numberOfLines={1} ellipsizeMode="tail" style={[styles.resultTitle, isDarkMode && styles.resultTitleDark]}>
                                         {result.title}
                                     </Text>
-                                    <Text style={[styles.resultSubtext, isDarkMode && styles.resultSubtextDark]}>
+                                    <Text numberOfLines={1} ellipsizeMode="tail" style={[styles.resultSubtext, isDarkMode && styles.resultSubtextDark]}>
                                         {result.subtext}
                                     </Text>
                                 </View>
@@ -230,7 +230,6 @@ const styles = StyleSheet.create({
         paddingVertical: 14,
     },
 
-    /* SEARCH BAR ---------------------------------------------------------- */
     searchContainer: {
         flex: 1,
         flexDirection: 'row',
