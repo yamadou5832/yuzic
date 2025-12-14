@@ -130,6 +130,8 @@ export const PlayingProvider: React.FC<{ children: ReactNode }> = ({ children })
 
             const next = await TrackPlayer.getTrack(nextIndex);
             if (!next) return;
+
+            if (currentSong?.id === next.id) return;
             
             dispatch(incrementUserPlayCount(next.id));
 

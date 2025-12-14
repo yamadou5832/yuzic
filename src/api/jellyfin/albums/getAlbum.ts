@@ -1,6 +1,7 @@
 import { AlbumData, ArtistData, SongData } from "@/types";
 import { getAlbumSongs } from "./getAlbumSongs";
 import { buildJellyfinStreamUrl } from "@/utils/urlBuilders";
+import { getArtist } from "../artists/getArtist";
 
 export type GetAlbumResult = AlbumData | null;
 
@@ -26,11 +27,11 @@ async function fetchGetAlbum(
   return res.json();
 }
 
-function normalizeAlbum(
+async function normalizeAlbum(
   raw: any,
   serverUrl: string,
   token: string
-): AlbumData | null {
+): Promise<AlbumData | null> {
   const a = raw?.Items?.[0];
   if (!a) return null;
 
@@ -38,15 +39,8 @@ function normalizeAlbum(
     `${serverUrl}/Items/${a.Id}/Images/Primary?quality=90&X-Emby-Token=${token}` +
     (a.ImageTags?.Primary ? `&tag=${a.ImageTags.Primary}` : "");
 
-  const artist: ArtistData = {
-    id: a.AlbumArtists[0].Id,
-    name: a.AlbumArtists[0].Name || "Unknown Artist",
-    cover: "",
-    subtext: "Artist",
-    bio: "",
-    ownedIds: [],
-    externalAlbums: []
-  }
+  const artist: ArtistData | null = await getArtist(serverUrl, token, a.AlbumArtists[0].Id)
+  if (!artist) return null;
 
   return {
     id: a.Id,
@@ -66,7 +60,7 @@ export async function getAlbum(
   albumId: string
 ): Promise<GetAlbumResult> {
   const raw = await fetchGetAlbum(serverUrl, token, albumId);
-  const base = normalizeAlbum(raw, serverUrl, token);
+  const base = await normalizeAlbum(raw, serverUrl, token);
   if (!base) return null;
 
   const songs = await getAlbumSongs(serverUrl, token, albumId);

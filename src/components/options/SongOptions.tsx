@@ -41,7 +41,6 @@ const SongOptions: React.FC<{ selectedSongId: string | null }> = ({ selectedSong
 
     const toggleFavorite = async () => {
         try {
-            console.log(selectedSong)
             if (isStarred) {
                 await unstarItem(selectedSongId!);
                 Alert.alert('Removed from Favorites', `${selectedSong?.title} was removed from favorites.`);
