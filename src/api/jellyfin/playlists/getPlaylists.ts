@@ -1,6 +1,7 @@
-import { PlaylistData } from "@/types";
+import { Playlist } from "@/types";
+import { buildJellyfinCoverArtUrl } from "@/utils/urlBuilders";
 
-export type GetPlaylistsResult = PlaylistData[];
+export type GetPlaylistsResult = Playlist[];
 
 async function fetchGetPlaylists(
   serverUrl: string,
@@ -30,12 +31,10 @@ function normalizePlaylistEntry(
   p: any,
   serverUrl: string,
   token: string
-): PlaylistData {
+): Playlist {
   const id = p.Id;
 
-  const cover =
-    `${serverUrl}/Items/${id}/Images/Primary?quality=90&X-Emby-Token=${token}` +
-    (p.ImageTags?.Primary ? `&tag=${p.ImageTags.Primary}` : "");
+  const cover = buildJellyfinCoverArtUrl(serverUrl, token, id, p.ImageTags.Primary);
 
   return {
     id,
@@ -43,7 +42,6 @@ function normalizePlaylistEntry(
     title: p.Name ?? "Playlist",
     subtext: "Playlist",
     songs: [],
-    songCount: 0,
   };
 }
 

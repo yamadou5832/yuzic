@@ -30,16 +30,6 @@ const LHeader: React.FC = () => {
             colorMode={colorMode}
           />
         </View>
-
-        {/* BACK BUTTON */}
-        <View style={styles.header}>
-          <Skeleton
-            width={24}
-            height={24}
-            radius={6}
-            colorMode={colorMode}
-          />
-        </View>
       </View>
 
       {/* ARTIST META */}

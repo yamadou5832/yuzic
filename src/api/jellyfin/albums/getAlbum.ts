@@ -1,6 +1,6 @@
 import { Album, Artist } from "@/types";
 import { getAlbumSongs } from "./getAlbumSongs";
-import { buildJellyfinStreamUrl } from "@/utils/urlBuilders";
+import { buildJellyfinCoverArtUrl, buildJellyfinStreamUrl } from "@/utils/urlBuilders";
 import { getArtist } from "../artists/getArtist";
 
 export type GetAlbumResult = Album | null;
@@ -35,9 +35,7 @@ async function normalizeAlbum(
   const a = raw?.Items?.[0];
   if (!a) return null;
 
-  const cover =
-    `${serverUrl}/Items/${a.Id}/Images/Primary?quality=90&X-Emby-Token=${token}` +
-    (a.ImageTags?.Primary ? `&tag=${a.ImageTags.Primary}` : "");
+  const cover = buildJellyfinCoverArtUrl(serverUrl, token, a.Id, a.ImageTags.Primary);
 
   const artist: Artist | null = await getArtist(serverUrl, token, a.AlbumArtists[0].Id)
   if (!artist) return null;

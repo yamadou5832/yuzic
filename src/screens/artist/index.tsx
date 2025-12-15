@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import {
   View,
   Text,
@@ -8,8 +8,7 @@ import {
 import { useRoute } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { Artist } from '@/types';
-import { useApi } from '@/api';
+import { useArtist } from '@/hooks/useArtist';
 
 import List from './components/List';
 import LList from './components/loading/List';
@@ -18,33 +17,8 @@ const ArtistScreen: React.FC = () => {
   const route = useRoute<any>();
   const { id } = route.params;
 
-  const api = useApi();
   const isDarkMode = useColorScheme() === 'dark';
-
-  const [artist, setArtist] = useState<Artist | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    let mounted = true;
-
-    const loadArtist = async () => {
-      try {
-        setIsLoading(true);
-        const result = await api.artists.get(id);
-        if (mounted) setArtist(result);
-      } catch {
-        if (mounted) setArtist(null);
-      } finally {
-        if (mounted) setIsLoading(false);
-      }
-    };
-
-    loadArtist();
-
-    return () => {
-      mounted = false;
-    };
-  }, [id]);
+  const { artist, isLoading } = useArtist(id);
 
   if (isLoading) {
     return (

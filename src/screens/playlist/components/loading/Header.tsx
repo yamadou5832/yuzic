@@ -18,7 +18,7 @@ const LHeader: React.FC = () => {
         <Skeleton
           width={24}
           height={24}
-          radius={12}
+          radius={4}
           colorMode={colorMode}
         />
 
@@ -26,7 +26,7 @@ const LHeader: React.FC = () => {
         <Skeleton
           width={24}
           height={24}
-          radius={12}
+          radius={4}
           colorMode={colorMode}
         />
       </View>

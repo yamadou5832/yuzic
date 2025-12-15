@@ -8,12 +8,12 @@ import {
 } from 'react-native';
 import { Image } from 'expo-image';
 
-import { SongData } from '@/types';
+import { Song } from '@/types';
 import SongOptions from '@/components/options/SongOptions';
 import { usePlaying } from '@/contexts/PlayingContext';
 
 type Props = {
-  song: SongData;
+  song: Song;
 
   /**
    * The collection context this song belongs to.

@@ -30,3 +30,12 @@ export const buildJellyfinStreamUrl = (
 ) => {
     return `${serverUrl}/Audio/${songId}/stream.mp3?X-Emby-Token=${token}`;
 };
+
+export const buildJellyfinCoverArtUrl = (
+    serverUrl: string,
+    token: string,
+    songId: string,
+    p: string
+) => {
+    return `${serverUrl}/Items/${songId}/Images/Primary?quality=90&X-Emby-Token=${token}&tag=${p}`;
+};

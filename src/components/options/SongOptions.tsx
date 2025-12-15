@@ -15,38 +15,34 @@ import TrackPlayer from 'react-native-track-player';
 import { usePlaying } from '@/contexts/PlayingContext';
 import PlaylistList from '@/components/PlaylistList';
 import BottomSheet from 'react-native-gesture-bottom-sheet';
+import { Song } from '@/types';
 
-const SongOptions: React.FC<{ selectedSongId: string | null }> = ({ selectedSongId }) => {
+const SongOptions: React.FC<{ selectedSong: Song }> = ({ selectedSong }) => {
     const colorScheme = useColorScheme();
     const isDarkMode = colorScheme === 'dark';
     const playlistRef = useRef<BottomSheet>(null);
-    const { playlists, songs, starred, starItem, unstarItem, addSongToPlaylist, createPlaylist } = useLibrary();
+    const { playlists, starred, starItem, unstarItem, addSongToPlaylist, createPlaylist } = useLibrary();
     const { currentSong } = usePlaying();
 
-    const [selectedSong, setSelectedSong] = useState<any | null>(null);
     const [isStarred, setIsStarred] = useState(false);
 
     useEffect(() => {
-        if (!selectedSongId || !songs || songs.length === 0) {
-            setSelectedSong(null);
+        if (!selectedSong) {
             return;
         }
 
-        const song = songs.find((song) => song.id === selectedSongId);
-        setSelectedSong(song || null);
-
-        const isFavorite = starred.songs.some((starredSong) => starredSong.id === selectedSongId);
+        const isFavorite = starred.songs.some((starredSong) => starredSong.id === selectedSong.id);
         setIsStarred(isFavorite);
-    }, [selectedSongId, songs, starred]);
+    }, [selectedSong, starred]);
 
     const toggleFavorite = async () => {
         try {
             if (isStarred) {
-                await unstarItem(selectedSongId!);
-                Alert.alert('Removed from Favorites', `${selectedSong?.title} was removed from favorites.`);
+                await unstarItem(selectedSong.id!);
+                Alert.alert('Removed from Favorites', `${selectedSong.title} was removed from favorites.`);
             } else {
-                await starItem(selectedSongId!);
-                Alert.alert('Added to Favorites', `${selectedSong?.title} was added to favorites.`);
+                await starItem(selectedSong.id!);
+                Alert.alert('Added to Favorites', `${selectedSong.title} was added to favorites.`);
             }
             setIsStarred(!isStarred);
         } catch (error) {

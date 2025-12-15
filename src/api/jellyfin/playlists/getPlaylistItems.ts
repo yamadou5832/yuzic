@@ -1,7 +1,7 @@
-import { SongData } from "@/types";
-import { buildJellyfinStreamUrl } from "@/utils/urlBuilders";
+import { Song } from "@/types";
+import { buildJellyfinStreamUrl, buildJellyfinCoverArtUrl } from "@/utils/urlBuilders";
 
-export type GetPlaylistItemsResult = SongData[];
+export type GetPlaylistItemsResult = Song[];
 
 async function fetchGetPlaylistItems(
   serverUrl: string,
@@ -30,15 +30,13 @@ function normalizePlaylistSongEntry(
   s: any,
   serverUrl: string,
   token: string
-): SongData {
+): Song {
   const ticks =
     s.RunTimeTicks ??
     s.MediaSources?.[0]?.RunTimeTicks ??
     0;
 
-  const cover =
-    `${serverUrl}/Items/${s.Id}/Images/Primary?quality=90&X-Emby-Token=${token}` +
-    (s.ImageTags?.Primary ? `&tag=${s.ImageTags.Primary}` : "");
+  const cover = buildJellyfinCoverArtUrl(serverUrl, token, s.Id, s.ImageTags.Primary);
 
   return {
     id: s.Id,

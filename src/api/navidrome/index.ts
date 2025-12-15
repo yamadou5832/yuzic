@@ -11,7 +11,7 @@ import {
   AuthApi
 } from "../types";
 
-import { AlbumData, GenreMaps, PlaylistData, AdapterType } from "@/types";
+import { GenreMaps, AdapterType } from "@/types";
 
 import { connect } from "./auth/connect";
 import { ping } from "./auth/ping";
@@ -21,7 +21,6 @@ import { disconnect } from "@/utils/redux/slices/serverSlice";
 
 import { getAlbum } from "./albums/getAlbum";
 import { getAlbumList } from "./albums/getAlbumList";
-import { getAlbumInfo } from "./albums/getAlbumInfo";
 
 import { getArtist } from "./artists/getArtist";
 import { getArtists } from "./artists/getArtists";

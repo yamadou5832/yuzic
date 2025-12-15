@@ -1,5 +1,5 @@
 import {
-    PlaylistData,
+    Playlist,
     GenreMaps,
     AlbumBase,
     Album,
@@ -49,8 +49,8 @@ export interface GenresApi {
 }
 
 export interface PlaylistsApi {
-  list(): Promise<PlaylistData[]>;
-  get(id: string): Promise<PlaylistData>;
+  list(): Promise<Playlist[]>;
+  get(id: string): Promise<Playlist>;
   create(name: string): Promise<string>;
   addSong(playlistId: string, songId: string): Promise<AddSongToPlaylistResult>;
   removeSong(playlistId: string, songId: string): Promise<RemoveSongFromPlaylistResult>;

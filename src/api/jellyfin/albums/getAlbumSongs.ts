@@ -1,7 +1,7 @@
-import { SongData } from "@/types";
-import { buildJellyfinStreamUrl } from "@/utils/urlBuilders";
+import { Song } from "@/types";
+import { buildJellyfinCoverArtUrl, buildJellyfinStreamUrl } from "@/utils/urlBuilders";
 
-export type GetAlbumSongsResult = SongData[];
+export type GetAlbumSongsResult = Song[];
 
 async function fetchGetAlbumSongs(
   serverUrl: string,
@@ -34,12 +34,10 @@ function normalizeSongEntry(
   albumId: string,
   serverUrl: string,
   token: string
-): SongData {
+): Song {
   const ticks = s.RunTimeTicks ?? 0;
 
-  const cover =
-    `${serverUrl}/Items/${albumId}/Images/Primary?quality=90&X-Emby-Token=${token}` +
-    (s.ImageTags?.Primary ? `&tag=${s.ImageTags.Primary}` : "");
+  const cover = buildJellyfinCoverArtUrl(serverUrl, token, s.Id, s.ImageTags.Primary);
 
   const artist = s.ArtistItems[0].Name || "Unknown Artist";
 

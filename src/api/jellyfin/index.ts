@@ -11,7 +11,7 @@ import {
   AuthApi,
 } from "../types";
 
-import { AdapterType, PlaylistData } from "@/types";
+import { AdapterType, Playlist } from "@/types";
 
 import { connect } from "./auth/connect";
 import { ping } from "./auth/ping";
@@ -20,7 +20,6 @@ import { startScan } from "./auth/startScan";
 import { getAlbum } from "./albums/getAlbum";
 import { getAlbums } from "./albums/getAlbums";
 import { getArtists } from "./artists/getArtists";
-import { getArtistAlbums } from "./albums/getArtistAlbums";
 import { getPlaylists } from "./playlists/getPlaylists";
 import { getPlaylistItems } from "./playlists/getPlaylistItems";
 import { createPlaylist } from "./playlists/createPlaylist"
@@ -107,7 +106,7 @@ export const createJellyfinAdapter = (adapter: AdapterType): ApiAdapter => {
       );
 
       return hydrated
-        .filter((result): result is PromiseFulfilledResult<PlaylistData> =>
+        .filter((result): result is PromiseFulfilledResult<Playlist> =>
           result.status === 'fulfilled'
         )
         .map(result => result.value);
