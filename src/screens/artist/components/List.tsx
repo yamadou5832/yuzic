@@ -3,7 +3,7 @@ import { StyleSheet, useColorScheme } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import { useNavigation } from '@react-navigation/native';
 
-import { Artist, AlbumData } from '@/types';
+import { Artist, Album } from '@/types';
 import { useApi } from '@/api';
 
 import AlbumRow from '@/components/AlbumRow';
@@ -24,17 +24,17 @@ const List: React.FC<Props> = ({ artist }) => {
   const navigation = useNavigation();
   const isDarkMode = useColorScheme() === 'dark';
 
-  const [ownedAlbums, setOwnedAlbums] = useState<AlbumData[]>([]);
+  const [ownedAlbums, setOwnedAlbums] = useState<Album[]>([]);
 
   useEffect(() => {
     let mounted = true;
 
     const loadAlbums = async () => {
       try {
-        const albums: AlbumData[] = [];
+        const albums: Album[] = [];
 
-        for (const albumId of artist.ownedIds) {
-          const album = await api.albums.get(albumId);
+        for (const a of artist.ownedAlbums) {
+          const album = await api.albums.get(a.id);
           if (album) albums.push(album);
         }
 

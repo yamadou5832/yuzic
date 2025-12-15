@@ -3,79 +3,78 @@ import { View, Text, StyleSheet, useColorScheme } from 'react-native';
 import { useRoute } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { PlaylistData } from '@/types';
+import { Playlist } from '@/types';
 import { useApi } from '@/api';
-import Loader from '@/components/Loader';
 
 import List from './components/List';
 import LList from './components/loading/List';
 
 const PlaylistScreen: React.FC = () => {
-  const route = useRoute<any>();
-  const { id } = route.params;
+    const route = useRoute<any>();
+    const { id } = route.params;
 
-  const api = useApi();
-  const isDarkMode = useColorScheme() === 'dark';
+    const api = useApi();
+    const isDarkMode = useColorScheme() === 'dark';
 
-  const [playlist, setPlaylist] = useState<PlaylistData | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+    const [playlist, setPlaylist] = useState<Playlist | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    let mounted = true;
+    useEffect(() => {
+        let mounted = true;
 
-    const loadPlaylist = async () => {
-      try {
-        setIsLoading(true);
-        const result = await api.playlists.get(id);
-        if (mounted) setPlaylist(result);
-      } catch {
-        if (mounted) setPlaylist(null);
-      } finally {
-        if (mounted) setIsLoading(false);
-      }
-    };
+        const loadPlaylist = async () => {
+            try {
+                setIsLoading(true);
+                const result = await api.playlists.get(id);
+                if (mounted) setPlaylist(result);
+            } catch {
+                if (mounted) setPlaylist(null);
+            } finally {
+                if (mounted) setIsLoading(false);
+            }
+        };
 
-    loadPlaylist();
+        loadPlaylist();
 
-    return () => {
-      mounted = false;
-    };
-  }, [id]);
+        return () => {
+            mounted = false;
+        };
+    }, [id]);
 
-  if (isLoading) {
+    if (isLoading) {
+        return (
+            <SafeAreaView edges={['top']} style={styles.screen(isDarkMode)}>
+                <LList />
+            </SafeAreaView>
+        );
+    }
+
+    if (!playlist) {
+        return (
+            <SafeAreaView style={styles.screen(isDarkMode)}>
+                <Text style={styles.error(isDarkMode)}>Playlist not found.</Text>
+            </SafeAreaView>
+        );
+    }
+
     return (
-      <SafeAreaView edges={['top']} style={styles.screen(isDarkMode)}>
-      <LList />
-    </SafeAreaView>
+        <SafeAreaView edges={['top']} style={styles.screen(isDarkMode)}>
+            <List playlist={playlist} />
+        </SafeAreaView>
     );
-  }
-
-  if (!playlist) {
-    return (
-      <SafeAreaView style={styles.screen(isDarkMode)}>
-        <Text style={styles.error(isDarkMode)}>Playlist not found.</Text>
-      </SafeAreaView>
-    );
-  }
-
-  return (
-    <SafeAreaView edges={['top']} style={styles.screen(isDarkMode)}>
-      <List playlist={playlist} />
-    </SafeAreaView>
-  );
 };
 
 export default PlaylistScreen;
 
 const styles = StyleSheet.create({
-  screen: (isDark: boolean) => ({
-    flex: 1,
-    backgroundColor: isDark ? '#000' : '#fff',
-  }),
-  error: (isDark: boolean) => ({
-    color: isDark ? '#fff' : '#000',
-    textAlign: 'center',
-    marginTop: 32,
-    fontSize: 16,
-  }),
+    screen: (isDark: boolean) => ({
+        flex: 1,
+        backgroundColor: isDark ? '#000' : '#fff',
+    }),
+    error: (isDark: boolean) => ({
+        color: isDark ? '#fff' : '#000',
+        textAlign: 'center',
+        marginTop: 32,
+        fontSize: 16,
+    }),
 });

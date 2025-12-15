@@ -3,7 +3,7 @@ import { View, Text, useColorScheme, StyleSheet } from 'react-native';
 import { useRoute } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { AlbumData } from '@/types';
+import { Album } from '@/types';
 import { useApi } from '@/api';
 
 import List from './components/List';
@@ -16,7 +16,7 @@ const AlbumScreen: React.FC = () => {
     const api = useApi();
     const isDarkMode = useColorScheme() === 'dark';
 
-    const [album, setAlbum] = useState<AlbumData | null>(null);
+    const [album, setAlbum] = useState<Album | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {

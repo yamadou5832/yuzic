@@ -1,14 +1,13 @@
 import React, { useMemo } from 'react';
-import { View } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 
-import { AlbumData, SongData } from '@/types';
+import { Album, Song } from '@/types';
 
 import AlbumHeader from './Header';
 import SongRow from '@/components/SongRow';
 
 type Props = {
-  album: AlbumData;
+  album: Album;
 };
 
 const ESTIMATED_ROW_HEIGHT = 72;
@@ -23,7 +22,7 @@ const List: React.FC<Props> = ({ album }) => {
     return <AlbumHeader album={album} />;
   }, [album]);
 
-  const renderItem = ({ item }: { item: SongData }) => {
+  const renderItem = ({ item }: { item: Song }) => {
     return (
       <SongRow
         song={item}

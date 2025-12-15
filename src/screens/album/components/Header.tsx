@@ -10,7 +10,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { useNavigation } from '@react-navigation/native';
 
-import { AlbumData } from '@/types';
+import { Album } from '@/types';
 import CoverArt from '@/components/CoverArt';
 import DownloadOptions from '@/components/options/DownloadOptions';
 
@@ -19,7 +19,7 @@ import { usePlaying } from '@/contexts/PlayingContext';
 import { useDownload } from '@/contexts/DownloadContext';
 
 type Props = {
-  album: AlbumData;
+  album: Album;
 };
 
 const Header: React.FC<Props> = ({ album }) => {
