@@ -51,7 +51,7 @@ export async function getArtist(
       id: album.id,
       title: album.name,
       cover,
-      subtext: `Album • {artist.name}`,
+      subtext: `Album • ${artist.name}`,
       artist: artistBase,
       userPlayCount: 0
     }

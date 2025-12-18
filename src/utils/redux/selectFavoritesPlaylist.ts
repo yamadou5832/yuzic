@@ -1,26 +1,30 @@
 import { createSelector } from "@reduxjs/toolkit";
 import { RootState } from "@/utils/redux/store";
-import { Playlist, Song } from "@/types";
 
 export const selectFavoritesPlaylist = createSelector(
   [
     (state: RootState) => state.library.starred.songIds,
     (state: RootState) => state.library.albumsById,
   ],
-  (songIds, albumsById): Playlist => {
-    const allSongs: Song[] = Object.values(albumsById)
-      .flatMap(album => album?.songs ?? []);
+  (songIds, albumsById) => {
+    const songs = [];
 
-    const songs = allSongs.filter(song =>
-      songIds.includes(song.id)
-    );
+    for (const album of Object.values(albumsById)) {
+      if (!album) continue;
+
+      for (const song of album.songs) {
+        if (songIds.includes(song.id)) {
+          songs.push(song);
+        }
+      }
+    }
 
     return {
       id: "favorites",
       title: "Favorites",
       cover: "heart-icon",
-      songs,
       subtext: `Playlist • ${songs.length} songs`,
+      songs,
     };
   }
 );

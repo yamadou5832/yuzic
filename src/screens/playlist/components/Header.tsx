@@ -9,7 +9,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 
-import { PlaylistData } from '@/types';
+import { Playlist } from '@/types';
 import CoverArt from '@/components/CoverArt';
 import DownloadOptions from '@/components/options/DownloadOptions';
 
@@ -18,7 +18,7 @@ import { usePlaying } from '@/contexts/PlayingContext';
 import { useDownload } from '@/contexts/DownloadContext';
 
 type Props = {
-  playlist: PlaylistData;
+  playlist: Playlist;
 };
 
 const Header: React.FC<Props> = ({ playlist }) => {

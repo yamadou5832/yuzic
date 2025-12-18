@@ -17,13 +17,18 @@ import {
     setStarred,
     resetLibraryState,
 } from "@/utils/redux/slices/librarySlice";
+import store from "@/utils/redux/store";
+import { Album, Artist, Playlist } from "@/types";
+import { selectFavoritesPlaylist } from "@/utils/redux/selectFavoritesPlaylist";
 
 interface LibraryContextType {
     fetchLibrary: (force?: boolean) => Promise<void>;
 
-    getAlbum: (id: string) => Promise<void>;
-    getArtist: (id: string) => Promise<void>;
-    getPlaylist: (id: string) => Promise<void>;
+    getAlbum: (id: string) => Promise<Album | null>;
+    getAlbums: (ids: string[]) => Promise<Album[]>;
+
+    getArtist: (id: string) => Promise<Artist | null>;
+    getPlaylist: (id: string) => Promise<Playlist | null>;
 
     refreshLibrary: () => Promise<void>;
     clearLibrary: () => void;
@@ -37,6 +42,8 @@ interface LibraryContextType {
 
     isLoading: boolean;
 }
+
+const FAVORITES_ID = "favorites";
 
 const LibraryContext = createContext<LibraryContextType | undefined>(undefined);
 
@@ -79,20 +86,62 @@ export const LibraryProvider = ({ children }: { children: ReactNode }) => {
         }
     };
 
-    const getAlbum = async (id: string) => {
+    const getAlbum = async (id: string): Promise<Album | null> => {
+        const existing = store.getState().library.albumsById[id];
+        if (existing) {
+            return existing;
+        }
+
         const album = await api.albums.get(id);
         dispatch(upsertAlbum(album));
+        return album;
     };
 
-    const getArtist = async (id: string) => {
+    const getAlbums = async (ids: string[]): Promise<Album[]> => {
+        const state = store.getState().library.albumsById;
+
+        const missing = ids.filter(id => !state[id]);
+
+        if (missing.length) {
+            const fetched = await Promise.all(
+                missing.map(id => api.albums.get(id))
+            );
+            fetched.forEach(album => dispatch(upsertAlbum(album)));
+        }
+
+        return ids
+            .map(id => store.getState().library.albumsById[id])
+            .filter(Boolean);
+    };
+
+    const getArtist = async (id: string): Promise<Artist | null> => {
+        const existing = store.getState().library.artistsById[id];
+        if (existing) {
+            return existing;
+        }
+
         const artist = await api.artists.get(id);
         dispatch(upsertArtist(artist));
+        return artist;
     };
 
-    const getPlaylist = async (id: string) => {
+    const getPlaylist = async (id: string): Promise<Playlist | null> => {
+        if (id === FAVORITES_ID) {
+            const favorites = selectFavoritesPlaylist(store.getState());
+            console.log(favorites)
+            return favorites ?? null;
+        }
+
+        const existing = store.getState().library.playlistsById[id];
+        if (existing) {
+            return existing;
+        }
+
         const playlist = await api.playlists.get(id);
         dispatch(upsertPlaylist(playlist));
+        return playlist;
     };
+
 
     const refreshLibrary = async () => {
         dispatch(resetLibraryState());
@@ -137,6 +186,8 @@ export const LibraryProvider = ({ children }: { children: ReactNode }) => {
                 fetchLibrary,
 
                 getAlbum,
+                getAlbums,
+
                 getArtist,
                 getPlaylist,
 

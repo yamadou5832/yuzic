@@ -75,24 +75,6 @@ export const DownloadProvider: React.FC<{ children: ReactNode }> = ({ children }
         playlists: 'markedPlaylists',
     };
 
-    const resolveAlbum = async (albumId: string): Promise<Album | null> => {
-        let album = store.getState().library.albumsById[albumId];
-        if (!album?.songs) {
-            await getAlbum(albumId);
-            album = store.getState().library.albumsById[albumId];
-        }
-        return album?.songs ? album : null;
-    };
-
-    const resolvePlaylist = async (playlistId: string): Promise<Playlist | null> => {
-        let playlist = store.getState().library.playlistsById[playlistId];
-        if (!playlist?.songs) {
-            await getPlaylist(playlistId);
-            playlist = store.getState().library.playlistsById[playlistId];
-        }
-        return playlist?.songs ? playlist : null;
-    };
-
     useEffect(() => {
         const loadState = async () => {
             try {
@@ -176,7 +158,7 @@ export const DownloadProvider: React.FC<{ children: ReactNode }> = ({ children }
     const downloadAlbumById = async (albumId: string) => {
         if (cancelledIds.current.has(albumId)) return;
 
-        const album = await resolveAlbum(albumId);
+        const album = await getAlbum(albumId);
         if (!album) return;
 
         setMarkedAlbums(s => {
@@ -204,7 +186,7 @@ export const DownloadProvider: React.FC<{ children: ReactNode }> = ({ children }
     const downloadPlaylistById = async (playlistId: string) => {
         if (cancelledIds.current.has(playlistId)) return;
 
-        const playlist = await resolvePlaylist(playlistId);
+        const playlist = await getPlaylist(playlistId);
         if (!playlist) return;
 
         setMarkedPlaylists(s => {

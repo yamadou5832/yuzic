@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useSelector } from "react-redux";
 import { Artist } from "@/types";
 import { useLibrary } from "@/contexts/LibraryContext";
@@ -14,33 +14,15 @@ export function useArtist(id: string): UseArtistResult {
   const artist = useSelector(selectArtistById(id));
   const { getArtist } = useLibrary();
 
-  const [isLoading, setIsLoading] = useState(!artist);
-  const [error, setError] = useState<Error | null>(null);
-
   useEffect(() => {
-    let mounted = true;
-
-    const ensure = async () => {
-      try {
-        setIsLoading(true);
-        await getArtist(id);
-      } catch (err) {
-        if (mounted) setError(err as Error);
-      } finally {
-        if (mounted) setIsLoading(false);
-      }
-    };
-
-    if (!artist) {
-      ensure();
-    } else {
-      setIsLoading(false);
-    }
-
-    return () => {
-      mounted = false;
-    };
+    getArtist(id).catch(() => {
+      /* optional error handling */
+    });
   }, [id]);
 
-  return { artist, isLoading, error };
+  return {
+    artist,
+    isLoading: !artist,
+    error: null,
+  };
 }
