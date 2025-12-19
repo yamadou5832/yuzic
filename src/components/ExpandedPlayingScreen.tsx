@@ -16,8 +16,6 @@ import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import TrackPlayer, { useProgress } from 'react-native-track-player';
 import { usePlaying } from '@/contexts/PlayingContext';
 import ImageColors from 'react-native-image-colors';
-import { useSelector } from 'react-redux';
-import { selectArtistList } from '@/utils/redux/librarySelectors';
 import { useSettings } from '@/contexts/SettingsContext';
 import { useNavigation } from "@react-navigation/native";
 import { Image } from 'expo-image';
@@ -30,6 +28,7 @@ import Animated, {
     withTiming,
 } from 'react-native-reanimated';
 import { AirplayButton } from 'react-airplay';
+import { useLibrary } from '@/contexts/LibraryContext';
 
 interface ExpandedPlayingScreenProps {
     onClose: () => void;
@@ -58,7 +57,7 @@ const ExpandedPlayingScreen: React.FC<ExpandedPlayingScreenProps> = ({
         repeatMode,
         toggleRepeat,
     } = usePlaying();
-    const artists = useSelector(selectArtistList);
+    const { artists } = useLibrary();
     const { themeColor } = useSettings();
     const [currentGradient, setCurrentGradient] = useState(['#000', '#000']);
     const [nextGradient, setNextGradient] = useState(['#000', '#000']);

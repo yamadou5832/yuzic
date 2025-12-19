@@ -22,7 +22,7 @@ import { useSelector } from 'react-redux';
 const Queue: React.FC<{ onBack: () => void, width: number }> = ({ onBack, width }) => {
     const { getQueue, currentSong, skipTo, moveTrack, isPlaying, pauseSong, resumeSong, skipToNext } = usePlaying();
     const { themeColor } = useSettings();
-    const albums = useSelector(selectAlbumList)
+    const { albums } = useLibrary();
     const [queue, setQueue] = useState<any[]>([]);
     const currentIndex = queue.findIndex((song) => song.id === currentSong?.id);
 

@@ -15,6 +15,7 @@ import {
     selectPlaylistList,
 } from '@/utils/redux/librarySelectors';
 import { useSettings } from '@/contexts/SettingsContext';
+import { useLibrary } from '@/contexts/LibraryContext';
 
 type DownloadsProps = {
     onConfirm: (action: () => void, message: string) => void;
@@ -23,6 +24,7 @@ type DownloadsProps = {
 const Downloads: React.FC<DownloadsProps> = ({ onConfirm }) => {
     const isDarkMode = useColorScheme() === 'dark';
     const { themeColor } = useSettings();
+    const { albums, playlists } = useLibrary();
 
     const {
         getDownloadedSongsCount,
@@ -36,9 +38,6 @@ const Downloads: React.FC<DownloadsProps> = ({ onConfirm }) => {
         markedAlbums,
         markedPlaylists,
     } = useDownload();
-
-    const albums = useSelector(selectAlbumList);
-    const playlists = useSelector(selectPlaylistList);
 
     const [downloadedSongCount, setDownloadedSongCount] = useState(0);
 

@@ -26,10 +26,7 @@ const Stats: React.FC<StatsProps> = ({
     const isDarkMode = colorScheme === 'dark';
 
     const { themeColor } = useSettings();
-    const { refreshLibrary, isLoading } = useLibrary();
-    const albums = useSelector(selectAlbumList);
-    const artists = useSelector(selectArtistList);
-    const playlists = useSelector(selectPlaylistList);
+    const { albums, artists, playlists, refreshLibrary, isLoading } = useLibrary();
 
     const stats = useMemo(() => {
         const total = albums.length + artists.length + playlists.length;

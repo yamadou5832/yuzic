@@ -4,8 +4,9 @@ import React, {
     ReactNode,
     useRef,
     useState,
+    useMemo,
 } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useApi } from "@/api";
 import {
     setAlbumList,
@@ -18,21 +19,28 @@ import {
     resetLibraryState,
 } from "@/utils/redux/slices/librarySlice";
 import store from "@/utils/redux/store";
-import { Album, Artist, Playlist, Song } from "@/types";
+import { Album, AlbumBase, Artist, ArtistBase, Playlist, PlaylistBase, Song } from "@/types";
 import { selectFavoritesPlaylist } from "@/utils/redux/selectFavoritesPlaylist";
+import { selectAlbumList, selectArtistList, selectPlaylistList, selectStarred } from "@/utils/redux/librarySelectors";
 
 interface LibraryContextType {
     fetchLibrary: (force?: boolean) => Promise<void>;
 
+    albums: AlbumBase[];
     getAlbum: (id: string) => Promise<Album | null>;
     getAlbums: (ids: string[]) => Promise<Album[]>;
 
+    artists: ArtistBase[];
     getArtist: (id: string) => Promise<Artist | null>;
+    playlists: PlaylistBase[];
     getPlaylist: (id: string) => Promise<Playlist | null>;
 
     refreshLibrary: () => Promise<void>;
     clearLibrary: () => void;
 
+    starred: {
+        songs: Song[]
+    };
     starItem: (id: string) => Promise<void>;
     unstarItem: (id: string) => Promise<void>;
 
@@ -61,6 +69,12 @@ export const LibraryProvider = ({ children }: { children: ReactNode }) => {
 
     const isLibraryFetchedRef = useRef(false);
     const [isLoading, setIsLoading] = useState(false);
+
+    const albums = useSelector(selectAlbumList);
+    const artists = useSelector(selectArtistList);
+    const playlists = useSelector(selectPlaylistList);
+    const starred = useSelector(selectStarred);
+    const favorites = useSelector(selectFavoritesPlaylist);
 
     const fetchLibrary = async (force = false) => {
         if (isLibraryFetchedRef.current && !force) return;
@@ -180,20 +194,29 @@ export const LibraryProvider = ({ children }: { children: ReactNode }) => {
         await getPlaylist(id);
     };
 
+    const playlistsWithFavorites = useMemo(() => {
+            if (!favorites.songs.length) return playlists; 
+            return [favorites, ...playlists];
+        }, [favorites, playlists]);
+
     return (
         <LibraryContext.Provider
             value={{
                 fetchLibrary,
 
+                albums,
                 getAlbum,
                 getAlbums,
 
+                artists,
                 getArtist,
+                playlists: playlistsWithFavorites,
                 getPlaylist,
 
                 refreshLibrary,
                 clearLibrary,
 
+                starred,
                 starItem,
                 unstarItem,
                 addSongToPlaylist,

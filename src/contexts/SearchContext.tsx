@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { AlbumBase, ArtistBase, PlaylistBase } from '@/types';
 import { selectAlbumList, selectArtistList, selectPlaylistList } from '@/utils/redux/librarySelectors';
 import { useSelector } from 'react-redux';
+import { useLibrary } from './LibraryContext';
 
 interface SearchContextType {
     searchResults: SearchResult[];
@@ -36,9 +37,7 @@ export const useSearch = () => {
 };
 
 export const SearchProvider: React.FC<SearchProviderProps> = ({ children }) => {
-    const albums = useSelector(selectAlbumList);
-    const artists = useSelector(selectArtistList);
-    const playlists = useSelector(selectPlaylistList)
+    const { albums, artists, playlists } = useLibrary();
     const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(false);
 

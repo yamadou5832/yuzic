@@ -8,14 +8,13 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import { selectAlbumList } from '@/utils/redux/librarySelectors';
-import { useSelector } from 'react-redux';
+import { useLibrary } from '@/contexts/LibraryContext';
 
 const AlbumOptions: React.FC<{ selectedAlbumId: string | null }> = ({ selectedAlbumId }) => {
     const colorScheme = useColorScheme();
     const isDarkMode = colorScheme === 'dark';
     const navigation = useNavigation();
-    const albums = useSelector(selectAlbumList)
+    const { albums } = useLibrary();
 
     const selectedAlbum = useMemo(() => {
         if (!selectedAlbumId) return null;

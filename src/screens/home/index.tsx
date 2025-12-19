@@ -14,11 +14,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Appearance, VirtualizedList } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useLibrary } from '@/contexts/LibraryContext';
-import {
-    selectAlbumList,
-    selectArtistList,
-    selectPlaylistList,
-} from "@/utils/redux/librarySelectors";
 import { useSettings } from '@/contexts/SettingsContext';
 import { Ionicons } from '@expo/vector-icons';
 import BottomSheet from 'react-native-gesture-bottom-sheet';
@@ -30,7 +25,6 @@ import AccountActionSheet from '@/components/AccountActionSheet';
 import Loader from '@/components/Loader'
 import { RootState } from '@/utils/redux/store';
 import { useSelector } from 'react-redux';
-import { selectFavoritesPlaylist } from '@/utils/redux/selectFavoritesPlaylist';
 
 const isColorLight = (color: string) => {
     const hex = color.replace('#', '');
@@ -48,11 +42,7 @@ export default function HomeScreen() {
     const { isAuthenticated, username } = useSelector((s: RootState) => s.server);
     const colorScheme = Appearance.getColorScheme();
     const isDarkMode = colorScheme === 'dark';
-    const { fetchLibrary, clearLibrary, isLoading } = useLibrary();
-    const albums = useSelector(selectAlbumList);
-    const artists = useSelector(selectArtistList);
-    const favoritesPlaylist = useSelector(selectFavoritesPlaylist);
-    const playlists = useSelector(selectPlaylistList);
+    const { albums, artists, playlists, fetchLibrary, clearLibrary, isLoading } = useLibrary();
     const { themeColor, gridColumns } = useSettings();
     const { currentSong, playSongInCollection, pauseSong, resetQueue } = usePlaying();
 
@@ -64,11 +54,6 @@ export default function HomeScreen() {
     const accountSheetRef = useRef<BottomSheet>(null);
     const [isMounted, setIsMounted] = useState(false);
     const [screenWidth, setScreenWidth] = useState(Dimensions.get('window').width);
-
-    const playlistsWithFavorites = useMemo(() => {
-        if (!favoritesPlaylist.songs.length) return playlists; 
-        return [favoritesPlaylist, ...playlists];
-    }, [favoritesPlaylist, playlists]);
     
 
     useEffect(() => {
@@ -104,8 +89,8 @@ export default function HomeScreen() {
     const allData = useMemo(() => [
         ...albums.map((item) => ({ ...item, type: 'Album' })),
         ...artists.map((item) => ({ ...item, type: 'Artist' })),
-        ...playlistsWithFavorites.map((item) => ({ ...item, type: 'Playlist' })),
-    ], [albums, artists, playlistsWithFavorites]);
+        ...playlists.map((item) => ({ ...item, type: 'Playlist' })),
+    ], [albums, artists, playlists]);
 
     const sortedFilteredData = useMemo(() => {
         let data = [];
@@ -118,7 +103,7 @@ export default function HomeScreen() {
                 data = artists.map((item) => ({ ...item, type: 'Artist' }));
                 break;
             case 'playlists':
-                data = playlistsWithFavorites.map((item) => ({ ...item, type: 'Playlist' }));
+                data = playlists.map((item) => ({ ...item, type: 'Playlist' }));
                 break;
             default:
                 data = allData;
@@ -138,7 +123,7 @@ export default function HomeScreen() {
         }
 
         return data;
-    }, [albums, artists, playlistsWithFavorites, activeFilter, sortOrder]);
+    }, [albums, artists, playlists, activeFilter, sortOrder]);
 
     useEffect(() => {
         const loadSortOrder = async () => {
@@ -189,7 +174,7 @@ export default function HomeScreen() {
             }
 
             if (item.type === 'Playlist') {
-                return playlistsWithFavorites.find((p) => p.id === item.id)?.songs?.some((s) => s.id === currentSong.id);
+                return playlists.find((p) => p.id === item.id)?.songs?.some((s) => s.id === currentSong.id);
             }
 
             return false;
@@ -210,7 +195,7 @@ export default function HomeScreen() {
                     });
                 }
             } else if (item.type === 'Playlist') {
-                const playlist = playlistsWithFavorites.find((p) => p.id === item.id);
+                const playlist = playlists.find((p) => p.id === item.id);
                 const firstSong = playlist?.songs?.[0];
                 if (playlist && firstSong) {
                     playSongInCollection(firstSong, {

@@ -34,9 +34,8 @@ const PlaylistList = forwardRef<BottomSheet, PlaylistListProps>(
         const isDarkMode = colorScheme === 'dark';
         const { themeColor } = useSettings();
 
-        const playlists = useSelector(selectPlaylistList);
-
         const {
+            playlists,
             createPlaylist,
             addSongToPlaylist,
             removeSongFromPlaylist,

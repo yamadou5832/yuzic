@@ -24,8 +24,7 @@ const SongOptions: React.FC<{ selectedSong: Song }> = ({ selectedSong }) => {
     const colorScheme = useColorScheme();
     const isDarkMode = colorScheme === 'dark';
     const playlistRef = useRef<BottomSheet>(null);
-    const starred = useSelector(selectStarred);
-    const { starItem, unstarItem } = useLibrary();
+    const { starred, starItem, unstarItem } = useLibrary();
     const { currentSong } = usePlaying();
 
     const isStarred = starred.songs.some(s => s.id === selectedSong.id);

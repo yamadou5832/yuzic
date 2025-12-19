@@ -55,10 +55,7 @@ const getSongFilePath = (songId: string) => `${SONGS_DIR}/${songId}.mp3`;
 
 export const DownloadProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const { audioQuality } = useSettings();
-    const { getAlbum, getPlaylist } = useLibrary();
-
-    const albums = useSelector(selectAlbumList);
-    const playlists = useSelector(selectPlaylistList);
+    const { albums, playlists, getAlbum, getPlaylist } = useLibrary();
 
     const [markedAlbums, setMarkedAlbums] = useState<Set<string>>(new Set());
     const [markedPlaylists, setMarkedPlaylists] = useState<Set<string>>(new Set());
@@ -69,6 +66,7 @@ export const DownloadProvider: React.FC<{ children: ReactNode }> = ({ children }
     const cancelledIds = useRef<Set<string>>(new Set());
     const isCancellingAll = useRef(false);
     const hasResumedRef = useRef(false);
+    const hasLoadedMarkedRef = useRef(false);
 
     const STORAGE_KEYS = {
         albums: 'markedAlbums',
@@ -100,6 +98,8 @@ export const DownloadProvider: React.FC<{ children: ReactNode }> = ({ children }
 
                 if (albumJson) setMarkedAlbums(new Set(JSON.parse(albumJson)));
                 if (playlistJson) setMarkedPlaylists(new Set(JSON.parse(playlistJson)));
+
+                hasLoadedMarkedRef.current = true;
             } catch (e) {
                 console.error('Failed to load downloads:', e);
             }
@@ -254,13 +254,15 @@ export const DownloadProvider: React.FC<{ children: ReactNode }> = ({ children }
 
     useEffect(() => {
         if (hasResumedRef.current) return;
+        if (!hasLoadedMarkedRef.current) return;
         if (!albums.length || !playlists.length) return;
 
         hasResumedRef.current = true;
 
         markedAlbums.forEach(downloadAlbumById);
         markedPlaylists.forEach(downloadPlaylistById);
-    }, [albums, playlists]);
+    }, [albums, playlists, markedAlbums, markedPlaylists]);
+
 
     return (
         <DownloadContext.Provider
