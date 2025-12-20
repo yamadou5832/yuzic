@@ -39,6 +39,7 @@ interface LibraryContextType {
     refreshLibrary: () => Promise<void>;
     clearLibrary: () => void;
 
+    fetchGenres: () => Promise<void>;
     genres: GenreListing[];
     getGenre: (name: string) => GenreListing | null;
 
@@ -87,21 +88,17 @@ export const LibraryProvider = ({ children }: { children: ReactNode }) => {
         setIsLoading(true);
 
         try {
-            const [albums, artists, playlists, starred, genres] = await Promise.all([
+            const [albums, artists, playlists, starred] = await Promise.all([
                 api.albums.list(),
                 api.artists.list(),
                 api.playlists.list(),
-                api.starred.list(),
-                api.genres.list(),
+                api.starred.list()
             ]);
 
             dispatch(setAlbumList(albums));
             dispatch(setArtistList(artists));
             dispatch(setPlaylistList(playlists));
             dispatch(setStarred(starred));
-            dispatch(setGenres(genres));
-
-            console.log(genres);
 
             const favorites = selectFavoritesPlaylist(store.getState());
             if (favorites) {
@@ -112,6 +109,13 @@ export const LibraryProvider = ({ children }: { children: ReactNode }) => {
         } finally {
             setIsLoading(false);
         }
+    };
+
+    const fetchGenres = async () => {
+        if (genres.length > 0) return;
+
+        const result = await api.genres.list();
+        dispatch(setGenres(result));
     };
 
     const getAlbum = async (id: string): Promise<Album | null> => {
@@ -229,11 +233,14 @@ export const LibraryProvider = ({ children }: { children: ReactNode }) => {
                 refreshLibrary,
                 clearLibrary,
 
+                fetchGenres,
                 genres,
                 getGenre,
+
                 starred,
                 starItem,
                 unstarItem,
+                
                 addSongToPlaylist,
                 removeSongFromPlaylist,
                 createPlaylist,

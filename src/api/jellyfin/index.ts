@@ -30,6 +30,7 @@ import { star } from "./starred/star";
 import { unstar } from "./starred/unstar";
 import { getSongsByGenre } from "./genres/getSongsByGenre";
 import { getArtist } from "./artists/getArtist";
+import { getGenres } from "./genres/getGenres";
 
 export const createJellyfinAdapter = (adapter: AdapterType): ApiAdapter => {
   const { serverUrl, username, password, token, userId } = adapter;
@@ -75,13 +76,24 @@ export const createJellyfinAdapter = (adapter: AdapterType): ApiAdapter => {
 
   const genres: GenresApi = {
     list: async () => {
-      const names: string[] = [];
-      return {
-        songGenresMap: {},
-        albumGenresMap: {},
-        albumKeyGenresMap: {},
-        fetchedGenres: names,
-      };
+      const names = await getGenres(serverUrl, token);
+
+      const results = await Promise.all(
+        names.map(async (name) => {
+          const songs = await getSongsByGenre(
+            serverUrl,
+            token,
+            name
+          );
+
+          return {
+            name,
+            songs,
+          };
+        })
+      );
+
+      return results.filter(g => g.songs.length > 0);
     },
   };
 
@@ -89,43 +101,42 @@ export const createJellyfinAdapter = (adapter: AdapterType): ApiAdapter => {
     list: async () => {
       const raw = await getPlaylists(serverUrl, userId, token);
 
-      const hydrated = await Promise.allSettled(
-        raw.map(async (p) => {
-          try {
-            const songs = await getPlaylistItems(serverUrl, p.id, userId, token);
-            return {
-              ...p,
-              songs,
-              subtext: `Playlist • ${songs.length} songs`,
-            };
-          } catch (error) {
-            console.warn(`Failed to fetch items for playlist ${p.id}:`, error);
-            return p;
-          }
-        })
-      );
-
-      return hydrated
-        .filter((result): result is PromiseFulfilledResult<Playlist> =>
-          result.status === 'fulfilled'
-        )
-        .map(result => result.value);
+      return raw.map(p => ({
+        id: p.id,
+        cover: p.cover,
+        title: p.title,
+        subtext: p.subtext,
+      }));
     },
 
     get: async (id: string) => {
-      const base = await playlists.list();
-      const playlist = base.find((p) => p.id === id);
-      if (!playlist) throw new Error("Artist not found");
-      return playlist;
+      const basePlaylists = await getPlaylists(serverUrl, userId, token);
+      const base = basePlaylists.find(p => p.id === id);
+
+      if (!base) {
+        throw new Error("Playlist not found");
+      }
+
+      const songs = await getPlaylistItems(serverUrl, id, userId, token);
+
+      return {
+        id: base.id,
+        cover: base.cover,
+        title: base.title,
+        subtext: `Playlist • ${songs.length} songs`,
+        songs,
+      };
     },
 
-    create: async (name) => {
-      return createPlaylist(serverUrl, userId, token, name)
+    create: async (name: string) => {
+      return createPlaylist(serverUrl, userId, token, name);
     },
+
     addSong: async (playlistId, songId) => {
       await addPlaylistItems(serverUrl, playlistId, userId, token, [songId]);
       return { success: true };
     },
+
     removeSong: async (playlistId, songId) => {
       await removePlaylistItems(serverUrl, playlistId, token, [songId]);
       return { success: true };

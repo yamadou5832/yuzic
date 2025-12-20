@@ -273,8 +273,8 @@ const styles = StyleSheet.create({
     },
     profileRow: {
         flexDirection: 'row',
-        alignItems: 'center', // ✅ Vertical centering
-        height: 52, // ✅ Or however tall you want the profile row
+        alignItems: 'center',
+        height: 52,
     },
     avatar: {
         width: 48,

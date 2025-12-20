@@ -69,7 +69,7 @@ export const usePlaying = () => {
 };
 
 export const PlayingProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-    const [currentSong, setCurrentSong] = useState<SongData | null>(null);
+    const [currentSong, setCurrentSong] = useState<Song | null>(null);
     const [currentIndex, setCurrentIndex] = useState<number>(0);
     const [repeatMode, setRepeatMode] = useState<'off' | 'one' | 'all'>('off');
     const [shuffleOn, setShuffleOn] = useState<boolean>(false);
@@ -83,7 +83,7 @@ export const PlayingProvider: React.FC<{ children: ReactNode }> = ({ children })
 
     const isPlaying = playbackState.state === State.Playing;
 
-    const originalQueueRef = useRef<SongData[] | null>(null);
+    const originalQueueRef = useRef<Song[] | null>(null);
     const playbackStartTimeRef = useRef<number | null>(null);
     const hasScrobbledRef = useRef<boolean>(false);
 
@@ -296,7 +296,7 @@ export const PlayingProvider: React.FC<{ children: ReactNode }> = ({ children })
         }
     };
 
-    const playSong = async (song: SongData) => {
+    const playSong = async (song: Song) => {
         await TrackPlayer.reset();
         await TrackPlayer.add({
             id: song.id,
@@ -349,7 +349,7 @@ export const PlayingProvider: React.FC<{ children: ReactNode }> = ({ children })
     };
 
     const playSongInCollection = async (
-        selectedSong: SongData,
+        selectedSong: Song,
         collection: CollectionData,
         shuffle = false
     ) => {
@@ -382,8 +382,6 @@ export const PlayingProvider: React.FC<{ children: ReactNode }> = ({ children })
             }
             await TrackPlayer.add(trackItems);
 
-
-            // 🔥 Find the actual index of the selected song in the reordered list
             const index = reorderedSongs.findIndex(s => s.id === selectedSong.id);
             if (index !== -1) {
                 await TrackPlayer.skip(index);
@@ -413,17 +411,19 @@ export const PlayingProvider: React.FC<{ children: ReactNode }> = ({ children })
         }
     };
 
-    const getQueue = async (): Promise<SongData[]> => {
+    const getQueue = async (): Promise<Song[]> => {
         try {
             const tracks = await TrackPlayer.getQueue();
             const mappedTracks = await Promise.all(
                 tracks.map(async (track) => ({
                     id: track.id,
-                    title: track.title,
-                    artist: track.artist,
-                    cover: track.artwork,
-                    streamUrl: await getSongLocalUri(track.id) ?? track.url,
-                    duration: track.duration?.toString() || '0',
+                    title: track.title ?? '',
+                    artist: track.artist ?? '',
+                    cover: track.artwork ?? '',
+                    streamUrl: (await getSongLocalUri(track.id)) ?? track.url ?? '',
+                    duration: track.duration?.toString() ?? '0',
+                    albumId: '',
+                    userPlayCount: 0,
                 }))
             );
             return mappedTracks;

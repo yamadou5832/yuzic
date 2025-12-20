@@ -1,7 +1,7 @@
-import { SongData } from "@/types";
+import { Song } from "@/types";
 import { buildJellyfinStreamUrl } from "@/utils/urlBuilders";
 
-export type GetSongsByGenreResult = SongData[];
+export type GetSongsByGenreResult = Song[];
 
 async function fetchGetSongsByGenre(
   serverUrl: string,
@@ -30,7 +30,7 @@ function normalizeGenreSongEntry(
   s: any,
   serverUrl: string,
   token: string
-): SongData {
+): Song {
   const ticks =
     s.RunTimeTicks ??
     s.MediaSources?.[0]?.RunTimeTicks ??
@@ -48,8 +48,6 @@ function normalizeGenreSongEntry(
     duration: String(Math.round(Number(ticks) / 10_000_000)),
     streamUrl: buildJellyfinStreamUrl(serverUrl, token, s.Id),
     albumId: s.AlbumId,
-    genres: s.Genres || [],
-    globalPlayCount: s.PlayCount ?? 0,
     userPlayCount: s.UserData?.PlayCount ?? 0
   };
 }

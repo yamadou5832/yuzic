@@ -45,8 +45,8 @@ function normalizeStarred(
     artist: i.AlbumArtists?.[0].Name ?? "Unknown Artist",
     albumId: i.AlbumId,
     cover: buildJellyfinCoverArtUrl(serverUrl, token, i.Id, i.ImageTags.Primary),
-    duration: Math.floor((i.RunTimeTicks ?? 0) / 10_000_000), // ticks → seconds
-    streamUrl: buildJellyfinStreamUrl(serverUrl, i.Id, token),
+    duration: Math.floor((i.RunTimeTicks ?? 0) / 10_000_000),
+    streamUrl: buildJellyfinStreamUrl(serverUrl, token, i.Id),
     userPlayCount: i.UserData.PlayCount,
   }));
 
