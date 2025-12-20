@@ -20,7 +20,6 @@ import shuffleArray from '@/utils/shuffleArray';
 import { useApi } from '@/api';
 import { useSelector } from "react-redux";
 import { RootState } from "@/utils/redux/store";
-import { useDispatch } from 'react-redux';
 import { useDownload } from "@/contexts/DownloadContext";
 
 TrackPlayer.registerPlaybackService(() => PlaybackService);
@@ -74,7 +73,6 @@ export const PlayingProvider: React.FC<{ children: ReactNode }> = ({ children })
     const [repeatMode, setRepeatMode] = useState<'off' | 'one' | 'all'>('off');
     const [shuffleOn, setShuffleOn] = useState<boolean>(false);
     const playbackState = usePlaybackState();
-    const dispatch = useDispatch();
     const api = useApi();
     const { serverUrl, username, password } = useSelector(
         (state: RootState) => state.server
@@ -129,6 +127,7 @@ export const PlayingProvider: React.FC<{ children: ReactNode }> = ({ children })
 
             const next = await TrackPlayer.getTrack(nextIndex);
             if (!next) return;
+            console.log(next)
 
             if (currentSong?.id === next.id) return;
 

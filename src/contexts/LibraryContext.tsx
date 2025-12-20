@@ -85,6 +85,7 @@ export const LibraryProvider = ({ children }: { children: ReactNode }) => {
     const fetchLibrary = async (force = false) => {
         if (isLibraryFetchedRef.current && !force) return;
 
+        isLibraryFetchedRef.current = true;
         setIsLoading(true);
 
         try {
@@ -104,8 +105,9 @@ export const LibraryProvider = ({ children }: { children: ReactNode }) => {
             if (favorites) {
                 dispatch(upsertPlaylist(favorites));
             }
-
-            isLibraryFetchedRef.current = true;
+        } catch (e) {
+            isLibraryFetchedRef.current = false;
+            throw e;
         } finally {
             setIsLoading(false);
         }
@@ -240,7 +242,7 @@ export const LibraryProvider = ({ children }: { children: ReactNode }) => {
                 starred,
                 starItem,
                 unstarItem,
-                
+
                 addSongToPlaylist,
                 removeSongFromPlaylist,
                 createPlaylist,
