@@ -16,6 +16,7 @@ import { usePlaying } from "@/contexts/PlayingContext";
 import { useRouter } from 'expo-router';
 import { useApi } from "@/api";
 import { disconnect } from "@/utils/redux/slices/serverSlice";
+import { toast } from '@backpackapp-io/react-native-toast';
 
 type Props = {
   themeColor: string;
@@ -52,7 +53,7 @@ const AccountActionSheet = forwardRef<BottomSheet, Props>(
         router.replace('/(onboarding)');
       } catch (e) {
         console.error('Sign-out failed:', e);
-        Alert.alert('Error', 'Could not sign out cleanly.');
+        toast.error('Could not sign out cleanly.');
       }
     };
 
@@ -60,9 +61,9 @@ const AccountActionSheet = forwardRef<BottomSheet, Props>(
       (ref as any)?.current?.close();
       try {
         const result = await api.auth.startScan();
-        Alert.alert("Library Scan", result?.message ?? "Scan triggered.");
+        toast.success(result?.message ?? "Scan triggered.");
       } catch {
-        Alert.alert("Error", "Could not trigger scan.");
+        toast.error("Could not trigger scan.");
       }
     };
 

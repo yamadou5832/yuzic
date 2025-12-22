@@ -32,6 +32,11 @@ export default function RootLayout() {
         SpaceMono: require('@assets/fonts/SpaceMono-Regular.ttf'),
     });
 
+    SplashScreen.setOptions({
+        duration: 1000,
+        fade: true,
+    });
+
     const jsErrorHandler = (error: { name: any; message: any; }, isFatal: any) => {
         if (isFatal) {
             Alert.alert(
@@ -96,17 +101,13 @@ We will need to restart the app.
                                                                 view: {
                                                                     backgroundColor: isDarkMode ? 'rgba(32,32,32,0.9)' : 'rgba(255,255,255,0.9)',
                                                                     borderRadius: 10,
-                                                                    paddingVertical: 14,
-                                                                    paddingHorizontal: 20,
-                                                                    marginHorizontal: 16,
-                                                                    marginBottom: 24,
                                                                     shadowColor: '#000',
                                                                     shadowOpacity: 0.15,
                                                                     shadowRadius: 10,
                                                                     elevation: 4,
                                                                 },
                                                                 pressable: {
-                                                                    backgroundColor: 'transparent', // <-- ADD THIS
+                                                                    backgroundColor: 'transparent',
                                                                 },
                                                                 text: {
                                                                     color: isDarkMode ? 'white' : 'black',

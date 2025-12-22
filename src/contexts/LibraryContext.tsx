@@ -34,7 +34,7 @@ interface LibraryContextType {
     artists: ArtistBase[];
     getArtist: (id: string) => Promise<Artist | null>;
     playlists: PlaylistBase[];
-    getPlaylist: (id: string) => Promise<Playlist | null>;
+    getPlaylist: (id: string, force?: boolean) => Promise<Playlist | null>;
 
     refreshLibrary: () => Promise<void>;
     clearLibrary: () => void;
@@ -159,13 +159,13 @@ export const LibraryProvider = ({ children }: { children: ReactNode }) => {
         return artist;
     };
 
-    const getPlaylist = async (id: string): Promise<Playlist | null> => {
+    const getPlaylist = async (id: string, force?: boolean): Promise<Playlist | null> => {
         if (id === FAVORITES_ID) {
             return selectFavoritesPlaylist(store.getState());
         }
 
         const existing = store.getState().library.playlistsById[id];
-        if (existing) return existing;
+        if (existing && !force) return existing;
 
         const playlist = await api.playlists.get(id);
         dispatch(upsertPlaylist(playlist));
@@ -199,12 +199,12 @@ export const LibraryProvider = ({ children }: { children: ReactNode }) => {
 
     const addSongToPlaylist = async (playlistId: string, songId: string) => {
         await api.playlists.addSong(playlistId, songId);
-        await getPlaylist(playlistId);
+        await getPlaylist(playlistId, true);
     };
 
     const removeSongFromPlaylist = async (playlistId: string, songId: string) => {
         await api.playlists.removeSong(playlistId, songId);
-        await getPlaylist(playlistId);
+        await getPlaylist(playlistId, true);
     };
 
     const createPlaylist = async (name: string) => {

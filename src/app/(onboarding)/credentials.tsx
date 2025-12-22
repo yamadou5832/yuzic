@@ -18,6 +18,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '@/utils/redux/store';
 import { setUsername, setPassword } from '@/utils/redux/slices/serverSlice';
 import { useApi } from '@/api';
+import { toast } from '@backpackapp-io/react-native-toast';
 
 export default function CredentialsScreen() {
     const dispatch = useDispatch();
@@ -41,12 +42,12 @@ export default function CredentialsScreen() {
 
     const handleNext = async () => {
         if (!localUsername || !localPassword) {
-            Alert.alert('Error', 'Please enter both username and password.');
+            toast.error('Please enter both username and password.');
             return;
         }
 
         if (!api) {
-            Alert.alert('Error', 'No API available.');
+            toast.error('No API available.');
             return;
         }
 
@@ -61,10 +62,10 @@ export default function CredentialsScreen() {
             if (result?.success) {
                 router.replace('(home)');
             } else {
-                Alert.alert('Error', result?.message || 'Connection failed.');
+                toast.error(result?.message || 'Connection failed.');
             }
         } catch {
-            Alert.alert('Error', 'An error occurred while testing the connection.');
+            toast.error('An error occurred while testing the connection.');
         } finally {
             setIsTesting(false);
         }

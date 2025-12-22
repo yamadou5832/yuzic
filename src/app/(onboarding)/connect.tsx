@@ -21,6 +21,7 @@ import { setServerType } from '@/utils/redux/slices/serverSlice';
 import { useApi } from '@/api';
 import NavidromeIcon from '@assets/images/navidrome.png';
 import JellyfinIcon from '@assets/images/jellyfin.png';
+import { toast } from '@backpackapp-io/react-native-toast';
 
 
 export default function OnboardingScreen() {
@@ -61,11 +62,11 @@ export default function OnboardingScreen() {
 
     const handleNext = async () => {
         if (!localServerUrl) {
-            Alert.alert('Error', 'Please enter a valid server URL.');
+            toast.error('Please enter a valid server URL.');
             return;
         }
         if (!selectedType) {
-            Alert.alert('Select a server type first.');
+            toast.error('Select a server type first.');
             return;
         }
 
@@ -76,10 +77,10 @@ export default function OnboardingScreen() {
                 updateServerUrl(localServerUrl);
                 router.push('(onboarding)/credentials');
             } else {
-                Alert.alert('Error', 'Server could not be reached. Please verify the URL.');
+                toast.error('Server could not be reached. Please verify the URL.');
             }
         } catch (error) {
-            Alert.alert('Error', 'Failed to connect.');
+            toast.error('Failed to connect.');
         } finally {
             setIsTesting(false);
         }
@@ -96,7 +97,7 @@ export default function OnboardingScreen() {
                 if (result.success) {
                     router.replace('(home)');
                 } else {
-                    Alert.alert('Error', result.message ?? 'Demo login failed.');
+                    toast.error(result.message ?? 'Demo login failed.');
                     setIsTesting(false);
                 }
             }, 50);

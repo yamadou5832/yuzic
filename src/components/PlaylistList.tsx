@@ -22,6 +22,7 @@ import { useSelector } from 'react-redux';
 import store from '@/utils/redux/store';
 import { selectPlaylistList } from '@/utils/redux/librarySelectors';
 import { useLibrary } from '@/contexts/LibraryContext';
+import { toast } from '@backpackapp-io/react-native-toast';
 
 type PlaylistListProps = {
     selectedSong: any;
@@ -121,6 +122,7 @@ const PlaylistList = forwardRef<BottomSheet, PlaylistListProps>(
                 }
             }
 
+            toast.success("Playlists updated");
             ref?.current?.close();
         };
 

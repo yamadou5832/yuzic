@@ -5,7 +5,11 @@ export async function startScan(
   try {
     const res = await fetch(`${serverUrl}/Library/Refresh`, {
       method: "POST",
-      headers: { "X-Emby-Token": token }
+      headers: {
+      "X-Emby-Token": token,
+      "X-Emby-Authorization":
+        `MediaBrowser Client="Yuzic", Device="Mobile", DeviceId="yuzic-device", Version="1.0.0", Token="${token}"`
+    }
     });
 
     return res.ok

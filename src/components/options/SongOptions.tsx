@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useRef } from 'react';
 import { MenuView } from '@react-native-menu/menu';
 import {
     TouchableOpacity,
@@ -14,11 +14,10 @@ import TrackPlayer from 'react-native-track-player';
 import { usePlaying } from '@/contexts/PlayingContext';
 import PlaylistList from '@/components/PlaylistList';
 import BottomSheet from 'react-native-gesture-bottom-sheet';
-import { useSelector } from "react-redux";
-import { selectStarred } from "@/utils/redux/librarySelectors";
 import { useLibrary } from "@/contexts/LibraryContext";
 
 import { Song } from '@/types';
+import { toast } from '@backpackapp-io/react-native-toast';
 
 const SongOptions: React.FC<{ selectedSong: Song }> = ({ selectedSong }) => {
     const colorScheme = useColorScheme();
@@ -33,14 +32,14 @@ const SongOptions: React.FC<{ selectedSong: Song }> = ({ selectedSong }) => {
         try {
             if (isStarred) {
                 await unstarItem(selectedSong.id!);
-                Alert.alert('Removed from Favorites', `${selectedSong.title} was removed from favorites.`);
+                toast.success(`${selectedSong.title} was removed from favorites.`);
             } else {
                 await starItem(selectedSong.id!);
-                Alert.alert('Added to Favorites', `${selectedSong.title} was added to favorites.`);
+                toast.success(`${selectedSong.title} was added to favorites.`);
             }
         } catch (error) {
             console.error('Error toggling favorite:', error);
-            Alert.alert('Error', 'Failed to update favorites.');
+            toast.error('Failed to update favorites.');
         }
     };
 
@@ -55,10 +54,10 @@ const SongOptions: React.FC<{ selectedSong: Song }> = ({ selectedSong }) => {
                     url: selectedSong.streamUrl,
                     duration: parseFloat(selectedSong.duration),
                 });
-                Alert.alert('Success', `${selectedSong.title} has been added to the queue.`);
+                toast.success(`${selectedSong.title} has been added to the queue.`);
             } catch (error) {
                 console.error('Add to queue error:', error);
-                Alert.alert('Error', 'Failed to add to queue.');
+                toast.error('Failed to add to queue.');
             }
         }
     };
@@ -67,7 +66,7 @@ const SongOptions: React.FC<{ selectedSong: Song }> = ({ selectedSong }) => {
         if (selectedSong && currentSong) {
             try {
                 if (selectedSong.id === currentSong.id) {
-                    Alert.alert('Already Playing', `${selectedSong.title} is currently playing.`);
+                    toast.error(`${selectedSong.title} is currently playing.`);
                     return;
                 }
 
@@ -97,10 +96,10 @@ const SongOptions: React.FC<{ selectedSong: Song }> = ({ selectedSong }) => {
                     duration: parseFloat(selectedSong.duration),
                 }, insertIndex);
 
-                Alert.alert('Success', `${selectedSong.title} will play next.`);
+                toast.success(`${selectedSong.title} will play next.`);
             } catch (error) {
                 console.error('Play next error:', error);
-                Alert.alert('Error', 'Failed to queue song next.');
+                toast.error('Failed to queue song next.');
             }
         }
     };
