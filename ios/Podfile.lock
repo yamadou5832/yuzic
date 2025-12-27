@@ -8,6 +8,8 @@ PODS:
     - DGSwiftUtilities (~> 0.29)
   - DGSwiftUtilities (0.47.0)
   - DoubleConversion (1.1.6)
+  - EASClient (0.13.3):
+    - ExpoModulesCore
   - EXAV (15.0.2):
     - ExpoModulesCore
     - ReactCommon/turbomodule/core
@@ -16,7 +18,7 @@ PODS:
   - EXJSONUtils (0.14.0)
   - EXManifests (0.15.8):
     - ExpoModulesCore
-  - Expo (52.0.47):
+  - Expo (52.0.48):
     - ExpoModulesCore
   - expo-dev-client (5.0.20):
     - EXManifests
@@ -235,7 +237,7 @@ PODS:
     - ExpoModulesCore
   - ExpoHaptics (14.0.1):
     - ExpoModulesCore
-  - ExpoHead (4.0.21):
+  - ExpoHead (4.0.22):
     - ExpoModulesCore
   - ExpoImage (2.0.7):
     - ExpoModulesCore
@@ -243,6 +245,9 @@ PODS:
     - SDWebImage (~> 5.19.1)
     - SDWebImageAVIFCoder (~> 0.11.0)
     - SDWebImageSVGCoder (~> 1.7.0)
+  - ExpoInsights (0.8.2):
+    - EASClient
+    - ExpoModulesCore
   - ExpoKeepAwake (14.0.3):
     - ExpoModulesCore
   - ExpoLinearGradient (14.0.2):
@@ -1576,27 +1581,6 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-blur (4.4.1):
-    - DoubleConversion
-    - glog
-    - hermes-engine
-    - RCT-Folly (= 2024.10.14.00)
-    - RCTRequired
-    - RCTTypeSafety
-    - React-Core
-    - React-debug
-    - React-Fabric
-    - React-featureflags
-    - React-graphics
-    - React-ImageManager
-    - React-NativeModulesApple
-    - React-RCTFabric
-    - React-rendererdebug
-    - React-utils
-    - ReactCodegen
-    - ReactCommon/turbomodule/bridging
-    - ReactCommon/turbomodule/core
-    - Yoga
   - react-native-ios-context-menu (3.2.1):
     - ContextMenuAuxiliaryPreview (~> 0.5)
     - DGSwiftUtilities
@@ -1667,8 +1651,6 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-music-control (1.4.1):
-    - React-Core
   - react-native-restart (0.0.27):
     - React-Core
   - react-native-safe-area-context (4.12.0):
@@ -2099,27 +2081,6 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - RNCPicker (2.9.0):
-    - DoubleConversion
-    - glog
-    - hermes-engine
-    - RCT-Folly (= 2024.10.14.00)
-    - RCTRequired
-    - RCTTypeSafety
-    - React-Core
-    - React-debug
-    - React-Fabric
-    - React-featureflags
-    - React-graphics
-    - React-ImageManager
-    - React-NativeModulesApple
-    - React-RCTFabric
-    - React-rendererdebug
-    - React-utils
-    - ReactCodegen
-    - ReactCommon/turbomodule/bridging
-    - ReactCommon/turbomodule/core
-    - Yoga
   - RNFlashList (1.7.3):
     - DoubleConversion
     - glog
@@ -2294,11 +2255,6 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - RNSound (0.11.2):
-    - React-Core
-    - RNSound/Core (= 0.11.2)
-  - RNSound/Core (0.11.2):
-    - React-Core
   - RNSVG (15.8.0):
     - DoubleConversion
     - glog
@@ -2358,6 +2314,7 @@ DEPENDENCIES:
   - boost (from `../node_modules/react-native/third-party-podspecs/boost.podspec`)
   - BVLinearGradient (from `../node_modules/react-native-linear-gradient`)
   - DoubleConversion (from `../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec`)
+  - EASClient (from `../node_modules/expo-eas-client/ios`)
   - EXAV (from `../node_modules/expo-av/ios`)
   - EXConstants (from `../node_modules/expo-constants/ios`)
   - EXJSONUtils (from `../node_modules/expo-json-utils/ios`)
@@ -2374,6 +2331,7 @@ DEPENDENCIES:
   - ExpoHaptics (from `../node_modules/expo-haptics/ios`)
   - ExpoHead (from `../node_modules/expo-router/ios`)
   - ExpoImage (from `../node_modules/expo-image/ios`)
+  - ExpoInsights (from `../node_modules/expo-insights/ios`)
   - ExpoKeepAwake (from `../node_modules/expo-keep-awake/ios`)
   - ExpoLinearGradient (from `../node_modules/expo-linear-gradient/ios`)
   - ExpoLinking (from `../node_modules/expo-linking/ios`)
@@ -2421,11 +2379,9 @@ DEPENDENCIES:
   - React-logger (from `../node_modules/react-native/ReactCommon/logger`)
   - React-Mapbuffer (from `../node_modules/react-native/ReactCommon`)
   - React-microtasksnativemodule (from `../node_modules/react-native/ReactCommon/react/nativemodule/microtasks`)
-  - "react-native-blur (from `../node_modules/@react-native-community/blur`)"
   - react-native-ios-context-menu (from `../node_modules/react-native-ios-context-menu`)
   - react-native-ios-utilities (from `../node_modules/react-native-ios-utilities`)
   - "react-native-menu (from `../node_modules/@react-native-menu/menu`)"
-  - react-native-music-control (from `../node_modules/react-native-music-control`)
   - react-native-restart (from `../node_modules/react-native-restart`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
   - "react-native-slider (from `../node_modules/@react-native-community/slider`)"
@@ -2460,12 +2416,10 @@ DEPENDENCIES:
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
   - ReactNativeExceptionHandler (from `../node_modules/react-native-exception-handler`)
   - "RNCAsyncStorage (from `../node_modules/@react-native-async-storage/async-storage`)"
-  - "RNCPicker (from `../node_modules/@react-native-picker/picker`)"
   - "RNFlashList (from `../node_modules/@shopify/flash-list`)"
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
   - RNReanimated (from `../node_modules/react-native-reanimated`)
   - RNScreens (from `../node_modules/react-native-screens`)
-  - RNSound (from `../node_modules/react-native-sound`)
   - RNSVG (from `../node_modules/react-native-svg`)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
@@ -2489,6 +2443,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-linear-gradient"
   DoubleConversion:
     :podspec: "../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec"
+  EASClient:
+    :path: "../node_modules/expo-eas-client/ios"
   EXAV:
     :path: "../node_modules/expo-av/ios"
   EXConstants:
@@ -2521,6 +2477,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo-router/ios"
   ExpoImage:
     :path: "../node_modules/expo-image/ios"
+  ExpoInsights:
+    :path: "../node_modules/expo-insights/ios"
   ExpoKeepAwake:
     :path: "../node_modules/expo-keep-awake/ios"
   ExpoLinearGradient:
@@ -2612,16 +2570,12 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon"
   React-microtasksnativemodule:
     :path: "../node_modules/react-native/ReactCommon/react/nativemodule/microtasks"
-  react-native-blur:
-    :path: "../node_modules/@react-native-community/blur"
   react-native-ios-context-menu:
     :path: "../node_modules/react-native-ios-context-menu"
   react-native-ios-utilities:
     :path: "../node_modules/react-native-ios-utilities"
   react-native-menu:
     :path: "../node_modules/@react-native-menu/menu"
-  react-native-music-control:
-    :path: "../node_modules/react-native-music-control"
   react-native-restart:
     :path: "../node_modules/react-native-restart"
   react-native-safe-area-context:
@@ -2690,8 +2644,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-exception-handler"
   RNCAsyncStorage:
     :path: "../node_modules/@react-native-async-storage/async-storage"
-  RNCPicker:
-    :path: "../node_modules/@react-native-picker/picker"
   RNFlashList:
     :path: "../node_modules/@shopify/flash-list"
   RNGestureHandler:
@@ -2700,8 +2652,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-reanimated"
   RNScreens:
     :path: "../node_modules/react-native-screens"
-  RNSound:
-    :path: "../node_modules/react-native-sound"
   RNSVG:
     :path: "../node_modules/react-native-svg"
   Yoga:
@@ -2714,11 +2664,12 @@ SPEC CHECKSUMS:
   ContextMenuAuxiliaryPreview: 20be0be795b783b68f8792732eed4bed9f202c1c
   DGSwiftUtilities: 567f8d5ee618f0b7afb185b17aa45ff356315a0f
   DoubleConversion: f16ae600a246532c4020132d54af21d0ddb2a385
+  EASClient: 68ffef26f551980423751c44c870759842b3340f
   EXAV: 57ea461614a714b8b8fcc72c6fbc298b8f1ec78b
   EXConstants: a1f35b9aabbb3c6791f8e67722579b1ffcdd3f18
   EXJSONUtils: 01fc7492b66c234e395dcffdd5f53439c5c29c93
   EXManifests: 77e77c283c4c53a50b9bddebed25abe93f0b48f1
-  Expo: 3ddf0d76db6b3eef5d1d9f869676d3b69d95305f
+  Expo: df08d6ba6d04d146d4941ef58864db6bf6a04d7e
   expo-dev-client: ca3ebc270cb0d3f26e6d9c3e1da19957ef4fcac1
   expo-dev-launcher: dc460ac52ccec6e72f80de7c6fbe011ee312873c
   expo-dev-menu: 32f62936b2b3ebb3ff84fcdcb5b927a36f80393a
@@ -2728,8 +2679,9 @@ SPEC CHECKSUMS:
   ExpoFileSystem: c8c19bf80d914c83dda3beb8569d7fb603be0970
   ExpoFont: 773955186469acc5108ff569712a2d243857475f
   ExpoHaptics: e01cce0741d68c281853118eb0267f88d42c6b7a
-  ExpoHead: 1b9a42c4b1a2627b8c9ef478a48af59a2fb8c684
+  ExpoHead: f3e37901afeb4b1412d1dd8c4fb957bd69087ddf
   ExpoImage: c37f79e5e97e0a662ed1c4b17363464007da3148
+  ExpoInsights: b83662540f4cba3ea56c465b63ede7a9d2a06752
   ExpoKeepAwake: 2a5f15dd4964cba8002c9a36676319a3394c85c7
   ExpoLinearGradient: ee9efc5acb988b911320e964fab9b4cbdeb198c4
   ExpoLinking: 0381341519ca7180a3a057d20edb1cf6a908aaf4
@@ -2777,11 +2729,9 @@ SPEC CHECKSUMS:
   React-logger: dbca7bdfd4aa5ef69431362bde6b36d49403cb20
   React-Mapbuffer: 6efad4a606c1fae7e4a93385ee096681ef0300dc
   React-microtasksnativemodule: a645237a841d733861c70b69908ab4a1707b52ad
-  react-native-blur: 20985c2224fbf2e9ece7f88d608b7b20e506b964
   react-native-ios-context-menu: 8b2a406486a2fc3a203a8e7e5caefe13c84b5d31
   react-native-ios-utilities: f162854c979d6f94bc74b762984a448ad8010025
   react-native-menu: 03314451ede2593c0cefc2ed797ca10a742416ab
-  react-native-music-control: 3fc719c179a6562e18af1ac6e30ba9e33b397a31
   react-native-restart: 7595693413fe3ca15893702f2c8306c62a708162
   react-native-safe-area-context: 0dfbd139206a79364916959bc8b1a6bea3caba97
   react-native-slider: e500e3bac6ce86f2368bfc376e260a1957f6f5d9
@@ -2816,12 +2766,10 @@ SPEC CHECKSUMS:
   ReactCommon: bfd3600989d79bc3acbe7704161b171a1480b9fd
   ReactNativeExceptionHandler: b11ff67c78802b2f62eed0e10e75cb1ef7947c60
   RNCAsyncStorage: ac02697867ba18d2cfd761ebb144417fe65b210e
-  RNCPicker: 921a904266a9bd75a3ca8cdc85371889e43192d8
   RNFlashList: 11f5b15e49d5c92299682face72bb840ce97b84a
   RNGestureHandler: 3e17c0c9ceb401041b0e64c8e4c8a057da978a9d
   RNReanimated: 5ed2b66c32cb3d398e4c12591b3053594fe2fcb9
   RNScreens: 2856a2abe759a5a56946874f76372c9f033af19a
-  RNSound: 6c156f925295bdc83e8e422e7d8b38d33bc71852
   RNSVG: 81d52481cde97ce0dcc81a55b0310723817088d0
   SDWebImage: 8a6b7b160b4d710e2a22b6900e25301075c34cb3
   SDWebImageAVIFCoder: afe194a084e851f70228e4be35ef651df0fc5c57

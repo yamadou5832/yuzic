@@ -9,15 +9,12 @@ import {
 } from 'react-native';
 import DraggableFlatList, { RenderItemParams } from 'react-native-draggable-flatlist';
 import { GripVertical } from 'lucide-react-native';
-import TrackPlayer from 'react-native-track-player';
 import { usePlaying } from '@/contexts/PlayingContext';
 import { useSettings } from '@/contexts/SettingsContext';
 import { useLibrary } from "@/contexts/LibraryContext";
 import { Image } from 'expo-image';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
-import { selectAlbumList } from '@/utils/redux/librarySelectors';
-import { useSelector } from 'react-redux';
 
 const Queue: React.FC<{ onBack: () => void, width: number }> = ({ onBack, width }) => {
     const { getQueue, currentSong, skipTo, moveTrack, isPlaying, pauseSong, resumeSong, skipToNext } = usePlaying();

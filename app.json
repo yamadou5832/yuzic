@@ -7,7 +7,7 @@
     "icon": "./assets/images/logo.png",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": false,
+    "newArchEnabled": true,
     "ios": {
       "buildNumber": "1",
       "supportsTablet": true,
@@ -23,7 +23,7 @@
     "android": {
       "versionCode": 1,
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "foregroundImage": "./assets/images/logo.png",
         "backgroundColor": "#ffffff"
       },
       "permissions": [
@@ -42,8 +42,9 @@
       [
         "expo-splash-screen",
         {
-          "resizeMode": "contain",
-          "backgroundColor": "#000000"
+          "backgroundColor": "#000000",
+          "image": "./assets/images/logo.png",
+          "imageWidth": 150
         }
       ],
       [
