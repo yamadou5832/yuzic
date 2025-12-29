@@ -11,13 +11,12 @@ import {
   AuthApi
 } from "../types";
 
-import { GenreListing, AdapterType, Song } from "@/types";
+import { Song, NavidromeServer } from "@/types";
 
 import { connect } from "./auth/connect";
 import { ping } from "./auth/ping";
 import { testServerUrl } from "./auth/testServerUrl";
 import { startScan } from "./auth/startScan";
-import { disconnect } from "@/utils/redux/slices/serverSlice";
 
 import { getAlbum } from "./albums/getAlbum";
 import { getAlbumList } from "./albums/getAlbumList";
@@ -40,7 +39,7 @@ import { getGenres } from "./genres/getGenres";
 
 import { scrobbleTrack } from "./scrobbleTrack";
 
-export const createNavidromeAdapter = (adapter: AdapterType): ApiAdapter => {
+export const createNavidromeAdapter = (adapter: NavidromeServer): ApiAdapter => {
   const { serverUrl, username, password } = adapter;
 
   const auth: AuthApi = {

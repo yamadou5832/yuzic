@@ -21,8 +21,8 @@ import {
 } from "@/utils/redux/slices/librarySlice";
 import store from "@/utils/redux/store";
 import { Album, AlbumBase, Artist, ArtistBase, GenreListing, Playlist, PlaylistBase, Song } from "@/types";
-import { selectFavoritesPlaylist } from "@/utils/redux/selectFavoritesPlaylist";
-import { selectAlbumList, selectArtistList, selectGenres, selectPlaylistList, selectStarred } from "@/utils/redux/librarySelectors";
+import { selectFavoritesPlaylist } from "@/utils/redux/selectors/selectFavoritesPlaylist";
+import { selectAlbumList, selectArtistList, selectGenres, selectPlaylistList, selectStarred } from "@/utils/redux/selectors/librarySelectors";
 
 interface LibraryContextType {
     fetchLibrary: (force?: boolean) => Promise<void>;

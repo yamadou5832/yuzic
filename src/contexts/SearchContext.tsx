@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { AlbumBase, ArtistBase, PlaylistBase } from '@/types';
-import { selectAlbumList, selectArtistList, selectPlaylistList } from '@/utils/redux/librarySelectors';
+import { selectAlbumList, selectArtistList, selectPlaylistList } from '@/utils/redux/selectors/librarySelectors';
 import { useSelector } from 'react-redux';
 import { useLibrary } from './LibraryContext';
 

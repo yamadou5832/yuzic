@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useSelector } from "react-redux";
 import { Album } from "@/types";
 import { useLibrary } from "@/contexts/LibraryContext";
-import { selectAlbumById } from "@/utils/redux/librarySelectors";
+import { selectAlbumById } from "@/utils/redux/selectors/librarySelectors";
 
 type UseAlbumResult = {
   album: Album | null;

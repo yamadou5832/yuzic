@@ -7,79 +7,60 @@ import {
     TouchableOpacity,
     StyleSheet,
     ActivityIndicator,
-    Alert,
     KeyboardAvoidingView,
     Platform,
     ScrollView,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useSelector, useDispatch } from 'react-redux';
-import { RootState } from '@/utils/redux/store';
-import { setServerUrl, setUsername, setPassword } from '@/utils/redux/slices/serverSlice';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { setServerType } from '@/utils/redux/slices/serverSlice';
 import { useApi } from '@/api';
 import NavidromeIcon from '@assets/images/navidrome.png';
 import JellyfinIcon from '@assets/images/jellyfin.png';
 import { toast } from '@backpackapp-io/react-native-toast';
 
+type ServerType = 'navidrome' | 'jellyfin';
 
 export default function Connect() {
     const [localServerUrl, setLocalServerUrl] = useState('');
-    const [selectedType, setSelectedType] = useState<'navidrome' | 'jellyfin' | null>(null);
+    const [selectedType, setSelectedType] = useState<ServerType | null>(null);
     const [isLayoutMounted, setIsLayoutMounted] = useState(false);
     const [isTesting, setIsTesting] = useState(false);
+
     const router = useRouter();
-    const dispatch = useDispatch();
     const api = useApi();
 
-    const { isAuthenticated, serverUrl } = useSelector(
-        (s: RootState) => s.server
-    );
-
-    const updateServerUrl = (url: string) => dispatch(setServerUrl(url));
-    const updateUsername = (u: string) => dispatch(setUsername(u));
-    const updatePassword = (p: string) => dispatch(setPassword(p));
-
-    const jellyfinDisabled = false;
-
     useEffect(() => {
-        const timeout = setTimeout(() => setIsLayoutMounted(true), 0);
-        return () => clearTimeout(timeout);
+        const t = setTimeout(() => setIsLayoutMounted(true), 0);
+        return () => clearTimeout(t);
     }, []);
 
-    useEffect(() => {
-        if (isLayoutMounted && isAuthenticated) {
-            router.replace('(home)');
-        }
-    }, [isAuthenticated, isLayoutMounted, router]);
-
-    useEffect(() => {
-        if (serverUrl) {
-            setLocalServerUrl(serverUrl);
-        }
-    }, [serverUrl]);
-
     const handleNext = async () => {
-        if (!localServerUrl) {
-            toast.error('Please enter a valid server URL.');
-            return;
-        }
         if (!selectedType) {
             toast.error('Select a server type first.');
+            return;
+        }
+
+        if (!localServerUrl) {
+            toast.error('Please enter a valid server URL.');
             return;
         }
 
         setIsTesting(true);
         try {
             const result = await api.auth.testUrl(localServerUrl);
-            if (result.success) {
-                updateServerUrl(localServerUrl);
-                router.push('(onboarding)/credentials');
-            } else {
-                toast.error('Server could not be reached. Please verify the URL.');
+            if (!result.success) {
+                toast.error(result.message ?? 'Server could not be reached.');
+                return;
             }
-        } catch (error) {
+
+            router.push({
+                pathname: '(onboarding)/credentials',
+                params: {
+                    type: selectedType,
+                    serverUrl: localServerUrl,
+                },
+            });
+        } catch {
             toast.error('Failed to connect.');
         } finally {
             setIsTesting(false);
@@ -89,25 +70,20 @@ export default function Connect() {
     const handleDemo = async () => {
         setIsTesting(true);
         try {
-            updateServerUrl('https://demo.navidrome.org');
-            updateUsername('demo');
-            updatePassword('demo');
-            setTimeout(async () => {
-                const result = await api.auth.connect('https://demo.navidrome.org', 'demo', 'demo');
-                if (result.success) {
-                    router.replace('(home)');
-                } else {
-                    toast.error(result.message ?? 'Demo login failed.');
-                    setIsTesting(false);
-                }
-            }, 50);
-        } catch (e) {
-            console.error('Failed to use demo server:', e);
+            router.push({
+                pathname: '(onboarding)/credentials',
+                params: {
+                    type: 'navidrome',
+                    serverUrl: 'https://demo.navidrome.org',
+                    demo: 'true',
+                },
+            });
+        } finally {
             setIsTesting(false);
         }
     };
 
-    if (!isLayoutMounted || isAuthenticated) {
+    if (!isLayoutMounted) {
         return (
             <View style={styles.loadingContainer}>
                 <ActivityIndicator size="large" color="#555" />
@@ -126,8 +102,7 @@ export default function Connect() {
                     keyboardShouldPersistTaps="handled"
                 >
                     <Text style={styles.title}>Connect to your Server</Text>
-                    <View style={{ flexDirection: 'row', gap: 12, marginBottom: 20 }}>
-                    </View>
+
                     <View style={styles.serverTypeContainer}>
                         {(['navidrome', 'jellyfin'] as const).map((type) => {
                             const isSelected = selectedType === type;
@@ -135,33 +110,21 @@ export default function Connect() {
                             return (
                                 <TouchableOpacity
                                     key={type}
-                                    disabled={type === 'jellyfin' && jellyfinDisabled}
-                                    onPress={() => {
-                                        if (type === 'jellyfin' && jellyfinDisabled) return;
-                                        setSelectedType(type);
-                                        requestAnimationFrame(() => dispatch(setServerType(type)));
-                                    }}
+                                    onPress={() => setSelectedType(type)}
                                     style={[
                                         styles.serverTypeButton,
-                                        (type === 'jellyfin' && jellyfinDisabled) && { opacity: 0.3 },
                                         isSelected && styles.serverTypeButtonSelected,
                                     ]}
                                 >
                                     <Image
                                         source={type === 'navidrome' ? NavidromeIcon : JellyfinIcon}
-                                        style={{
-                                            width: 36,
-                                            height: 36,
-                                            marginBottom: 6,
-                                        }}
+                                        style={{ width: 36, height: 36, marginBottom: 6 }}
                                         resizeMode="contain"
                                     />
-
                                     <Text
                                         style={[
                                             styles.serverTypeText,
                                             isSelected && styles.serverTypeTextSelected,
-                                            type === 'jellyfin' && jellyfinDisabled && { color: '#777' },
                                         ]}
                                     >
                                         {type === 'navidrome' ? 'Navidrome' : 'Jellyfin'}
@@ -170,14 +133,17 @@ export default function Connect() {
                             );
                         })}
                     </View>
+
                     {selectedType && (
-                        <Text style={{ color: '#aaa', marginBottom: 20, marginTop: 8 }}>
+                        <Text style={styles.description}>
                             {selectedType === 'navidrome'
                                 ? 'A lightweight, self-hosted music server.'
                                 : 'A full-featured media server for music, movies, and TV.'}
                         </Text>
                     )}
+
                     <Text style={styles.subtitle}>Enter your server URL (http/https)</Text>
+
                     <TextInput
                         style={styles.input}
                         placeholder={
@@ -187,7 +153,7 @@ export default function Connect() {
                         }
                         placeholderTextColor="#888"
                         value={localServerUrl}
-                        onChangeText={(text) => setLocalServerUrl(text)}
+                        onChangeText={setLocalServerUrl}
                         autoCapitalize="none"
                         autoCorrect={false}
                         keyboardAppearance="dark"
@@ -195,7 +161,6 @@ export default function Connect() {
                         returnKeyType="next"
                         onSubmitEditing={handleNext}
                     />
-
                 </ScrollView>
 
                 <View style={styles.buttonContainer}>
@@ -214,13 +179,16 @@ export default function Connect() {
                     <TouchableOpacity
                         style={[
                             styles.demoButton,
-                            (selectedType === 'jellyfin' || isTesting) && styles.nextButtonDisabled
+                            (selectedType === 'jellyfin' || isTesting) &&
+                                styles.nextButtonDisabled,
                         ]}
                         onPress={handleDemo}
                         disabled={selectedType === 'jellyfin' || isTesting}
                     >
                         <Text style={styles.demoButtonText}>
-                            {selectedType === 'jellyfin' ? 'Demo unavailable for Jellyfin' : 'Use Navidrome demo'}
+                            {selectedType === 'jellyfin'
+                                ? 'Demo unavailable for Jellyfin'
+                                : 'Use Navidrome demo'}
                         </Text>
                     </TouchableOpacity>
                 </View>
@@ -252,9 +220,13 @@ const styles = StyleSheet.create({
         color: '#888',
         marginBottom: 20,
     },
+    description: {
+        color: '#aaa',
+        marginBottom: 20,
+        marginTop: 8,
+    },
     serverTypeContainer: {
         flexDirection: 'row',
-        justifyContent: 'space-between',
         gap: 12,
         marginBottom: 20,
     },
@@ -313,12 +285,12 @@ const styles = StyleSheet.create({
         fontWeight: '600',
     },
     demoButton: {
-        backgroundColor: '#333', // soft gray tone
+        backgroundColor: '#333',
         paddingVertical: 15,
         borderRadius: 999,
         alignItems: 'center',
         width: '100%',
-        marginBottom: 4, // optional slight spacing
+        marginBottom: 4,
     },
     demoButtonText: {
         color: '#fff',

@@ -10,13 +10,13 @@ import {
 import BottomSheet from 'react-native-gesture-bottom-sheet';
 import { Ionicons } from '@expo/vector-icons';
 import { useSelector, useDispatch } from "react-redux";
-import { RootState } from "@/utils/redux/store";
 import { useLibrary } from "@/contexts/LibraryContext";
 import { usePlaying } from "@/contexts/PlayingContext";
 import { useRouter } from 'expo-router';
 import { useApi } from "@/api";
-import { disconnect } from "@/utils/redux/slices/serverSlice";
+import { disconnect } from "@/utils/redux/slices/serversSlice";
 import { toast } from '@backpackapp-io/react-native-toast';
+import { selectActiveServer } from '@/utils/redux/selectors/serversSelectors';
 
 type Props = {
   themeColor: string;
@@ -29,9 +29,9 @@ const AccountActionSheet = forwardRef<BottomSheet, Props>(
     const dispatch = useDispatch();
     const api = useApi();
 
-    const { username, serverUrl } = useSelector(
-      (s: RootState) => s.server
-    );
+    const activeServer = useSelector(selectActiveServer);
+    const username = activeServer?.username;
+    const serverUrl = activeServer?.serverUrl;
 
     const { clearLibrary } = useLibrary();
     const { pauseSong, resetQueue } = usePlaying();
@@ -49,7 +49,9 @@ const AccountActionSheet = forwardRef<BottomSheet, Props>(
         await pauseSong();
         await resetQueue();
         clearLibrary();
-        dispatch(disconnect());
+        if (activeServer) {
+          dispatch(disconnect());
+        }
         router.replace('/(onboarding)');
       } catch (e) {
         console.error('Sign-out failed:', e);

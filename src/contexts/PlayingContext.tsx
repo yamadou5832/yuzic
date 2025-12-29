@@ -19,8 +19,8 @@ import { Song } from '@/types';
 import shuffleArray from '@/utils/shuffleArray';
 import { useApi } from '@/api';
 import { useSelector } from "react-redux";
-import { RootState } from "@/utils/redux/store";
 import { useDownload } from "@/contexts/DownloadContext";
+import { selectActiveServer } from '@/utils/redux/selectors/serversSelectors';
 
 TrackPlayer.registerPlaybackService(() => PlaybackService);
 
@@ -74,9 +74,11 @@ export const PlayingProvider: React.FC<{ children: ReactNode }> = ({ children })
     const [shuffleOn, setShuffleOn] = useState<boolean>(false);
     const playbackState = usePlaybackState();
     const api = useApi();
-    const { serverUrl, username, password } = useSelector(
-        (state: RootState) => state.server
-    );
+    const activeServer = useSelector(selectActiveServer);
+    const serverUrl = activeServer?.serverUrl;
+    const username = activeServer?.username;
+    const password = activeServer?.password;
+
     const { getSongLocalUri } = useDownload();
 
     const isPlaying = playbackState.state === State.Playing;

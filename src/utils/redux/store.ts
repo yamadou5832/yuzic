@@ -2,22 +2,22 @@ import { configureStore, combineReducers } from '@reduxjs/toolkit';
 import { persistStore, persistReducer } from 'redux-persist';
 import storage from '@react-native-async-storage/async-storage';
 
-import serverReducer from './slices/serverSlice';
+import serversReducer from './slices/serversSlice';
 import libraryReducer from './slices/librarySlice';
 import lidarrReducer from './slices/lidarrSlice';
 
-const serverPersistConfig = { key: 'server', storage };
+const serversPersistConfig = { key: 'servers', storage };
 const lidarrPersistConfig = { key: 'lidarr', storage };
 const libraryPersistConfig = { key: 'library', storage };
 
 export const rootReducer = combineReducers({
-    server: serverReducer,
+    servers: serversReducer,
     lidarr: lidarrReducer,
     library: libraryReducer,
 });
 
 const persistedReducer = combineReducers({
-    server: persistReducer(serverPersistConfig, serverReducer),
+    servers: persistReducer(serversPersistConfig, serversReducer),
     lidarr: persistReducer(lidarrPersistConfig, lidarrReducer),
     library: persistReducer(libraryPersistConfig, libraryReducer)
 });

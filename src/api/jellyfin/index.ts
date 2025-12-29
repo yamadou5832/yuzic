@@ -11,7 +11,7 @@ import {
   AuthApi,
 } from "../types";
 
-import { AdapterType, Playlist } from "@/types";
+import { JellyfinServer, Playlist } from "@/types";
 
 import { connect } from "./auth/connect";
 import { ping } from "./auth/ping";
@@ -32,7 +32,7 @@ import { getSongsByGenre } from "./genres/getSongsByGenre";
 import { getArtist } from "./artists/getArtist";
 import { getGenres } from "./genres/getGenres";
 
-export const createJellyfinAdapter = (adapter: AdapterType): ApiAdapter => {
+export const createJellyfinAdapter = (adapter: JellyfinServer): ApiAdapter => {
   const { serverUrl, username, password, token, userId } = adapter;
 
   const auth: AuthApi = {

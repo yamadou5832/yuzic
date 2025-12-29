@@ -23,8 +23,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import AccountActionSheet from '@/components/AccountActionSheet';
 import Loader from '@/components/Loader'
-import { RootState } from '@/utils/redux/store';
 import { useSelector } from 'react-redux';
+import { selectActiveServer } from '@/utils/redux/selectors/serversSelectors';
 
 const isColorLight = (color: string) => {
     const hex = color.replace('#', '');
@@ -39,7 +39,9 @@ const isColorLight = (color: string) => {
 export default function HomeScreen() {
     const navigation = useNavigation();
     const router = useRouter();
-    const { isAuthenticated, username } = useSelector((s: RootState) => s.server);
+    const activeServer = useSelector(selectActiveServer);
+    const isAuthenticated = activeServer?.isAuthenticated;
+    const username = activeServer?.username;
     const colorScheme = Appearance.getColorScheme();
     const isDarkMode = colorScheme === 'dark';
     const { albums, artists, playlists, fetchLibrary, clearLibrary, isLoading } = useLibrary();

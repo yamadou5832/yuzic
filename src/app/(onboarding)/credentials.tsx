@@ -1,5 +1,5 @@
 import Credentials from "@/screens/onboarding/credentials";
 
-export default function WelcomeScreen() {
+export default function CredentialsScreen() {
   return <Credentials />;
 }

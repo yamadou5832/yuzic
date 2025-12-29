@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useSelector } from "react-redux";
 import { Artist } from "@/types";
 import { useLibrary } from "@/contexts/LibraryContext";
-import { selectArtistById } from "@/utils/redux/librarySelectors";
+import { selectArtistById } from "@/utils/redux/selectors/librarySelectors";
 
 type UseArtistResult = {
   artist: Artist | null;

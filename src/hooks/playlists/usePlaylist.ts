@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useSelector } from "react-redux";
 import { Playlist } from "@/types";
 import { useLibrary } from "@/contexts/LibraryContext";
-import { selectPlaylistById } from "@/utils/redux/librarySelectors";
+import { selectPlaylistById } from "@/utils/redux/selectors/librarySelectors";
 
 type UsePlaylistResult = {
   playlist: Playlist | null;

@@ -1,4 +1,4 @@
-import { setAuthenticated } from "@/utils/redux/slices/serverSlice";
+import { setAuthenticated } from "@/utils/redux/slices/serversSlice";
 import store from "@/utils/redux/store";
 
 const API_VERSION = "1.16.0";

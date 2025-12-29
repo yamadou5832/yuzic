@@ -13,7 +13,7 @@ import { useSelector } from 'react-redux';
 import {
     selectAlbumList,
     selectPlaylistList,
-} from '@/utils/redux/librarySelectors';
+} from '@/utils/redux/selectors/librarySelectors';
 import { useSettings } from '@/contexts/SettingsContext';
 import { useLibrary } from '@/contexts/LibraryContext';
 

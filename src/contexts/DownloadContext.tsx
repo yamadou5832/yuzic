@@ -12,7 +12,7 @@ import { useSelector } from 'react-redux';
 import store from '@/utils/redux/store';
 import { useLibrary } from '@/contexts/LibraryContext';
 import { useSettings } from '@/contexts/SettingsContext';
-import { selectAlbumList, selectPlaylistList } from '@/utils/redux/librarySelectors';
+import { selectAlbumList, selectPlaylistList } from '@/utils/redux/selectors/librarySelectors';
 import { Album, Playlist, Song } from '@/types';
 
 type DownloadContextType = {

@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '@/utils/redux/store';
-import { disconnect as reduxDisconnect } from '@/utils/redux/slices/serverSlice';
+import { disconnect as reduxDisconnect } from '@/utils/redux/slices/serversSlice';
 import { useApi } from '@/api';
 import { useLibrary } from '@/contexts/LibraryContext';
 import { usePlaying } from '@/contexts/PlayingContext';

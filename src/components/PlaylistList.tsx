@@ -20,7 +20,7 @@ import { Ionicons } from '@expo/vector-icons';
 import CoverArt from '@/components/CoverArt';
 import { useSelector } from 'react-redux';
 import store from '@/utils/redux/store';
-import { selectPlaylistList } from '@/utils/redux/librarySelectors';
+import { selectPlaylistList } from '@/utils/redux/selectors/librarySelectors';
 import { useLibrary } from '@/contexts/LibraryContext';
 import { toast } from '@backpackapp-io/react-native-toast';
 

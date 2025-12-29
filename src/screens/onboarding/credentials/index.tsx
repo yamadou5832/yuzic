@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
     View,
     Text,
@@ -6,66 +6,97 @@ import {
     TouchableOpacity,
     StyleSheet,
     ActivityIndicator,
-    Alert,
     KeyboardAvoidingView,
     Platform,
     ScrollView,
 } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useSelector, useDispatch } from 'react-redux';
-import { RootState } from '@/utils/redux/store';
-import { setUsername, setPassword } from '@/utils/redux/slices/serverSlice';
-import { useApi } from '@/api';
+import { useDispatch } from 'react-redux';
+import { addServer, setActiveServer } from '@/utils/redux/slices/serversSlice';
+import { connect as connectNavidrome } from "@/api/navidrome/auth/connect";
+import { connect as connectJellyfin } from "@/api/jellyfin/auth/connect";
 import { toast } from '@backpackapp-io/react-native-toast';
+import { nanoid } from '@reduxjs/toolkit';
+import { ServerType } from '@/types';
 
 export default function Credentials() {
     const dispatch = useDispatch();
-    const api = useApi();
+    const router = useRouter();
 
-    const { type, serverUrl, username, password } = useSelector(
-        (state: RootState) => state.server
-    );
+    const params = useLocalSearchParams<{
+        type: ServerType;
+        serverUrl: string;
+        demo?: string;
+    }>();
 
-    const [localUsername, setLocalUsername] = useState('');
-    const [localPassword, setLocalPassword] = useState('');
+    const { type, serverUrl, demo } = params;
+
+    const [localUsername, setLocalUsername] = useState(demo ? 'demo' : '');
+    const [localPassword, setLocalPassword] = useState(demo ? 'demo' : '');
     const [isTesting, setIsTesting] = useState(false);
 
     const passwordRef = useRef<TextInput>(null);
-    const router = useRouter();
 
     useEffect(() => {
-        if (username) setLocalUsername(username);
-        if (password) setLocalPassword(password);
-    }, [username, password]);
+        if (!type || !serverUrl) {
+            router.replace('/(onboarding)/servers');
+        }
+    }, [type, serverUrl]);
 
     const handleNext = async () => {
         if (!localUsername || !localPassword) {
             toast.error('Please enter both username and password.');
             return;
         }
-
-        if (!api) {
-            toast.error('No API available.');
-            return;
-        }
-
         setIsTesting(true);
         try {
-            dispatch(setUsername(localUsername));
-            dispatch(setPassword(localPassword));
+            const result =
+                type === "navidrome"
+                    ? await connectNavidrome(serverUrl, localUsername, localPassword)
+                    : await connectJellyfin(serverUrl, localUsername, localPassword);
 
-            console.log(type)
-            const result = await api.auth.connect(serverUrl, localUsername, localPassword);
-
-            if (result?.success) {
-                router.replace('(home)');
-            } else {
-                toast.error(result?.message || 'Connection failed.');
+            console.log(result)
+            if (!result.success) {
+                toast.error(result.message || 'Connection failed.');
+                return;
             }
-        } catch {
-            toast.error('An error occurred while testing the connection.');
+
+            const id = nanoid();
+
+            if (result.type === 'navidrome') {
+                dispatch(
+                    addServer({
+                        id,
+                        type: 'navidrome',
+                        serverUrl,
+                        username: localUsername,
+                        password: localPassword,
+                        isAuthenticated: true,
+                    })
+                );
+            }
+
+            if (result.type === 'jellyfin') {
+                dispatch(
+                    addServer({
+                        id,
+                        type: 'jellyfin',
+                        serverUrl,
+                        username: localUsername,
+                        password: localPassword,
+                        token: result.token,
+                        userId: result.userId,
+                        isAuthenticated: true,
+                    })
+                );
+            }
+
+            dispatch(setActiveServer(id));
+            router.replace('/(home)');
+        } catch (e) {
+            toast.error('An error occurred while connecting.');
         } finally {
             setIsTesting(false);
         }

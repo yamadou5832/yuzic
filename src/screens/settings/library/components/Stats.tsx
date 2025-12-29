@@ -10,35 +10,66 @@ import {
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { Loader2 } from 'lucide-react-native';
-import { useLibrary } from '@/contexts/LibraryContext';
-import { selectAlbumList, selectArtistList, selectPlaylistList } from '@/utils/redux/librarySelectors';
 import { useSelector } from 'react-redux';
+
+import { RootState } from '@/utils/redux/store';
+import {
+    selectAlbumList,
+    selectArtistList,
+    selectPlaylistList,
+} from '@/utils/redux/selectors/librarySelectors';
+import { useLibrary } from '@/contexts/LibraryContext';
 import { useSettings } from '@/contexts/SettingsContext';
 
 type StatsProps = {
     onConfirm: (action: () => void, message: string) => void;
 };
 
-const Stats: React.FC<StatsProps> = ({
-    onConfirm,
-}) => {
+const Stats: React.FC<StatsProps> = ({ onConfirm }) => {
     const colorScheme = useColorScheme();
     const isDarkMode = colorScheme === 'dark';
-
     const { themeColor } = useSettings();
-    const { albums, artists, playlists, refreshLibrary, isLoading } = useLibrary();
+
+    const albumList = useSelector(selectAlbumList);
+    const artistList = useSelector(selectArtistList);
+    const playlistList = useSelector(selectPlaylistList);
+
+    const albumsById = useSelector((state: RootState) => state.library.albumsById);
+    const artistsById = useSelector((state: RootState) => state.library.artistsById);
+    const playlistsById = useSelector((state: RootState) => state.library.playlistsById);
+
+    const { refreshLibrary, isLoading } = useLibrary();
 
     const stats = useMemo(() => {
-        const total = albums.length + artists.length + playlists.length;
+        const fetchedAlbums = Object.keys(albumsById).length;
+        const fetchedArtists = Object.keys(artistsById).length;
+        const fetchedPlaylists = Object.keys(playlistsById).length;
 
         return {
-            library: {
-                label: 'Library',
-                fetched: total,
-                total,
+            albums: {
+                label: 'Albums',
+                fetched: fetchedAlbums,
+                total: albumList.length,
+            },
+            artists: {
+                label: 'Artists',
+                fetched: fetchedArtists,
+                total: artistList.length,
+            },
+            playlists: {
+                label: 'Playlists',
+                fetched: fetchedPlaylists,
+                total: playlistList.length,
             },
         };
-    }, [albums, artists, playlists]);
+    }, [
+        albumList.length,
+        artistList.length,
+        playlistList.length,
+        albumsById,
+        artistsById,
+        playlistsById,
+    ]);
 
     const spinValue = useRef(new Animated.Value(0)).current;
 
@@ -63,7 +94,7 @@ const Stats: React.FC<StatsProps> = ({
         return () => {
             loop.stop();
         };
-    }, [isLoading]);
+    }, [isLoading, spinValue]);
 
     const spin = spinValue.interpolate({
         inputRange: [0, 1],
@@ -83,7 +114,7 @@ const Stats: React.FC<StatsProps> = ({
         <View style={[styles.section, isDarkMode && styles.sectionDark]}>
             <View style={styles.sectionHeader}>
                 <Text style={[styles.sectionTitle, isDarkMode && styles.sectionTitleDark]}>
-                    Services
+                    Library
                 </Text>
 
                 <TouchableOpacity
@@ -108,14 +139,17 @@ const Stats: React.FC<StatsProps> = ({
             </View>
 
             {Object.entries(stats).map(([key, stat], index) => {
-                const label = stat.label;
-                const fetched = stat.fetched;
-                const total = stat.total;
+                let statusLabel: string;
 
-                const statusLabel =
-                    fetched > 0
-                        ? `Fetched ${fetched}/${total}`
-                        : `Up to date (${total})`;
+                if (stat.total === 0) {
+                    statusLabel = 'Empty';
+                } else if (stat.fetched === 0) {
+                    statusLabel = 'Not fetched';
+                } else if (stat.fetched < stat.total) {
+                    statusLabel = `Fetched ${stat.fetched}/${stat.total}`;
+                } else {
+                    statusLabel = `Up to date (${stat.total})`;
+                }
 
                 return (
                     <View key={key}>
@@ -124,7 +158,7 @@ const Stats: React.FC<StatsProps> = ({
                         )}
                         <View style={styles.row}>
                             <Text style={[styles.rowText, isDarkMode && styles.rowTextDark]}>
-                                {label}
+                                {stat.label}
                             </Text>
                             <Text style={[styles.rowValue, isDarkMode && styles.rowValueDark]}>
                                 {statusLabel}
