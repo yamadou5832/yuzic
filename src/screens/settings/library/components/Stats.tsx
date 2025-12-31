@@ -7,6 +7,7 @@ import {
     Animated,
     Easing,
     useColorScheme,
+    Alert,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { Loader2 } from 'lucide-react-native';
@@ -21,13 +22,8 @@ import {
 import { useLibrary } from '@/contexts/LibraryContext';
 import { useSettings } from '@/contexts/SettingsContext';
 
-type StatsProps = {
-    onConfirm: (action: () => void, message: string) => void;
-};
-
-const Stats: React.FC<StatsProps> = ({ onConfirm }) => {
-    const colorScheme = useColorScheme();
-    const isDarkMode = colorScheme === 'dark';
+const Stats: React.FC = () => {
+    const isDarkMode = useColorScheme() === 'dark';
     const { themeColor } = useSettings();
 
     const albumList = useSelector(selectAlbumList);
@@ -41,35 +37,24 @@ const Stats: React.FC<StatsProps> = ({ onConfirm }) => {
     const { refreshLibrary, isLoading } = useLibrary();
 
     const stats = useMemo(() => {
-        const fetchedAlbums = Object.keys(albumsById).length;
-        const fetchedArtists = Object.keys(artistsById).length;
-        const fetchedPlaylists = Object.keys(playlistsById).length;
-
         return {
             albums: {
                 label: 'Albums',
-                fetched: fetchedAlbums,
+                fetched: Object.keys(albumsById).length,
                 total: albumList.length,
             },
             artists: {
                 label: 'Artists',
-                fetched: fetchedArtists,
+                fetched: Object.keys(artistsById).length,
                 total: artistList.length,
             },
             playlists: {
                 label: 'Playlists',
-                fetched: fetchedPlaylists,
+                fetched: Object.keys(playlistsById).length,
                 total: playlistList.length,
             },
         };
-    }, [
-        albumList.length,
-        artistList.length,
-        playlistList.length,
-        albumsById,
-        artistsById,
-        playlistsById,
-    ]);
+    }, [albumList.length, artistList.length, playlistList.length, albumsById, artistsById, playlistsById]);
 
     const spinValue = useRef(new Animated.Value(0)).current;
 
@@ -90,10 +75,7 @@ const Stats: React.FC<StatsProps> = ({ onConfirm }) => {
         );
 
         loop.start();
-
-        return () => {
-            loop.stop();
-        };
+        return () => loop.stop();
     }, [isLoading, spinValue]);
 
     const spin = spinValue.interpolate({
@@ -102,11 +84,17 @@ const Stats: React.FC<StatsProps> = ({ onConfirm }) => {
     });
 
     const handleRefresh = () => {
-        onConfirm(
-            async () => {
-                await refreshLibrary();
-            },
-            'This will re-fetch all music data from your connected server and additional sources. Continue?'
+        Alert.alert(
+            'Refresh Library?',
+            'This will re-fetch all music data from your connected server and additional sources.',
+            [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                    text: 'Refresh',
+                    style: 'destructive',
+                    onPress: refreshLibrary,
+                },
+            ]
         );
     };
 
@@ -122,10 +110,7 @@ const Stats: React.FC<StatsProps> = ({ onConfirm }) => {
                     disabled={isLoading}
                     style={[
                         styles.refreshButton,
-                        {
-                            backgroundColor: themeColor,
-                            opacity: isLoading ? 0.6 : 1,
-                        },
+                        { backgroundColor: themeColor, opacity: isLoading ? 0.6 : 1 },
                     ]}
                 >
                     {isLoading ? (
@@ -139,17 +124,14 @@ const Stats: React.FC<StatsProps> = ({ onConfirm }) => {
             </View>
 
             {Object.entries(stats).map(([key, stat], index) => {
-                let statusLabel: string;
-
-                if (stat.total === 0) {
-                    statusLabel = 'Empty';
-                } else if (stat.fetched === 0) {
-                    statusLabel = 'Not fetched';
-                } else if (stat.fetched < stat.total) {
-                    statusLabel = `Fetched ${stat.fetched}/${stat.total}`;
-                } else {
-                    statusLabel = `Up to date (${stat.total})`;
-                }
+                let statusLabel =
+                    stat.total === 0
+                        ? 'Empty'
+                        : stat.fetched === 0
+                        ? 'Not fetched'
+                        : stat.fetched < stat.total
+                        ? `Fetched ${stat.fetched}/${stat.total}`
+                        : `Up to date (${stat.total})`;
 
                 return (
                     <View key={key}>

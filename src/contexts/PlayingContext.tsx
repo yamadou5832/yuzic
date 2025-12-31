@@ -15,19 +15,11 @@ import TrackPlayer, {
     useTrackPlayerEvents,
 } from 'react-native-track-player';
 import { PlaybackService } from '@/utils/track-player/PlaybackService';
-import { Song } from '@/types';
+import { Album, Playlist, Song } from '@/types';
 import shuffleArray from '@/utils/shuffleArray';
-import { useApi } from '@/api';
 import { useDownload } from '@/contexts/DownloadContext';
 
 TrackPlayer.registerPlaybackService(() => PlaybackService);
-
-interface CollectionData {
-    id: string;
-    title: string;
-    songs: Song[];
-    type: 'album' | 'playlist';
-}
 
 interface PlayingContextType {
     currentSong: Song | null;
@@ -39,7 +31,7 @@ interface PlayingContextType {
     playSong(song: Song): Promise<void>;
     playSongInCollection(
         selectedSong: Song,
-        collection: CollectionData,
+        collection: Album | Playlist,
         shuffle?: boolean
     ): Promise<void>;
 
@@ -55,10 +47,11 @@ interface PlayingContextType {
     addToQueue(song: Song): void;
     playNext(song: Song): void;
 
-    toggleRepeat(): void;
     toggleShuffle(): Promise<void>;
 
-    repeatMode: 'off' | 'one' | 'all';
+    repeatOn: boolean;
+    toggleRepeat(): void;
+
     shuffleOn: boolean;
     currentIndex: number;
     queueVersion: number;
@@ -77,12 +70,11 @@ export const PlayingProvider: React.FC<{ children: ReactNode }> = ({ children })
     const playbackState = usePlaybackState();
     const isPlaying = playbackState.state === State.Playing;
 
-    const api = useApi();
     const { getSongLocalUri } = useDownload();
 
     const [currentSong, setCurrentSong] = useState<Song | null>(null);
     const [currentIndex, setCurrentIndex] = useState(0);
-    const [repeatMode, setRepeatMode] = useState<'off' | 'one' | 'all'>('off');
+    const [repeatOn, setRepeatOn] = useState(false);
     const [shuffleOn, setShuffleOn] = useState(false);
 
     const [queueVersion, setQueueVersion] = useState(0);
@@ -128,6 +120,19 @@ export const PlayingProvider: React.FC<{ children: ReactNode }> = ({ children })
         await skipToNext();
     });
 
+    useTrackPlayerEvents(
+        [Event.RemoteNext, Event.RemotePrevious],
+        async (event) => {
+            if (event.type === Event.RemoteNext) {
+                await skipToNext();
+            }
+
+            if (event.type === Event.RemotePrevious) {
+                await skipToPrevious();
+            }
+        }
+    );
+
     const playSong = async (song: Song) => {
         queueRef.current = [song];
         originalQueueRef.current = null;
@@ -139,7 +144,7 @@ export const PlayingProvider: React.FC<{ children: ReactNode }> = ({ children })
 
     const playSongInCollection = async (
         selectedSong: Song,
-        collection: CollectionData,
+        collection: Album | Playlist,
         shuffle = false
     ) => {
         let songs = [...collection.songs];
@@ -164,23 +169,20 @@ export const PlayingProvider: React.FC<{ children: ReactNode }> = ({ children })
     };
 
     const skipToNext = async () => {
-        if (repeatMode === 'one' && currentSong) {
-            await loadAndPlay(currentSong);
-            return;
-        }
+        const nextIndex = currentIndex + 1;
 
-        const next = currentIndex + 1;
-
-        if (next >= queueRef.current.length) {
-            if (repeatMode === 'all' && queueRef.current.length > 0) {
-                setCurrentIndex(0);
-                await loadAndPlay(queueRef.current[0]);
+        if (nextIndex >= queueRef.current.length) {
+            if (!repeatOn) {
+                return;
             }
+
+            setCurrentIndex(0);
+            await loadAndPlay(queueRef.current[0]);
             return;
         }
 
-        setCurrentIndex(next);
-        await loadAndPlay(queueRef.current[next]);
+        setCurrentIndex(nextIndex);
+        await loadAndPlay(queueRef.current[nextIndex]);
     };
 
     const skipToPrevious = async () => {
@@ -263,11 +265,7 @@ export const PlayingProvider: React.FC<{ children: ReactNode }> = ({ children })
     };
 
     const toggleRepeat = () => {
-        setRepeatMode(prev => {
-            if (prev === 'off') return 'all';
-            if (prev === 'all') return 'one';
-            return 'off';
-        });
+        setRepeatOn(prev => !prev);
     };
 
     const resetQueue = async () => {
@@ -277,7 +275,7 @@ export const PlayingProvider: React.FC<{ children: ReactNode }> = ({ children })
         setCurrentIndex(0);
         setCurrentSong(null);
         setShuffleOn(false);
-        setRepeatMode('off');
+        setRepeatOn(false);
         bumpQueue();
     };
 
@@ -298,9 +296,9 @@ export const PlayingProvider: React.FC<{ children: ReactNode }> = ({ children })
                 getQueue,
                 resetQueue,
                 skipTo,
-                toggleRepeat,
                 toggleShuffle,
-                repeatMode,
+                repeatOn,
+                toggleRepeat,
                 shuffleOn,
                 moveTrack,
                 addToQueue,

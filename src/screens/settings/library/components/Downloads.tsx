@@ -5,23 +5,15 @@ import {
     StyleSheet,
     TouchableOpacity,
     useColorScheme,
+    Alert,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import CoverArt from '@/components/CoverArt';
 import { useDownload } from '@/contexts/DownloadContext';
-import { useSelector } from 'react-redux';
-import {
-    selectAlbumList,
-    selectPlaylistList,
-} from '@/utils/redux/selectors/librarySelectors';
 import { useSettings } from '@/contexts/SettingsContext';
 import { useLibrary } from '@/contexts/LibraryContext';
 
-type DownloadsProps = {
-    onConfirm: (action: () => void, message: string) => void;
-};
-
-const Downloads: React.FC<DownloadsProps> = ({ onConfirm }) => {
+const Downloads: React.FC = () => {
     const isDarkMode = useColorScheme() === 'dark';
     const { themeColor } = useSettings();
     const { albums, playlists } = useLibrary();
@@ -42,11 +34,7 @@ const Downloads: React.FC<DownloadsProps> = ({ onConfirm }) => {
     const [downloadedSongCount, setDownloadedSongCount] = useState(0);
 
     useEffect(() => {
-        const load = async () => {
-            const count = await getDownloadedSongsCount();
-            setDownloadedSongCount(count);
-        };
-        load();
+        setDownloadedSongCount(getDownloadedSongsCount());
     }, [getDownloadedSongsCount]);
 
     const items = useMemo(() => {
@@ -61,6 +49,17 @@ const Downloads: React.FC<DownloadsProps> = ({ onConfirm }) => {
         return [...albumItems, ...playlistItems];
     }, [albums, playlists, markedAlbums, markedPlaylists]);
 
+    const handleClearDownloads = () => {
+        Alert.alert(
+            'Clear downloads?',
+            'This will remove all downloaded songs from your device.',
+            [
+                { text: 'Cancel', style: 'cancel' },
+                { text: 'Delete', style: 'destructive', onPress: clearAllDownloads },
+            ]
+        );
+    };
+
     return (
         <View style={[styles.section, isDarkMode && styles.sectionDark]}>
             <View style={styles.sectionHeader}>
@@ -69,12 +68,7 @@ const Downloads: React.FC<DownloadsProps> = ({ onConfirm }) => {
                 </Text>
 
                 <TouchableOpacity
-                    onPress={() =>
-                        onConfirm(
-                            clearAllDownloads,
-                            'This will remove all downloaded songs from your device.'
-                        )
-                    }
+                    onPress={handleClearDownloads}
                     disabled={downloadedSongCount === 0}
                     style={[
                         styles.iconButton,

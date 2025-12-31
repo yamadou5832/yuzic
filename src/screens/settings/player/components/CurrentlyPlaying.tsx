@@ -25,7 +25,7 @@ const CurrentlyPlaying: React.FC = () => {
     skipToPrevious,
     toggleRepeat,
     toggleShuffle,
-    repeatMode,
+    repeatOn,
     shuffleOn,
   } = usePlaying();
 
@@ -62,10 +62,10 @@ const CurrentlyPlaying: React.FC = () => {
               disabled
                 ? '#555'
                 : shuffleOn
-                ? themeColor
-                : isDarkMode
-                ? '#888'
-                : '#aaa'
+                  ? themeColor
+                  : isDarkMode
+                    ? '#888'
+                    : '#aaa'
             }
           />
         </TouchableOpacity>
@@ -100,16 +100,16 @@ const CurrentlyPlaying: React.FC = () => {
 
         <TouchableOpacity onPress={toggleRepeat} disabled={disabled}>
           <MaterialIcons
-            name={repeatMode === 'one' ? 'repeat-one' : 'repeat'}
+            name="repeat"
             size={24}
             color={
               disabled
                 ? '#555'
-                : repeatMode !== 'off'
-                ? themeColor
-                : isDarkMode
-                ? '#888'
-                : '#aaa'
+                : repeatOn
+                  ? themeColor
+                  : isDarkMode
+                    ? '#888'
+                    : '#aaa'
             }
           />
         </TouchableOpacity>

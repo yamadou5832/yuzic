@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React from 'react';
 import {
     SafeAreaView,
     ScrollView,
@@ -7,12 +7,10 @@ import {
     Appearance,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { BottomSheetModal } from '@gorhom/bottom-sheet';
 
 import { useSettings } from '@/contexts/SettingsContext';
 
 import Header from '../components/Header';
-import ConfirmActionSheet from '@/components/ConfirmActionSheet';
 
 import Stats from './components/Stats';
 import AudioQuality from './components/AudioQuality';
@@ -25,16 +23,6 @@ const LibrarySettings: React.FC = () => {
     const colorScheme = Appearance.getColorScheme();
     const isDarkMode = colorScheme === 'dark';
 
-    const confirmSheetRef = useRef<BottomSheetModal>(null);
-    const [pendingAction, setPendingAction] = useState<null | (() => void)>(null);
-    const [confirmMessage, setConfirmMessage] = useState('');
-
-    const showConfirm = (action: () => void, message: string) => {
-        setPendingAction(() => action);
-        setConfirmMessage(message);
-        confirmSheetRef.current?.present();
-    };
-
     return (
         <SafeAreaView
             style={[
@@ -46,28 +34,10 @@ const LibrarySettings: React.FC = () => {
             <Header title="Library" />
 
             <ScrollView contentContainerStyle={styles.scrollContent}>
-                <Stats
-                    onConfirm={showConfirm}
-                />
-
+                <Stats />
                 <AudioQuality />
-
-                <Downloads
-                    onConfirm={showConfirm}
-                />
+                <Downloads />
             </ScrollView>
-
-            <ConfirmActionSheet
-                ref={confirmSheetRef}
-                title="Are you sure?"
-                description={confirmMessage}
-                themeColor={themeColor}
-                onConfirm={() => {
-                    pendingAction?.();
-                    confirmSheetRef.current?.dismiss();
-                }}
-                onCancel={() => confirmSheetRef.current?.dismiss()}
-            />
         </SafeAreaView>
     );
 };

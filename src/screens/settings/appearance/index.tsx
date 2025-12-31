@@ -9,6 +9,7 @@ import {
 import Header from '../components/Header';
 import { ThemeColor } from './components/ThemeColor';
 import { Columns } from './components/Columns';
+import { AiButtonToggle } from './components/AiButtonToggle';
 
 const AppearanceSettings: React.FC = () => {
   const isDarkMode = Appearance.getColorScheme() === 'dark';
@@ -26,6 +27,7 @@ const AppearanceSettings: React.FC = () => {
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <ThemeColor />
         <Columns />
+        <AiButtonToggle />
       </ScrollView>
     </SafeAreaView>
   );

@@ -20,6 +20,8 @@ type SettingsContextType = {
     setOpenaiEnabled: (val: boolean) => void;
     openaiApiKey: string;
     setOpenaiApiKey: (val: string) => void;
+    aiButtonEnabled: boolean;
+    setAiButtonEnabled: (val: boolean) => void;
 };
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
@@ -31,6 +33,7 @@ const AUDIO_QUALITY_KEY = '@audio_quality'
 const GRID_COLUMNS_KEY = '@grid_columns';
 const OPENAI_ENABLED_KEY = '@openai_enabled';
 const OPENAI_API_KEY = '@openai_api_key';
+const AI_BUTTON_KEY = '@ai_button_enabled'
 
 export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const [themeColor, setThemeColorState] = useState('#ff7f7f');
@@ -40,6 +43,7 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     const [gridColumns, setGridColumnsState] = useState(3);
     const [openaiEnabled, setOpenaiEnabledState] = useState(false);
     const [openaiApiKey, setOpenaiApiKeyState] = useState('');
+    const [aiButtonEnabled, setAiButtonEnabledState] = useState(true);
 
     useEffect(() => {
         const loadThemeColor = async () => {
@@ -111,6 +115,14 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
                 console.error('Failed to load OpenAI settings:', error);
             }
         };
+        const loadAiButton = async () => {
+            try {
+                const enabled = await AsyncStorage.getItem(AI_BUTTON_KEY);
+                if (enabled !== null) setAiButtonEnabledState(enabled === 'true');
+            } catch (error) {
+                console.error('Failed to load OpenAI settings:', error);
+            }
+        };
 
         loadThemeColor();
         loadPromptHistory();
@@ -118,6 +130,7 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
         loadAudioQuality();
         loadGridColumns();
         loadOpenAI();
+        loadAiButton();
     }, []);
 
     const setThemeColor = async (color: string) => {
@@ -189,6 +202,15 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
         }
     };
 
+    const setAiButtonEnabled = async (val: boolean) => {
+        try {
+            await AsyncStorage.setItem(AI_BUTTON_KEY, val.toString());
+            setAiButtonEnabledState(val);
+        } catch (error) {
+            console.error('Failed to save OpenAI API key:', error);
+        }
+    };
+
     return (
         <SettingsContext.Provider value={{
             themeColor,
@@ -204,7 +226,9 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
             openaiEnabled,
             setOpenaiEnabled,
             openaiApiKey,
-            setOpenaiApiKey
+            setOpenaiApiKey,
+            aiButtonEnabled,
+            setAiButtonEnabled
         }}>
             {children}
         </SettingsContext.Provider>

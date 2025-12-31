@@ -49,12 +49,14 @@ const ExpandedPlayingScreen: React.FC<ExpandedPlayingScreenProps> = ({
     const { position, duration } = useProgress();
     const {
         currentSong,
+        pauseSong,
+        resumeSong,
         isPlaying,
         skipToNext,
         skipToPrevious,
         shuffleOn,
         toggleShuffle,
-        repeatMode,
+        repeatOn,
         toggleRepeat,
     } = usePlaying();
     const { artists } = useLibrary();
@@ -161,7 +163,7 @@ const ExpandedPlayingScreen: React.FC<ExpandedPlayingScreenProps> = ({
         onClose();
 
         if (currentSong.artist) {
-            const artist = artists.find((a) => a.title === currentSong.artist);
+            const artist = artists.find(a => a.name === currentSong.artist);
 
             if (artist?.id) {
                 console.log(`Navigating to artist with ID: ${artist.id}`);
@@ -265,7 +267,7 @@ const ExpandedPlayingScreen: React.FC<ExpandedPlayingScreenProps> = ({
                             <Ionicons
                                 name="repeat"
                                 size={24}
-                                color={repeatMode === 'all' ? '#fff' : '#888'}
+                                color={repeatOn ? '#fff' : '#888'}
                             />
                         </TouchableOpacity>
 
@@ -275,7 +277,7 @@ const ExpandedPlayingScreen: React.FC<ExpandedPlayingScreenProps> = ({
                         </TouchableOpacity>
 
                         {/* Play/Pause */}
-                        <TouchableOpacity onPress={isPlaying ? async () => await TrackPlayer.pause() : async () => await TrackPlayer.play()}>
+                        <TouchableOpacity onPress={isPlaying ? pauseSong : resumeSong}>
                             <Ionicons
                                 name={isPlaying ? 'pause-circle' : 'play-circle'}
                                 size={80}

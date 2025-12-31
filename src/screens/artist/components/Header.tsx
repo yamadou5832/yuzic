@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   View,
   Text,
@@ -15,6 +15,8 @@ import { Image } from 'expo-image';
 import { Artist, Song } from '@/types';
 import { usePlaying } from '@/contexts/PlayingContext';
 import { useSettings } from '@/contexts/SettingsContext';
+import { useLibrary } from '@/contexts/LibraryContext';
+import { toast } from '@backpackapp-io/react-native-toast';
 
 type Props = {
   artist: Artist;
@@ -23,11 +25,41 @@ type Props = {
 const Header: React.FC<Props> = ({ artist }) => {
   const navigation = useNavigation();
   const isDarkMode = useColorScheme() === 'dark';
+  const [artistSongs, setArtistSongs] = React.useState<Song[]>([]);
+  const [loadingSongs, setLoadingSongs] = React.useState(true);
 
+  const { getAlbums } = useLibrary();
   const { themeColor } = useSettings();
   const { playSongInCollection } = usePlaying();
 
-  const artistSongs: Song[] = artist.songs ?? [];
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadSongs = async () => {
+      setLoadingSongs(true);
+
+      if (!artist.ownedAlbums.length) {
+        setArtistSongs([]);
+        setLoadingSongs(false);
+        return;
+      }
+
+      const albumIds = artist.ownedAlbums.map(a => a.id);
+      const albums = await getAlbums(albumIds);
+
+      if (cancelled) return;
+
+      const songs = albums.flatMap(a => a.songs ?? []);
+      setArtistSongs(songs);
+      setLoadingSongs(false);
+    };
+
+    loadSongs();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [artist.id]);
 
   return (
     <>
@@ -90,52 +122,65 @@ const Header: React.FC<Props> = ({ artist }) => {
         </View>
       </View>
 
-      {/* PLAY / SHUFFLE */}
-      {artistSongs.length > 0 && (
-        <View style={styles.buttonRow}>
-          <TouchableOpacity
-            onPress={() =>
+      <View style={styles.buttonRow}>
+        <TouchableOpacity
+          onPress={() => {
+            if (artistSongs.length <= 0) {
+              toast.error("One moment.")
+            } else {
               playSongInCollection(artistSongs[0], {
                 id: artist.id,
                 title: artist.name,
-                artist: artist.name,
+                artist: {
+                  id: artist.id,
+                  name: artist.name,
+                  cover: artist.cover,
+                  subtext: "Artist"
+                },
                 cover: artist.cover,
                 songs: artistSongs,
-                type: 'playlist',
+                subtext: "Playlist",
+                userPlayCount: 0,
               })
             }
+          }}
             style={[styles.button, isDarkMode && styles.buttonDark]}
-          >
-            <Ionicons name="play" size={18} color={themeColor} />
-            <Text style={[styles.buttonText, isDarkMode && styles.buttonTextDark]}>
-              Play
-            </Text>
-          </TouchableOpacity>
+        >
+          <Ionicons name="play" size={18} color={themeColor} />
+          <Text style={[styles.buttonText, isDarkMode && styles.buttonTextDark]}>
+            Play
+          </Text>
+        </TouchableOpacity>
 
-          <TouchableOpacity
-            onPress={() =>
-              playSongInCollection(
-                artistSongs[0],
-                {
+        <TouchableOpacity
+          onPress={() => {
+            if (artistSongs.length <= 0) {
+              toast.error("One moment.")
+            } else {
+              playSongInCollection(artistSongs[0], {
+                id: artist.id,
+                title: artist.name,
+                artist: {
                   id: artist.id,
-                  title: artist.name,
-                  artist: artist.name,
+                  name: artist.name,
                   cover: artist.cover,
-                  songs: artistSongs,
-                  type: 'playlist',
+                  subtext: "Artist"
                 },
-                true
-              )
+                cover: artist.cover,
+                songs: artistSongs,
+                subtext: "Playlist",
+                userPlayCount: 0,
+              }, true)
             }
-            style={[styles.button, isDarkMode && styles.buttonDark]}
-          >
-            <Ionicons name="shuffle" size={18} color={themeColor} />
-            <Text style={[styles.buttonText, isDarkMode && styles.buttonTextDark]}>
-              Shuffle
-            </Text>
-          </TouchableOpacity>
-        </View>
-      )}
+          }}
+          style={[styles.button, isDarkMode && styles.buttonDark]}
+        >
+          <Ionicons name="shuffle" size={18} color={themeColor} />
+          <Text style={[styles.buttonText, isDarkMode && styles.buttonTextDark]}>
+            Shuffle
+          </Text>
+        </TouchableOpacity>
+      </View>
     </>
   );
 };
@@ -221,10 +266,12 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.1)',
   },
   buttonText: {
+    marginLeft: 6,
     fontWeight: '600',
     color: '#000',
   },
   buttonTextDark: {
+    marginLeft: 6,
     color: '#fff',
   },
 });

@@ -33,7 +33,7 @@ const PlayingBar: React.FC = () => {
     const position = appState === 'active' ? playbackProgress.position : 0;
     const duration = appState === 'active' ? playbackProgress.duration : 1;
     const progress = duration > 0 ? position / duration : 0;
-    const { themeColor, openaiApiKey } = useSettings();
+    const { themeColor, openaiApiKey, aiButtonEnabled } = useSettings();
     const { generateQueue, isLoading } = useAI();
     const [inputValue, setInputValue] = useState('');
     const { currentSong, isPlaying, pauseSong, resumeSong } = usePlaying();
@@ -176,9 +176,12 @@ const PlayingBar: React.FC = () => {
                                         />
                                     </TouchableOpacity>
                                 )}
-                                <TouchableOpacity style={[styles.fabButton, { backgroundColor: themeColor }]} onPress={handleToggleInput}>
-                                    <Ionicons name="list" size={20} color="#fff" />
-                                </TouchableOpacity>
+
+                                {aiButtonEnabled && (
+                                    <TouchableOpacity style={[styles.fabButton, { backgroundColor: themeColor }]} onPress={handleToggleInput}>
+                                        <Ionicons name="chatbubble-ellipses" size={20} color="#fff" />
+                                    </TouchableOpacity>
+                                )}
                             </Animated.View>
 
                             <Animated.View style={[styles.topRow, styles.inputOverlay, { opacity: inputFadeAnim, zIndex: 1 }]}>

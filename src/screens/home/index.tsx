@@ -5,26 +5,26 @@ import {
     Text,
     TouchableOpacity,
     StyleSheet,
-    Dimensions,
-    Animated,
-    Easing
+    Dimensions
 } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Appearance, VirtualizedList } from 'react-native';
+import { Appearance } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useLibrary } from '@/contexts/LibraryContext';
 import { useSettings } from '@/contexts/SettingsContext';
 import { Ionicons } from '@expo/vector-icons';
 import BottomSheet from 'react-native-gesture-bottom-sheet';
-import { usePlaying } from '@/contexts/PlayingContext';
-import Item from "@/components/home/Item";
+import AlbumItem from "./components/AlbumItem";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import AccountActionSheet from '@/components/AccountActionSheet';
 import Loader from '@/components/Loader'
 import { useSelector } from 'react-redux';
 import { selectActiveServer } from '@/utils/redux/selectors/serversSelectors';
+import PlaylistItem from './components/PlaylistItem';
+import ArtistItem from './components/ArtistItem';
+import SortBottomSheet from './components/SortBottomSheet';
 
 const isColorLight = (color: string) => {
     const hex = color.replace('#', '');
@@ -46,7 +46,6 @@ export default function HomeScreen() {
     const isDarkMode = colorScheme === 'dark';
     const { albums, artists, playlists, fetchLibrary, clearLibrary, isLoading } = useLibrary();
     const { themeColor, gridColumns } = useSettings();
-    const { currentSong, playSongInCollection, pauseSong, resetQueue } = usePlaying();
 
     const [activeFilter, setActiveFilter] = useState<'all' | 'albums' | 'artists' | 'playlists'>('all');
     const [isGridView, setIsGridView] = useState(true);
@@ -56,7 +55,13 @@ export default function HomeScreen() {
     const accountSheetRef = useRef<BottomSheet>(null);
     const [isMounted, setIsMounted] = useState(false);
     const [screenWidth, setScreenWidth] = useState(Dimensions.get('window').width);
-    
+
+    const sortSheetRef = useRef<BottomSheet>(null);
+
+    const GRID_MARGIN = 8 * 2;
+    const gridWidth =
+  screenWidth / gridColumns - GRID_MARGIN;
+
 
     useEffect(() => {
         setIsMounted(true);
@@ -88,44 +93,66 @@ export default function HomeScreen() {
         return () => subscription?.remove?.();
     }, []);
 
-    const allData = useMemo(() => [
-        ...albums.map((item) => ({ ...item, type: 'Album' })),
-        ...artists.map((item) => ({ ...item, type: 'Artist' })),
-        ...playlists.map((item) => ({ ...item, type: 'Playlist' })),
-    ], [albums, artists, playlists]);
+    const albumData = useMemo(
+        () => albums.map(a => ({ ...a, type: 'Album' as const })),
+        [albums]
+    );
 
-    const sortedFilteredData = useMemo(() => {
-        let data = [];
+    const artistData = useMemo(
+        () => artists.map(a => ({ ...a, type: 'Artist' as const })),
+        [artists]
+    );
 
+    const playlistData = useMemo(
+        () => playlists.map(p => ({ ...p, type: 'Playlist' as const })),
+        [playlists]
+    );
+
+    const allData = useMemo(
+        () => [...albumData, ...artistData, ...playlistData],
+        [albumData, artistData, playlistData]
+    );
+
+    const filteredData = useMemo(() => {
         switch (activeFilter) {
             case 'albums':
-                data = albums.map((item) => ({ ...item, type: 'Album' }));
-                break;
+                return albumData;
             case 'artists':
-                data = artists.map((item) => ({ ...item, type: 'Artist' }));
-                break;
+                return artistData;
             case 'playlists':
-                data = playlists.map((item) => ({ ...item, type: 'Playlist' }));
-                break;
+                return playlistData;
             default:
-                data = allData;
-                break;
+                return allData;
         }
+    }, [activeFilter, albumData, artistData, playlistData, allData]);
 
-        if (sortOrder === 'title') {
-            return [...data].sort((a, b) => {
-                const titleA = a.title ?? a.name ?? '';
-                const titleB = b.title ?? b.name ?? '';
-                return titleA.localeCompare(titleB);
-            });
-        } else if (sortOrder === 'recent') {
-            return [...data].reverse(); // Assuming latest are last in the array
-        } else if (sortOrder === 'userplays') {
-            return [...data].sort((a, b) => (b.userPlayCount || 0) - (a.userPlayCount || 0));
+    const sortedFilteredData = useMemo(() => {
+        const data = [...filteredData];
+
+        switch (sortOrder) {
+            case 'title':
+                data.sort((a, b) => {
+                    const aTitle = 'title' in a ? a.title : a.name;
+                    const bTitle = 'title' in b ? b.title : b.name;
+                    return aTitle.localeCompare(bTitle);
+                });
+                break;
+
+            case 'recent':
+                data.reverse();
+                break;
+
+            case 'userplays':
+                data.sort(
+                    (a, b) =>
+                        ('userPlayCount' in b ? b.userPlayCount : 0) -
+                        ('userPlayCount' in a ? a.userPlayCount : 0)
+                );
+                break;
         }
 
         return data;
-    }, [albums, artists, playlists, activeFilter, sortOrder]);
+    }, [filteredData, sortOrder]);
 
     useEffect(() => {
         const loadSortOrder = async () => {
@@ -157,70 +184,47 @@ export default function HomeScreen() {
 
     const currentSortLabel = sortOptions.find(option => option.value === sortOrder)?.label || 'Sort';
 
-    const handleItemPress = (item) => {
-        if (item.type === 'Album') {
-            navigation.navigate('albumView', { id: item.id });
-        } else if (item.type === 'Playlist') {
-            navigation.navigate('playlistView', { id: item.id });
-        } else if (item.type === 'Artist') {
-            navigation.navigate('artistView', { id: item.id });
-        }
-    };
-
     const renderItem = ({ item }) => {
-        const isCurrentlyPlaying = () => {
-            if (!currentSong) return false;
-
-            if (item.type === 'Album') {
-                return albums.find((a) => a.id === item.id)?.songs?.some((s) => s.id === currentSong.id);
-            }
-
-            if (item.type === 'Playlist') {
-                return playlists.find((p) => p.id === item.id)?.songs?.some((s) => s.id === currentSong.id);
-            }
-
-            return false;
-        };
-
-        const handlePlay = () => {
-            if (item.type === 'Album') {
-                const album = albums.find((a) => a.id === item.id);
-                const firstSong = album?.songs?.[0];
-                if (album && firstSong) {
-                    playSongInCollection(firstSong, {
-                        id: album.id,
-                        title: album.title,
-                        artist: album.artist,
-                        cover: album.cover,
-                        songs: album.songs,
-                        type: 'album',
-                    });
-                }
-            } else if (item.type === 'Playlist') {
-                const playlist = playlists.find((p) => p.id === item.id);
-                const firstSong = playlist?.songs?.[0];
-                if (playlist && firstSong) {
-                    playSongInCollection(firstSong, {
-                        id: playlist.id,
-                        title: playlist.title,
-                        cover: playlist.cover,
-                        songs: playlist.songs,
-                        type: 'playlist',
-                    });
-                }
-            }
-        };
-
-        return (
-            <Item
-                item={item}
-                isGridView={isGridView}
-                isDarkMode={isDarkMode}
-                onPress={() => handleItemPress(item)}
-                onPlay={handlePlay}
-                gridWidth={screenWidth / gridColumns - 24}
-            />
-        );
+        switch (item.type) {
+            case "Album":
+                return (
+                    <AlbumItem
+                        id={item.id}
+                        title={item.title}
+                        subtext={item.subtext}
+                        cover={item.cover}
+                        isGridView={isGridView}
+                        isDarkMode={isDarkMode}
+                        gridWidth={gridWidth}
+                    />
+                );
+            case "Playlist":
+                return (
+                    <PlaylistItem
+                        id={item.id}
+                        title={item.title}
+                        subtext={item.subtext}
+                        cover={item.cover}
+                        isGridView={isGridView}
+                        isDarkMode={isDarkMode}
+                        gridWidth={gridWidth}
+                    />
+                );
+            case "Artist":
+                return (
+                    <ArtistItem
+                        id={item.id}
+                        name={item.name}
+                        subtext={item.subtext}
+                        cover={item.cover}
+                        isGridView={isGridView}
+                        isDarkMode={isDarkMode}
+                        gridWidth={gridWidth}
+                    />
+                );
+            default:
+                return null;
+        }
     };
 
     const renderFilterButton = (filter) => {
@@ -298,9 +302,10 @@ export default function HomeScreen() {
             </View>
 
             {isLoading ? (
-                <View style={{ flex: 1 }}>
+                <View style={styles.loaderContainer}>
                     <Loader />
                 </View>
+
             ) : sortedFilteredData.length > 0 ? (
                 <FlashList
                     data={sortedFilteredData}
@@ -313,7 +318,7 @@ export default function HomeScreen() {
                         <View style={styles.listHeader}>
                             <TouchableOpacity
                                 style={styles.sortButton}
-                                onPress={() => bottomSheetRef.current?.show()}
+                                onPress={() => sortSheetRef.current?.show()}
                             >
                                 <Ionicons name="swap-vertical-outline" size={20} color="#fff" />
                                 <Text style={styles.sortButtonText}>{currentSortLabel}</Text>
@@ -344,77 +349,16 @@ export default function HomeScreen() {
             )
             }
 
-            <BottomSheet
-                ref={bottomSheetRef}
-                height={300}
-                hasDraggableIcon
-                sheetBackgroundColor={isDarkMode ? '#222' : '#f9f9f9'} // Dark and light mode backgrounds
-            >
-                <View style={styles.sheetContainer}>
-                    <Text style={[styles.sheetTitle, isDarkMode && styles.sheetTitleDark]}>Sort by</Text>
-                    {sortOptions.map((option) => {
-                        const isSelected = sortOrder === option.value;
-
-                        return (
-                            <TouchableOpacity
-                                key={option.value}
-                                style={[
-                                    styles.pickerItem,
-                                    {
-                                        backgroundColor: isSelected ? themeColor + '22' : 'transparent',
-                                        borderRadius: 8,
-                                        paddingHorizontal: 12,
-                                    },
-                                ]}
-                                onPress={() => {
-                                    const value = option.value as typeof sortOrder;
-                                    setSortOrder(value);
-                                    AsyncStorage.setItem('librarySortOrder', value);
-                                    bottomSheetRef.current?.close();
-                                }}
-                            >
-                                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                    <Ionicons
-                                        name={option.icon}
-                                        size={18}
-                                        color={isSelected ? themeColor : isDarkMode ? '#ccc' : '#555'}
-                                        style={{ marginRight: 10 }}
-                                    />
-                                    <Text
-                                        style={[
-                                            styles.pickerText,
-                                            isDarkMode && styles.pickerTextDark,
-                                            {
-                                                fontWeight: isSelected ? '600' : '400',
-                                            },
-                                        ]}
-                                    >
-                                        {option.label}
-                                    </Text>
-                                </View>
-
-                                {isSelected && (
-                                    <Ionicons
-                                        name="checkmark"
-                                        size={20}
-                                        color={themeColor}
-                                        style={styles.checkmark}
-                                    />
-                                )}
-                            </TouchableOpacity>
-                        );
-                    })}
-                    <TouchableOpacity
-                        style={styles.cancelButton}
-                        onPress={() => bottomSheetRef.current?.close()}
-                    >
-                        <Text style={[styles.cancelText, isDarkMode && styles.cancelTextDark]}>Cancel</Text>
-                    </TouchableOpacity>
-
-                </View>
-            </BottomSheet>
-
-            <AccountActionSheet ref={accountSheetRef} themeColor={themeColor} />
+            <SortBottomSheet
+                ref={sortSheetRef}
+                sortOrder={sortOrder}
+                onSelect={(value) => {
+                    setSortOrder(value);
+                    AsyncStorage.setItem('librarySortOrder', value);
+                    sortSheetRef.current?.close();
+                }}
+            />
+            <AccountActionSheet ref={accountSheetRef} />
         </SafeAreaView >
     );
 }
@@ -426,6 +370,11 @@ const styles = StyleSheet.create({
     },
     containerDark: {
         backgroundColor: '#000',
+    },
+    loaderContainer: {
+        justifyContent: 'flex-start',
+        alignItems: 'center',
+        paddingTop: 12,
     },
     headerContainer: {
         flexDirection: 'row',
@@ -488,10 +437,10 @@ const styles = StyleSheet.create({
     },
     cancelText: {
         fontSize: 16,
-        color: '#333', // Light mode cancel text
+        color: '#333',
     },
     cancelTextDark: {
-        color: '#aaa', // Dark mode cancel text
+        color: '#aaa',
     },
     filterContainer: {
         flexDirection: 'row',
@@ -542,7 +491,6 @@ const styles = StyleSheet.create({
         padding: 10,
     },
     gridItemContainer: {
-        width: Dimensions.get('window').width / 3 - 16,
         marginVertical: 8,
         marginHorizontal: 8,
         alignItems: 'flex-start',

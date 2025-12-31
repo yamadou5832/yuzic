@@ -5,7 +5,6 @@ import {
   TouchableOpacity,
   StyleSheet,
   useColorScheme,
-  Alert,
 } from 'react-native';
 import BottomSheet from 'react-native-gesture-bottom-sheet';
 import { Ionicons } from '@expo/vector-icons';
@@ -17,13 +16,9 @@ import { useApi } from "@/api";
 import { disconnect } from "@/utils/redux/slices/serversSlice";
 import { toast } from '@backpackapp-io/react-native-toast';
 import { selectActiveServer } from '@/utils/redux/selectors/serversSelectors';
+import { useSettings } from '@/contexts/SettingsContext';
 
-type Props = {
-  themeColor: string;
-};
-
-const AccountActionSheet = forwardRef<BottomSheet, Props>(
-  ({ themeColor }, ref) => {
+const AccountActionSheet = forwardRef<BottomSheet, {}>((_, ref) => {
     const isDarkMode = useColorScheme() === 'dark';
     const router = useRouter();
     const dispatch = useDispatch();
@@ -33,6 +28,7 @@ const AccountActionSheet = forwardRef<BottomSheet, Props>(
     const username = activeServer?.username;
     const serverUrl = activeServer?.serverUrl;
 
+    const { themeColor } = useSettings();
     const { clearLibrary } = useLibrary();
     const { pauseSong, resetQueue } = usePlaying();
 
