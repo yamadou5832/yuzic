@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   useColorScheme,
   Platform,
+  Linking,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
@@ -60,6 +61,13 @@ const Header: React.FC<Props> = ({ artist }) => {
       cancelled = true;
     };
   }, [artist.id]);
+
+  const cleanBio = artist.bio
+    ? artist.bio
+      .replace(/<[^>]*>/g, '')
+      .replace(/Read more on Last\.fm\.?$/i, '')
+      .trim()
+    : '';
 
   return (
     <>
@@ -116,9 +124,18 @@ const Header: React.FC<Props> = ({ artist }) => {
             <Text
               style={[styles.artistBio, isDarkMode && styles.artistBioDark]}
             >
-              {artist.bio.replace(/<[^>]*>/g, '')}
+              {cleanBio}{' '}
+              {artist.lastfmurl && (
+                <Text
+                  style={{ color: themeColor, fontWeight: '600' }}
+                  onPress={() => Linking.openURL(artist.lastfmurl)}
+                >
+                  Read more on Last.fm
+                </Text>
+              )}
             </Text>
           )}
+
         </View>
       </View>
 
@@ -144,7 +161,7 @@ const Header: React.FC<Props> = ({ artist }) => {
               })
             }
           }}
-            style={[styles.button, isDarkMode && styles.buttonDark]}
+          style={[styles.button, isDarkMode && styles.buttonDark]}
         >
           <Ionicons name="play" size={18} color={themeColor} />
           <Text style={[styles.buttonText, isDarkMode && styles.buttonTextDark]}>

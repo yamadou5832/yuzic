@@ -23,6 +23,7 @@ import { MenuView } from '@react-native-menu/menu';
 
 import NavidromeIcon from '@assets/images/navidrome.png';
 import JellyfinIcon from '@assets/images/jellyfin.png';
+import { track } from '@/utils/analytics/amplitude';
 
 export default function Servers() {
     const router = useRouter();
@@ -35,6 +36,7 @@ export default function Servers() {
     );
 
     const handleSelectServer = (id: string) => {
+        track("selected server")
         dispatch(setActiveServer(id));
         router.push('(home)');
     };

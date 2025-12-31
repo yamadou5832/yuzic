@@ -20,6 +20,7 @@ import { connect as connectJellyfin } from "@/api/jellyfin/auth/connect";
 import { toast } from '@backpackapp-io/react-native-toast';
 import { nanoid } from '@reduxjs/toolkit';
 import { ServerType } from '@/types';
+import { track } from '@/utils/analytics/amplitude';
 
 export default function Credentials() {
     const dispatch = useDispatch();
@@ -93,6 +94,7 @@ export default function Credentials() {
                 );
             }
 
+            track("connected new server", { type })
             dispatch(setActiveServer(id));
             router.replace('/(home)');
         } catch (e) {

@@ -12,6 +12,7 @@ import { useAlbum } from '@/hooks/albums';
 
 import List from './components/List';
 import LList from './components/loading/List';
+import { track } from '@/utils/analytics/amplitude';
 
 const AlbumScreen: React.FC = () => {
   const route = useRoute<any>();
@@ -38,6 +39,8 @@ const AlbumScreen: React.FC = () => {
       </SafeAreaView>
     );
   }
+
+  track("album screen", { title: album.title, artist: album.artist.name })
 
   return (
     <SafeAreaView edges={['top']} style={styles.screen(isDarkMode)}>

@@ -22,6 +22,7 @@ import { Alert, Platform, Dimensions, View } from 'react-native';
 import { setJSExceptionHandler, setNativeExceptionHandler } from 'react-native-exception-handler';
 import RNRestart from 'react-native-restart';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
+import { initAnalytics } from '@/utils/analytics/amplitude';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -68,6 +69,7 @@ We will need to restart the app.
 
     useEffect(() => {
         if (loaded) {
+            initAnalytics();
             SplashScreen.hideAsync();
         }
     }, [loaded]);

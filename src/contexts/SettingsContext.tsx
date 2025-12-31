@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Song } from "@/types";
+import { disableAnalytics, enableAnalytics } from '@/utils/analytics/amplitude';
 
 type AudioQuality = 'low' | 'medium' | 'high' | 'original';
 const AUDIO_QUALITIES: AudioQuality[] = ['low', 'medium', 'high', 'original'];
@@ -22,6 +23,8 @@ type SettingsContextType = {
     setOpenaiApiKey: (val: string) => void;
     aiButtonEnabled: boolean;
     setAiButtonEnabled: (val: boolean) => void;
+    analyticsEnabled: boolean;
+    setAnalyticsEnabled: (val: boolean) => void;
 };
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
@@ -34,6 +37,7 @@ const GRID_COLUMNS_KEY = '@grid_columns';
 const OPENAI_ENABLED_KEY = '@openai_enabled';
 const OPENAI_API_KEY = '@openai_api_key';
 const AI_BUTTON_KEY = '@ai_button_enabled'
+const ANALYTICS_ENABLED_KEY = '@analytics_enabled'
 
 export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const [themeColor, setThemeColorState] = useState('#ff7f7f');
@@ -44,6 +48,7 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     const [openaiEnabled, setOpenaiEnabledState] = useState(false);
     const [openaiApiKey, setOpenaiApiKeyState] = useState('');
     const [aiButtonEnabled, setAiButtonEnabledState] = useState(true);
+    const [analyticsEnabled, setAnalyticsEnabledState] = useState(false);
 
     useEffect(() => {
         const loadThemeColor = async () => {
@@ -123,6 +128,21 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
                 console.error('Failed to load OpenAI settings:', error);
             }
         };
+        const loadAnalyticsEnabled = async () => {
+            try {
+                const enabled = await AsyncStorage.getItem(ANALYTICS_ENABLED_KEY);
+
+                if (enabled === 'true') {
+                    setAnalyticsEnabledState(true);
+                    enableAnalytics();
+                } else {
+                    setAnalyticsEnabledState(false);
+                }
+            } catch (error) {
+                console.error('Failed to load analytics setting:', error);
+            }
+        };
+
 
         loadThemeColor();
         loadPromptHistory();
@@ -131,6 +151,7 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
         loadGridColumns();
         loadOpenAI();
         loadAiButton();
+        loadAnalyticsEnabled();
     }, []);
 
     const setThemeColor = async (color: string) => {
@@ -211,6 +232,22 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
         }
     };
 
+    const setAnalyticsEnabled = async (val: boolean) => {
+        try {
+            await AsyncStorage.setItem(ANALYTICS_ENABLED_KEY, val.toString());
+            setAnalyticsEnabledState(val);
+
+            if (val) {
+                await enableAnalytics();
+            } else {
+                disableAnalytics();
+            }
+        } catch (error) {
+            console.error('Failed to save analytics setting:', error);
+        }
+    };
+
+
     return (
         <SettingsContext.Provider value={{
             themeColor,
@@ -228,7 +265,9 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
             openaiApiKey,
             setOpenaiApiKey,
             aiButtonEnabled,
-            setAiButtonEnabled
+            setAiButtonEnabled,
+            analyticsEnabled,
+            setAnalyticsEnabled
         }}>
             {children}
         </SettingsContext.Provider>

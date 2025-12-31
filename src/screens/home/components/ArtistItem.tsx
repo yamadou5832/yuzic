@@ -9,7 +9,6 @@ import {
 import { ContextMenuView } from 'react-native-ios-context-menu';
 import CoverArt from '@/components/CoverArt';
 import { TouchableOpacity } from 'react-native-gesture-handler';
-import { useDownload } from '@/contexts/DownloadContext';
 import { usePlaying } from '@/contexts/PlayingContext';
 import { useNavigation } from '@react-navigation/native';
 import { useLibrary } from '@/contexts/LibraryContext';

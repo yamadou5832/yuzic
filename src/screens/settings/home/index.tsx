@@ -16,6 +16,7 @@ import { Ionicons, Entypo, MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useSelector } from 'react-redux';
 import { selectActiveServer } from '@/utils/redux/selectors/serversSelectors';
+import { AnalyticsToggle } from './components/AnalyticsToggle';
 
 export default function Settings() {
     const router = useRouter();
@@ -149,6 +150,10 @@ export default function Settings() {
                         <MaterialIcons name="chevron-right" size={24} color={isDarkMode ? '#fff' : '#333'} />
                     </TouchableOpacity>
                 </View>
+
+                <View style={{marginTop: 32}}>
+                    <AnalyticsToggle/>
+                </View>
             </ScrollView>
         </SafeAreaView>
     );
@@ -181,8 +186,7 @@ export default function Settings() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#fff',
-        marginBottom: 150
+        backgroundColor: '#fff'
     },
     containerDark: {
         backgroundColor: '#000',
@@ -190,6 +194,7 @@ const styles = StyleSheet.create({
     scrollContent: {
         paddingHorizontal: 16,
         paddingVertical: 24,
+        paddingBottom: 150
     },
     headerContainer: {
         flexDirection: 'row',

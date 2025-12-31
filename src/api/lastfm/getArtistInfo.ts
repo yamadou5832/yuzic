@@ -2,7 +2,9 @@ import { AlbumBase } from "@/types";
 
 export type GetArtistInfoResult = {
     albums: AlbumBase[]
-    bio: string
+    bio: string,
+    artistUrl: string,
+    globalPlayCount: number
 };
 
 const normalizeLastFmAlbum = (album: any): AlbumBase => {
@@ -38,10 +40,12 @@ export const getArtistInfo = async (artistName: string): Promise<GetArtistInfoRe
 
         return {
             albums: albums,
-            bio: data.bio || ""
+            bio: data.bio || "",
+            artistUrl: data.artistUrl,
+            globalPlayCount: data.globalPlayCount
         };
     } catch (error) {
         console.warn(`❌ Failed to fetch Last.fm data for "${artistName}":`, error);
-        return { albums: [], bio: "" };
+        return { albums: [], bio: "", artistUrl: "", globalPlayCount: 0 };
     }
 };

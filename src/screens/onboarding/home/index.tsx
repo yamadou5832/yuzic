@@ -15,6 +15,7 @@ import { RootState } from '@/utils/redux/store';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Loader from '@/components/Loader';
 import { selectActiveServer } from '@/utils/redux/selectors/serversSelectors';
+import { track } from '@/utils/analytics/amplitude';
 
 const HAS_SEEN_GET_STARTED = 'hasSeenGetStarted';
 
@@ -52,6 +53,7 @@ export default function Home() {
     const handlePressOut = async () => {
         setIsPressed(false);
 
+        track("got started")
         await AsyncStorage.setItem(HAS_SEEN_GET_STARTED, 'true');
         router.push('/(onboarding)/servers');
     };

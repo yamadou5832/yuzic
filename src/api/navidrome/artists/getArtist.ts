@@ -67,6 +67,7 @@ export async function getArtist(
     cover,
     subtext: "Artist",
     bio: lastFmData.bio,
+    lastfmurl: lastFmData.artistUrl,
     ownedAlbums: albums,
     externalAlbums: lastFmData.albums
   };

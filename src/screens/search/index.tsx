@@ -22,6 +22,7 @@ import { useSettings } from "@/contexts/SettingsContext";
 import ExternalAlbumOptions from "@/components/options/ExternalAlbumOptions";
 import AlbumOptions from "@/components/options/AlbumOptions";
 import CoverArt from '@/components/CoverArt';
+import { track } from '@/utils/analytics/amplitude';
 
 const Search = () => {
     const searchInputRef = useRef(null);
@@ -35,6 +36,8 @@ const Search = () => {
     const { searchResults, handleSearch, clearSearch, isLoading } = useSearch();
 
     const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+    track("searching")
 
     useFocusEffect(
         React.useCallback(() => {
