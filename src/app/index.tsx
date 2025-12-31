@@ -3,7 +3,6 @@ import { useRouter } from 'expo-router';
 import { useSelector } from 'react-redux';
 import { View, ActivityIndicator } from 'react-native';
 
-import { RootState } from '@/utils/redux/store';
 import { selectActiveServer } from '@/utils/redux/selectors/serversSelectors';
 
 export default function Index() {
