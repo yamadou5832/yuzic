@@ -7,7 +7,7 @@
     "icon": "./assets/images/logo.png",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
+    "newArchEnabled": false,
     "ios": {
       "buildNumber": "1",
       "supportsTablet": true,
@@ -42,9 +42,9 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#000000",
+          "backgroundColor": "#000",
           "image": "./assets/images/logo.png",
-          "imageWidth": 150
+          "imageWidth": 100
         }
       ],
       [

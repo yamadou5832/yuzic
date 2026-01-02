@@ -6,11 +6,32 @@ import {
   StyleSheet,
   Appearance,
 } from 'react-native';
-import { useSettings } from '@/contexts/SettingsContext';
+import { useDispatch, useSelector } from 'react-redux';
+import { setAnalyticsEnabled } from '@/utils/redux/slices/settingsSlice';
+import {
+  enableAnalytics,
+  disableAnalytics,
+} from '@/utils/analytics/amplitude';
+import { selectAnalyticsEnabled, selectThemeColor } from '@/utils/redux/selectors/settingsSelectors';
 
 export const AnalyticsToggle: React.FC = () => {
-  const { analyticsEnabled, setAnalyticsEnabled, themeColor } = useSettings();
+  const dispatch = useDispatch();
   const isDark = Appearance.getColorScheme() === 'dark';
+
+  const analyticsEnabled = useSelector(selectAnalyticsEnabled);
+  const themeColor = useSelector(selectThemeColor);
+
+  const toggleAnalytics = () => {
+    const next = !analyticsEnabled;
+
+    dispatch(setAnalyticsEnabled(next));
+
+    if (next) {
+      enableAnalytics();
+    } else {
+      disableAnalytics();
+    }
+  };
 
   return (
     <View style={[styles.container, isDark && styles.containerDark]}>
@@ -25,15 +46,15 @@ export const AnalyticsToggle: React.FC = () => {
 
       <TouchableOpacity
         activeOpacity={0.8}
-        onPress={() => setAnalyticsEnabled(!analyticsEnabled)}
+        onPress={toggleAnalytics}
         style={[
           styles.switch,
           {
             backgroundColor: analyticsEnabled
               ? themeColor
               : isDark
-              ? '#333'
-              : '#ddd',
+                ? '#333'
+                : '#ddd',
           },
         ]}
       >

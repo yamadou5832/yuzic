@@ -6,10 +6,14 @@ import {
   StyleSheet,
   Appearance,
 } from 'react-native';
-import { useSettings } from '@/contexts/SettingsContext';
+import { useDispatch, useSelector } from 'react-redux';
+import { selectAiButtonEnabled, selectThemeColor } from '@/utils/redux/selectors/settingsSelectors';
+import { setAiButtonEnabled } from '@/utils/redux/slices/settingsSlice';
 
 export const AiButtonToggle: React.FC = () => {
-  const { aiButtonEnabled, setAiButtonEnabled, themeColor } = useSettings();
+  const dispatch = useDispatch();
+  const themeColor = useSelector(selectThemeColor);
+  const aiButtonEnabled = useSelector(selectAiButtonEnabled);
   const isDarkMode = Appearance.getColorScheme() === 'dark';
 
   return (
@@ -21,7 +25,7 @@ export const AiButtonToggle: React.FC = () => {
 
         <TouchableOpacity
           activeOpacity={0.8}
-          onPress={() => setAiButtonEnabled(!aiButtonEnabled)}
+          onPress={() => dispatch(setAiButtonEnabled(!aiButtonEnabled))}
           style={[
             styles.switch,
             {

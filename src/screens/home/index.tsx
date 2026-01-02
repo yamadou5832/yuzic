@@ -12,19 +12,19 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Appearance } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useLibrary } from '@/contexts/LibraryContext';
-import { useSettings } from '@/contexts/SettingsContext';
 import { Ionicons } from '@expo/vector-icons';
-import { Storage } from '@/utils/storage';
 import AlbumItem from "./components/AlbumItem";
 import { useRouter } from 'expo-router';
 import AccountActionSheet from '@/components/AccountActionSheet';
 import Loader from '@/components/Loader'
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { selectActiveServer } from '@/utils/redux/selectors/serversSelectors';
 import PlaylistItem from './components/PlaylistItem';
 import ArtistItem from './components/ArtistItem';
 import SortBottomSheet from './components/SortBottomSheet';
 import BottomSheet from '@gorhom/bottom-sheet';
+import { setIsGridView, setLibrarySortOrder } from '@/utils/redux/slices/settingsSlice';
+import { selectGridColumns, selectIsGridView, selectLibrarySortOrder, selectThemeColor } from '@/utils/redux/selectors/settingsSelectors';
 
 const isColorLight = (color: string) => {
     const hex = color.replace('#', '');
@@ -45,17 +45,15 @@ export default function HomeScreen() {
     const colorScheme = Appearance.getColorScheme();
     const isDarkMode = colorScheme === 'dark';
     const { albums, artists, playlists, fetchLibrary, clearLibrary, isLoading } = useLibrary();
-    const { themeColor, gridColumns } = useSettings();
+    const themeColor = useSelector(selectThemeColor);
+    const gridColumns = useSelector(selectGridColumns);
 
     const [activeFilter, setActiveFilter] = useState<'all' | 'albums' | 'artists' | 'playlists'>('all');
-    const [isGridView, setIsGridView] = useState(
-        Storage.get('isGridView')
-    );
-    const [sortOrder, setSortOrder] = useState(
-        Storage.get('librarySortOrder')
-    );
+    const dispatch = useDispatch();
 
-    const bottomSheetRef = useRef<BottomSheet>(null);
+    const isGridView = useSelector(selectIsGridView);
+    const sortOrder = useSelector(selectLibrarySortOrder);
+
     const accountSheetRef = useRef<BottomSheet>(null);
     const [isMounted, setIsMounted] = useState(false);
     const [screenWidth, setScreenWidth] = useState(Dimensions.get('window').width);
@@ -65,7 +63,6 @@ export default function HomeScreen() {
     const GRID_MARGIN = 8 * 2;
     const gridWidth =
         screenWidth / gridColumns - GRID_MARGIN;
-
 
     useEffect(() => {
         setIsMounted(true);
@@ -316,11 +313,8 @@ export default function HomeScreen() {
                             <TouchableOpacity
                                 style={styles.viewToggleButton}
                                 onPress={() => {
-                                    const next = !isGridView;
-                                    setIsGridView(next);
-                                    Storage.set('isGridView', next);
+                                    dispatch(setIsGridView(!isGridView));
                                 }}
-
                             >
                                 <Ionicons
                                     name={isGridView ? 'list-outline' : 'grid-outline'}
@@ -347,8 +341,7 @@ export default function HomeScreen() {
                 ref={sortSheetRef}
                 sortOrder={sortOrder}
                 onSelect={(value) => {
-                    setSortOrder(value);
-                    Storage.set('librarySortOrder', value);
+                    dispatch(setLibrarySortOrder(value));
                     sortSheetRef.current?.close();
                 }}
             />

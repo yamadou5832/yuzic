@@ -6,9 +6,6 @@ import {
     Platform,
     Appearance,
 } from 'react-native';
-import { useRouter } from 'expo-router';
-
-import { useSettings } from '@/contexts/SettingsContext';
 
 import Header from '../components/Header';
 
@@ -17,9 +14,6 @@ import AudioQuality from './components/AudioQuality';
 import Downloads from './components/Downloads';
 
 const LibrarySettings: React.FC = () => {
-    const router = useRouter();
-    const { themeColor } = useSettings();
-
     const colorScheme = Appearance.getColorScheme();
     const isDarkMode = colorScheme === 'dark';
 

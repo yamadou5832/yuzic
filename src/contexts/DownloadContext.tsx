@@ -7,11 +7,16 @@ import React, {
     ReactNode,
 } from 'react';
 import * as FileSystem from 'expo-file-system';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import store from '@/utils/redux/store';
+import store, { RootState } from '@/utils/redux/store';
 import { useLibrary } from '@/contexts/LibraryContext';
-import { useSettings } from '@/contexts/SettingsContext';
 import { Song } from '@/types';
+import { useDispatch, useSelector } from 'react-redux';
+import {
+    markAlbum,
+    markPlaylist,
+    clearAllMarked,
+} from '@/utils/redux/slices/downloadsSlice';
+import { selectAudioQuality } from '@/utils/redux/selectors/settingsSelectors';
 
 type DownloadContextType = {
     downloadAlbumById: (albumId: string) => Promise<void>;
@@ -36,8 +41,8 @@ type DownloadContextType = {
     downloadedSize: number;
     getFormattedDownloadSize: () => string;
 
-    markedAlbums: Set<string>;
-    markedPlaylists: Set<string>;
+    markedAlbums: string[];
+    markedPlaylists: string[];
 };
 
 const DownloadContext = createContext<DownloadContextType | undefined>(undefined);
@@ -52,65 +57,59 @@ const SONGS_DIR = `${FileSystem.documentDirectory}songs`;
 const getSongFilePath = (songId: string) => `${SONGS_DIR}/${songId}.mp3`;
 
 export const DownloadProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-    const { audioQuality } = useSettings();
+    const audioQuality = useSelector(selectAudioQuality);
     const { albums, playlists, getAlbum, getPlaylist } = useLibrary();
 
-    const [markedAlbums, setMarkedAlbums] = useState<Set<string>>(new Set());
-    const [markedPlaylists, setMarkedPlaylists] = useState<Set<string>>(new Set());
-    const [downloadedSongs, setDownloadedSongs] = useState<Record<string, boolean>>({});
+    const dispatch = useDispatch();
+
+    const markedAlbums = useSelector(
+        (state: RootState) => state.downloads.markedAlbums
+    );
+
+    const markedPlaylists = useSelector(
+        (state: RootState) => state.downloads.markedPlaylists
+    );
+
+    const [downloadedSongs, setDownloadedSongs] = useState<Record<string, boolean>>(
+        {}
+    );
     const [downloadingIds, setDownloadingIds] = useState<string[]>([]);
     const [downloadedSize, setDownloadedSize] = useState(0);
 
     const cancelledIds = useRef<Set<string>>(new Set());
-    const isCancellingAll = useRef(false);
     const hasResumedRef = useRef(false);
-    const hasLoadedMarkedRef = useRef(false);
 
-    const STORAGE_KEYS = {
-        albums: 'markedAlbums',
-        playlists: 'markedPlaylists',
-    };
+    /* ───────────────────────────────
+       Initial filesystem scan
+    ─────────────────────────────── */
 
     useEffect(() => {
-        const loadState = async () => {
-            try {
-                const dirInfo = await FileSystem.getInfoAsync(SONGS_DIR);
-                if (dirInfo.exists) {
-                    const files = await FileSystem.readDirectoryAsync(SONGS_DIR);
-                    const map: Record<string, boolean> = {};
-                    let size = 0;
+        const scanFiles = async () => {
+            const dirInfo = await FileSystem.getInfoAsync(SONGS_DIR);
+            if (!dirInfo.exists) return;
 
-                    for (const file of files) {
-                        const id = file.replace('.mp3', '');
-                        map[id] = true;
-                        const info = await FileSystem.getInfoAsync(`${SONGS_DIR}/${file}`);
-                        if (info.exists && info.size) size += info.size;
-                    }
+            const files = await FileSystem.readDirectoryAsync(SONGS_DIR);
+            const map: Record<string, boolean> = {};
+            let size = 0;
 
-                    setDownloadedSongs(map);
-                    setDownloadedSize(size);
-                }
+            for (const file of files) {
+                const id = file.replace('.mp3', '');
+                map[id] = true;
 
-                const albumJson = await AsyncStorage.getItem(STORAGE_KEYS.albums);
-                const playlistJson = await AsyncStorage.getItem(STORAGE_KEYS.playlists);
-
-                if (albumJson) setMarkedAlbums(new Set(JSON.parse(albumJson)));
-                if (playlistJson) setMarkedPlaylists(new Set(JSON.parse(playlistJson)));
-
-                hasLoadedMarkedRef.current = true;
-            } catch (e) {
-                console.error('Failed to load downloads:', e);
+                const info = await FileSystem.getInfoAsync(`${SONGS_DIR}/${file}`);
+                if (info.exists && info.size) size += info.size;
             }
+
+            setDownloadedSongs(map);
+            setDownloadedSize(size);
         };
 
-        loadState();
+        scanFiles().catch(console.error);
     }, []);
 
-    const saveMarkedAlbums = async (ids: Set<string>) =>
-        AsyncStorage.setItem(STORAGE_KEYS.albums, JSON.stringify([...ids]));
-
-    const saveMarkedPlaylists = async (ids: Set<string>) =>
-        AsyncStorage.setItem(STORAGE_KEYS.playlists, JSON.stringify([...ids]));
+    /* ───────────────────────────────
+       Core download logic
+    ─────────────────────────────── */
 
     const uploadAndStoreSong = async (song: Song) => {
         const tempPath = FileSystem.cacheDirectory + `${song.id}-raw.mp3`;
@@ -143,14 +142,19 @@ export const DownloadProvider: React.FC<{ children: ReactNode }> = ({ children }
                 await FileSystem.writeAsStringAsync(finalPath, base64, {
                     encoding: FileSystem.EncodingType.Base64,
                 });
+
                 const info = await FileSystem.getInfoAsync(finalPath);
-                if (info.size) setDownloadedSize(s => s + info.size);
+
+                if (info.exists && typeof info.size === 'number') {
+                    setDownloadedSize(s => s + info.size);
+                }
+
                 resolve();
             };
             reader.readAsDataURL(blob);
         });
 
-        setDownloadedSongs(s => ({ ...s, [song.id]: true }));
+        setDownloadedSongs((s) => ({ ...s, [song.id]: true }));
     };
 
     const downloadAlbumById = async (albumId: string) => {
@@ -159,14 +163,8 @@ export const DownloadProvider: React.FC<{ children: ReactNode }> = ({ children }
         const album = await getAlbum(albumId);
         if (!album) return;
 
-        setMarkedAlbums(s => {
-            const n = new Set(s);
-            n.add(albumId);
-            saveMarkedAlbums(n);
-            return n;
-        });
-
-        setDownloadingIds(d => [...d, albumId]);
+        dispatch(markAlbum(albumId));
+        setDownloadingIds((d) => [...d, albumId]);
 
         try {
             await FileSystem.makeDirectoryAsync(SONGS_DIR, { intermediates: true });
@@ -176,7 +174,7 @@ export const DownloadProvider: React.FC<{ children: ReactNode }> = ({ children }
                 await uploadAndStoreSong(song);
             }
         } finally {
-            setDownloadingIds(d => d.filter(id => id !== albumId));
+            setDownloadingIds((d) => d.filter((id) => id !== albumId));
             cancelledIds.current.delete(albumId);
         }
     };
@@ -187,14 +185,8 @@ export const DownloadProvider: React.FC<{ children: ReactNode }> = ({ children }
         const playlist = await getPlaylist(playlistId);
         if (!playlist) return;
 
-        setMarkedPlaylists(s => {
-            const n = new Set(s);
-            n.add(playlistId);
-            saveMarkedPlaylists(n);
-            return n;
-        });
-
-        setDownloadingIds(d => [...d, playlistId]);
+        dispatch(markPlaylist(playlistId));
+        setDownloadingIds((d) => [...d, playlistId]);
 
         try {
             await FileSystem.makeDirectoryAsync(SONGS_DIR, { intermediates: true });
@@ -204,55 +196,63 @@ export const DownloadProvider: React.FC<{ children: ReactNode }> = ({ children }
                 await uploadAndStoreSong(song);
             }
         } finally {
-            setDownloadingIds(d => d.filter(id => id !== playlistId));
+            setDownloadingIds((d) => d.filter((id) => id !== playlistId));
             cancelledIds.current.delete(playlistId);
         }
     };
+
+    /* ───────────────────────────────
+       Helpers
+    ─────────────────────────────── */
 
     const isSongDownloaded = (songId: string) => !!downloadedSongs[songId];
 
     const isAlbumDownloaded = (albumId: string) => {
         const album = store.getState().library.albumsById[albumId];
-        return !!album?.songs?.every(s => isSongDownloaded(s.id));
+        return !!album?.songs?.every((s) => isSongDownloaded(s.id));
     };
 
     const isPlaylistDownloaded = (playlistId: string) => {
         const playlist = store.getState().library.playlistsById[playlistId];
-        return !!playlist?.songs?.every(s => isSongDownloaded(s.id));
+        return !!playlist?.songs?.every((s) => isSongDownloaded(s.id));
     };
 
-    const isDownloadingAlbum = (albumId: string) => downloadingIds.includes(albumId);
-    const isDownloadingPlaylist = (playlistId: string) => downloadingIds.includes(playlistId);
+    const isDownloadingAlbum = (albumId: string) =>
+        downloadingIds.includes(albumId);
+
+    const isDownloadingPlaylist = (playlistId: string) =>
+        downloadingIds.includes(playlistId);
 
     const cancelDownload = (id: string) => {
         cancelledIds.current.add(id);
-        setDownloadingIds(d => d.filter(x => x !== id));
+        setDownloadingIds((d) => d.filter((x) => x !== id));
     };
 
     const cancelDownloadAll = () => {
-        isCancellingAll.current = true;
-        albums.forEach(a => cancelledIds.current.add(a.id));
-        playlists.forEach(p => cancelledIds.current.add(p.id));
+        albums.forEach((a) => cancelledIds.current.add(a.id));
+        playlists.forEach((p) => cancelledIds.current.add(p.id));
         setDownloadingIds([]);
     };
 
     const clearAllDownloads = async () => {
         await FileSystem.deleteAsync(SONGS_DIR, { idempotent: true });
-        await AsyncStorage.multiRemove([STORAGE_KEYS.albums, STORAGE_KEYS.playlists]);
+        dispatch(clearAllMarked());
         setDownloadedSongs({});
-        setMarkedAlbums(new Set());
-        setMarkedPlaylists(new Set());
         setDownloadedSize(0);
     };
 
-    const getDownloadedSongsCount = () => Object.keys(downloadedSongs).length;
+    const getDownloadedSongsCount = () =>
+        Object.keys(downloadedSongs).length;
 
     const getFormattedDownloadSize = () =>
         `${(downloadedSize / (1024 * 1024)).toFixed(2)} MB`;
 
+    /* ───────────────────────────────
+       Resume downloads from persisted intent
+    ─────────────────────────────── */
+
     useEffect(() => {
         if (hasResumedRef.current) return;
-        if (!hasLoadedMarkedRef.current) return;
         if (!albums.length || !playlists.length) return;
 
         hasResumedRef.current = true;
@@ -260,7 +260,6 @@ export const DownloadProvider: React.FC<{ children: ReactNode }> = ({ children }
         markedAlbums.forEach(downloadAlbumById);
         markedPlaylists.forEach(downloadPlaylistById);
     }, [albums, playlists, markedAlbums, markedPlaylists]);
-
 
     return (
         <DownloadContext.Provider

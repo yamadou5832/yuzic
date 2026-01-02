@@ -17,12 +17,13 @@ import { sharedStyles } from "@/styles/sharedStyles";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { SearchResult, useSearch } from '@/contexts/SearchContext';
-import { useSettings } from "@/contexts/SettingsContext";
 
 import ExternalAlbumOptions from "@/components/options/ExternalAlbumOptions";
 import AlbumOptions from "@/components/options/AlbumOptions";
 import CoverArt from '@/components/CoverArt';
 import { track } from '@/utils/analytics/amplitude';
+import { useSelector } from 'react-redux';
+import { selectThemeColor } from '@/utils/redux/selectors/settingsSelectors';
 
 const Search = () => {
     const searchInputRef = useRef(null);
@@ -30,7 +31,7 @@ const Search = () => {
     const colorScheme = useColorScheme();
     const isDarkMode = colorScheme === 'dark';
 
-    const { themeColor } = useSettings();
+    const themeColor = useSelector(selectThemeColor);
 
     const [query, setQuery] = useState('');
     const { searchResults, handleSearch, clearSearch, isLoading } = useSearch();

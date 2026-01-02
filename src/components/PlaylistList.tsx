@@ -15,14 +15,13 @@ import {
     Dimensions,
 } from 'react-native';
 import BottomSheet from 'react-native-gesture-bottom-sheet';
-import { useSettings } from '@/contexts/SettingsContext';
 import { Ionicons } from '@expo/vector-icons';
 import CoverArt from '@/components/CoverArt';
 import { useSelector } from 'react-redux';
 import store from '@/utils/redux/store';
-import { selectPlaylistList } from '@/utils/redux/selectors/librarySelectors';
 import { useLibrary } from '@/contexts/LibraryContext';
 import { toast } from '@backpackapp-io/react-native-toast';
+import { selectThemeColor } from '@/utils/redux/selectors/settingsSelectors';
 
 type PlaylistListProps = {
     selectedSong: any;
@@ -33,7 +32,7 @@ const PlaylistList = forwardRef<BottomSheet, PlaylistListProps>(
     ({ selectedSong, onClose }, ref) => {
         const colorScheme = useColorScheme();
         const isDarkMode = colorScheme === 'dark';
-        const { themeColor } = useSettings();
+        const themeColor = useSelector(selectThemeColor);
 
         const {
             playlists,

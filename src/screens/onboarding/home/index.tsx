@@ -8,18 +8,21 @@ import {
     Image,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useSettings } from '@/contexts/SettingsContext';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useSelector } from 'react-redux';
-import { Storage } from '@/utils/storage';
+import { useDispatch, useSelector } from 'react-redux';
 import Loader from '@/components/Loader';
 import { selectActiveServer } from '@/utils/redux/selectors/serversSelectors';
+import { setHasSeenGetStarted } from '@/utils/redux/slices/settingsSlice';
+import { selectHasSeenGetStarted, selectThemeColor } from '@/utils/redux/selectors/settingsSelectors';
 
 export default function Home() {
     const router = useRouter();
-    const { themeColor } = useSettings();
+    const themeColor = useSelector(selectThemeColor);
+    const dispatch = useDispatch();
     const [isPressed, setIsPressed] = useState(false);
     const [ready, setReady] = useState(false);
+
+    const hasSeenGetStarted = useSelector(selectHasSeenGetStarted);
 
     const activeServer = useSelector(selectActiveServer);
     const isAuthenticated = activeServer?.isAuthenticated;
@@ -30,22 +33,20 @@ export default function Home() {
             return;
         }
 
-        const hasSeen = Storage.get('hasSeenGetStarted');
-
-        if (hasSeen) {
+        if (hasSeenGetStarted) {
             router.replace('/(onboarding)/servers');
             return;
         }
 
         setReady(true);
-    }, [isAuthenticated]);
+    }, [isAuthenticated, hasSeenGetStarted]);
 
     const handlePressIn = () => setIsPressed(true);
 
     const handlePressOut = async () => {
         setIsPressed(false);
 
-        Storage.set('hasSeenGetStarted', true);
+        dispatch(setHasSeenGetStarted(true));
         router.push('/(onboarding)/servers');
     };
 

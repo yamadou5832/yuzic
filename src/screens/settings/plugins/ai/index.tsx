@@ -10,13 +10,17 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { useSettings } from '@/contexts/SettingsContext';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { toast } from '@backpackapp-io/react-native-toast';
 import { testConnection } from "@/api/openai/testConnection";
+import { useDispatch, useSelector } from 'react-redux';
+import { selectOpenaiApiKey, selectThemeColor } from '@/utils/redux/selectors/settingsSelectors';
+import { setOpenaiApiKey } from '@/utils/redux/slices/settingsSlice';
 
 export default function AIView() {
-    const { openaiApiKey, setOpenaiApiKey, themeColor } = useSettings();
+    const dispatch = useDispatch();
+    const themeColor = useSelector(selectThemeColor);
+    const openaiApiKey = useSelector(selectOpenaiApiKey);
     const router = useRouter();
     const colorScheme = Appearance.getColorScheme();
     const isDarkMode = colorScheme === 'dark';
@@ -55,7 +59,7 @@ export default function AIView() {
                 <TextInput
                     secureTextEntry
                     value={openaiApiKey}
-                    onChangeText={setOpenaiApiKey}
+                    onChangeText={(text) => dispatch(setOpenaiApiKey(text))}
                     placeholder="sk-..."
                     placeholderTextColor="#777"
                     style={[styles.input, isDarkMode && styles.inputDark]}

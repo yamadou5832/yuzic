@@ -1,9 +1,13 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Appearance } from 'react-native';
-import { useSettings } from '@/contexts/SettingsContext';
+import { useDispatch, useSelector } from 'react-redux';
+import { selectGridColumns, selectThemeColor } from '@/utils/redux/selectors/settingsSelectors';
+import { setGridColumns } from '@/utils/redux/slices/settingsSlice';
 
 export const Columns: React.FC = () => {
-  const { gridColumns, setGridColumns, themeColor } = useSettings();
+  const dispatch = useDispatch();
+  const themeColor = useSelector(selectThemeColor);
+  const gridColumns = useSelector(selectGridColumns);
   const isDarkMode = Appearance.getColorScheme() === 'dark';
 
   return (
@@ -19,7 +23,7 @@ export const Columns: React.FC = () => {
           return (
             <TouchableOpacity
               key={cols}
-              onPress={() => setGridColumns(cols)}
+              onPress={() => dispatch(setGridColumns(cols))}
               style={[
                 styles.columnButton,
                 {

@@ -14,11 +14,13 @@ import { Loader2 } from 'lucide-react-native';
 import CoverArt from '@/components/CoverArt';
 import { useAI } from '@/contexts/AIContext';
 import { usePlaying } from '@/contexts/PlayingContext';
-import { useSettings } from '@/contexts/SettingsContext';
+import { useSelector } from 'react-redux';
+import { selectPromptHistory } from '@/utils/redux/selectors/settingsSelectors';
 
 const Prompt: React.FC = () => {
   const isDarkMode = useColorScheme() === 'dark';
-  const { themeColor, promptHistory } = useSettings();
+  const promptHistory = useSelector(selectPromptHistory);
+
   const {
     input,
     generatedQueue,

@@ -2,8 +2,10 @@ import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { Song } from '@/types';
 import { useLibrary } from '@/contexts/LibraryContext';
 import { usePlaying } from '@/contexts/PlayingContext';
-import { useSettings } from '@/contexts/SettingsContext';
 import { toast } from '@backpackapp-io/react-native-toast';
+import { useDispatch, useSelector } from 'react-redux';
+import { selectOpenaiApiKey } from '@/utils/redux/selectors/settingsSelectors';
+import { addPromptToHistory } from '@/utils/redux/slices/settingsSlice';
 
 interface AIContextType {
     input: string;
@@ -12,8 +14,6 @@ interface AIContextType {
     generatedQueue: Song[];
     setGeneratedQueue: (queue: Song[]) => void;
     isLoading: boolean;
-    weighting: { global: number; user: number; favorite: number };
-    setWeighting: (val: { global: number; user: number; favorite: number }) => void;
 }
 
 const AIContext = createContext<AIContextType | undefined>(undefined);
@@ -27,9 +27,10 @@ export const useAI = () => {
 };
 
 export const AIProvider = ({ children }: { children: ReactNode }) => {
+    const dispatch = useDispatch();
     const { albums, genres, fetchGenres, starred } = useLibrary();
     const { playSongInCollection } = usePlaying();
-    const { addPromptToHistory, weighting, setWeighting, openaiApiKey } = useSettings();
+    const openaiApiKey = useSelector(selectOpenaiApiKey);
 
     const [input, setInput] = useState('');
     const [generatedQueue, setGeneratedQueue] = useState<Song[]>([]);
@@ -135,14 +136,10 @@ export const AIProvider = ({ children }: { children: ReactNode }) => {
     };
 
     const getSongWeight = (song: Song): number => {
-        const user = song.userPlayCount ?? 0;
         const isFavorite = starred.songs.some(s => s.id === song.id);
-        const favoriteBoost = isFavorite ? weighting.favorite : 1;
+        const favoriteBoost = isFavorite ? 2 : 1;
 
-        return (
-            Math.sqrt(1) * weighting.global +
-            user * weighting.user
-        ) * favoriteBoost;
+        return Math.sqrt(1) * favoriteBoost;
     };
 
     const weightedShuffle = (songs: Song[], count = 100): Song[] => {
@@ -204,12 +201,14 @@ export const AIProvider = ({ children }: { children: ReactNode }) => {
                     await playSongInCollection(queue[0], {
                         id: 'ai-generated',
                         title: `AI Queue • ${userPrompt}`,
-                        type: 'playlist',
+                        cover: '',
+                        subtext: "Playlist",
+                        userPlayCount: 0,
                         songs: queue,
                     });
                 }
 
-                addPromptToHistory({ prompt: userPrompt, queue });
+                dispatch(addPromptToHistory({ prompt: userPrompt, queue }));
                 return queue;
             }
 
@@ -272,12 +271,14 @@ export const AIProvider = ({ children }: { children: ReactNode }) => {
                 await playSongInCollection(queue[0], {
                     id: 'ai-generated',
                     title: `AI Queue • ${userPrompt}`,
-                    type: 'playlist',
+                    cover: '',
+                    subtext: "Playlist",
+                    userPlayCount: 0,
                     songs: queue,
                 });
             }
 
-            addPromptToHistory({ prompt: userPrompt, queue });
+            dispatch(addPromptToHistory({ prompt: userPrompt, queue }));
             return queue;
         } catch (err) {
             console.error('AI error:', err);
@@ -296,9 +297,7 @@ export const AIProvider = ({ children }: { children: ReactNode }) => {
                 generateQueue,
                 generatedQueue,
                 setGeneratedQueue,
-                isLoading,
-                weighting,
-                setWeighting,
+                isLoading
             }}
         >
             {children}

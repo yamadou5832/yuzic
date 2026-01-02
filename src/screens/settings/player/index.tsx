@@ -10,7 +10,6 @@ import {
 import Header from '../components/Header';
 import CurrentlyPlaying from './components/CurrentlyPlaying';
 import Prompt from './components/Prompt';
-import Tweaks from './components/Tweaks';
 
 const PlayerSettings: React.FC = () => {
   const isDarkMode = Appearance.getColorScheme() === 'dark';
@@ -28,7 +27,6 @@ const PlayerSettings: React.FC = () => {
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <CurrentlyPlaying />
         <Prompt />
-        <Tweaks />
       </ScrollView>
     </SafeAreaView>
   );

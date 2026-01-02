@@ -16,7 +16,7 @@ import { useApi } from "@/api";
 import { disconnect } from "@/utils/redux/slices/serversSlice";
 import { toast } from '@backpackapp-io/react-native-toast';
 import { selectActiveServer } from '@/utils/redux/selectors/serversSelectors';
-import { useSettings } from '@/contexts/SettingsContext';
+import { selectThemeColor } from '@/utils/redux/selectors/settingsSelectors';
 
 const AccountActionSheet = forwardRef<BottomSheet, {}>((_, ref) => {
     const isDarkMode = useColorScheme() === 'dark';
@@ -28,7 +28,7 @@ const AccountActionSheet = forwardRef<BottomSheet, {}>((_, ref) => {
     const username = activeServer?.username;
     const serverUrl = activeServer?.serverUrl;
 
-    const { themeColor } = useSettings();
+    const themeColor = useSelector(selectThemeColor);
     const { clearLibrary } = useLibrary();
     const { pauseSong, resetQueue } = usePlaying();
 

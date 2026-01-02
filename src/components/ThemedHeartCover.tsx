@@ -1,10 +1,11 @@
 import React from 'react';
 import { View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
-import { useSettings } from '@/contexts/SettingsContext';
+import { useSelector } from 'react-redux';
+import { selectThemeColor } from '@/utils/redux/selectors/settingsSelectors';
 
 const ThemedHeartCover = ({ size, rounded = 4 }: { size?: number; rounded?: number }) => {
-    const { themeColor } = useSettings();
+    const themeColor = useSelector(selectThemeColor);
 
     const isGrid = size === undefined;
 

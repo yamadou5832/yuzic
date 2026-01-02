@@ -15,9 +15,10 @@ import { Image } from 'expo-image';
 
 import { Artist, Song } from '@/types';
 import { usePlaying } from '@/contexts/PlayingContext';
-import { useSettings } from '@/contexts/SettingsContext';
 import { useLibrary } from '@/contexts/LibraryContext';
 import { toast } from '@backpackapp-io/react-native-toast';
+import { useSelector } from 'react-redux';
+import { selectThemeColor } from '@/utils/redux/selectors/settingsSelectors';
 
 type Props = {
   artist: Artist;
@@ -30,7 +31,7 @@ const Header: React.FC<Props> = ({ artist }) => {
   const [loadingSongs, setLoadingSongs] = React.useState(true);
 
   const { getAlbums } = useLibrary();
-  const { themeColor } = useSettings();
+  const themeColor = useSelector(selectThemeColor);
   const { playSongInCollection } = usePlaying();
 
   useEffect(() => {

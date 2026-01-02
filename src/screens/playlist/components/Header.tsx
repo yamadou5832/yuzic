@@ -13,9 +13,10 @@ import { Playlist } from '@/types';
 import CoverArt from '@/components/CoverArt';
 import DownloadOptions from '@/components/options/DownloadOptions';
 
-import { useSettings } from '@/contexts/SettingsContext';
 import { usePlaying } from '@/contexts/PlayingContext';
 import { useDownload } from '@/contexts/DownloadContext';
+import { useSelector } from 'react-redux';
+import { selectThemeColor } from '@/utils/redux/selectors/settingsSelectors';
 
 type Props = {
   playlist: Playlist;
@@ -24,7 +25,7 @@ type Props = {
 const Header: React.FC<Props> = ({ playlist }) => {
   const navigation = useNavigation();
   const isDarkMode = useColorScheme() === 'dark';
-  const { themeColor } = useSettings();
+  const themeColor = useSelector(selectThemeColor);
   const { playSongInCollection } = usePlaying();
   const { isPlaylistDownloaded, isDownloadingPlaylist, downloadPlaylistById } =
     useDownload();

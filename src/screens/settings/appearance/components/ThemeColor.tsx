@@ -2,10 +2,13 @@ import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Appearance } from 'react-native';
 import ColorPicker, { Panel1, HueSlider } from 'reanimated-color-picker';
 import { MaterialIcons } from '@expo/vector-icons';
-import { useSettings } from '@/contexts/SettingsContext';
+import { selectThemeColor } from '@/utils/redux/selectors/settingsSelectors';
+import { useDispatch, useSelector } from 'react-redux';
+import { setThemeColor } from '@/utils/redux/slices/settingsSlice';
 
 export const ThemeColor: React.FC = () => {
-  const { themeColor, setThemeColor } = useSettings();
+  const dispatch = useDispatch();
+  const themeColor = useSelector(selectThemeColor);
   const [open, setOpen] = useState(false);
   const isDarkMode = Appearance.getColorScheme() === 'dark';
 
@@ -37,7 +40,7 @@ export const ThemeColor: React.FC = () => {
         <View style={{ paddingTop: 16 }}>
           <ColorPicker
             value={themeColor}
-            onComplete={c => setThemeColor(c.hex)}
+            onComplete={c => dispatch(setThemeColor(c.hex))}
             style={{ height: 240, width: '100%' }}
           >
             <Panel1 />

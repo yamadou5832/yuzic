@@ -17,18 +17,18 @@ import {
     setActiveServer,
     removeServer,
 } from '@/utils/redux/slices/serversSlice';
-import { useSettings } from '@/contexts/SettingsContext';
 import { AntDesign } from '@expo/vector-icons';
 import { MenuView } from '@react-native-menu/menu';
 
 import NavidromeIcon from '@assets/images/navidrome.png';
 import JellyfinIcon from '@assets/images/jellyfin.png';
 import { track } from '@/utils/analytics/amplitude';
+import { selectThemeColor } from '@/utils/redux/selectors/settingsSelectors';
 
 export default function Servers() {
     const router = useRouter();
     const dispatch = useDispatch();
-    const { themeColor } = useSettings();
+    const themeColor = useSelector(selectThemeColor);
 
     const servers = useSelector((state: RootState) => state.servers.servers);
     const activeServerId = useSelector(

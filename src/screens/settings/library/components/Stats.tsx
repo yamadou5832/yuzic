@@ -20,11 +20,11 @@ import {
     selectPlaylistList,
 } from '@/utils/redux/selectors/librarySelectors';
 import { useLibrary } from '@/contexts/LibraryContext';
-import { useSettings } from '@/contexts/SettingsContext';
+import { selectThemeColor } from '@/utils/redux/selectors/settingsSelectors';
 
 const Stats: React.FC = () => {
     const isDarkMode = useColorScheme() === 'dark';
-    const { themeColor } = useSettings();
+    const themeColor = useSelector(selectThemeColor);
 
     const albumList = useSelector(selectAlbumList);
     const artistList = useSelector(selectArtistList);

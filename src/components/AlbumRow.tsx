@@ -7,14 +7,14 @@ import {
   useColorScheme,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-
-import { AlbumData } from '@/types';
+import { Album } from '@/types';
 import CoverArt from '@/components/CoverArt';
 import AlbumOptions from '@/components/options/AlbumOptions';
 import ExternalAlbumOptions from '@/components/options/ExternalAlbumOptions';
-import { useSettings } from '@/contexts/SettingsContext';
+import { useSelector } from 'react-redux';
+import { selectThemeColor } from '@/utils/redux/selectors/settingsSelectors';
 
-type CombinedAlbum = AlbumData & {
+type CombinedAlbum = Album & {
   isExternal?: boolean;
 };
 
@@ -26,7 +26,7 @@ type Props = {
 
 const AlbumRow: React.FC<Props> = ({ album, artistName, onPress }) => {
   const isDarkMode = useColorScheme() === 'dark';
-  const { themeColor } = useSettings();
+  const themeColor = useSelector(selectThemeColor);
 
   return (
     <View style={styles.wrapper}>

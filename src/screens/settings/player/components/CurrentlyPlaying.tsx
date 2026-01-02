@@ -10,11 +10,12 @@ import { MaterialIcons } from '@expo/vector-icons';
 
 import CoverArt from '@/components/CoverArt';
 import { usePlaying } from '@/contexts/PlayingContext';
-import { useSettings } from '@/contexts/SettingsContext';
+import { useSelector } from 'react-redux';
+import { selectThemeColor } from '@/utils/redux/selectors/settingsSelectors';
 
 const CurrentlyPlaying: React.FC = () => {
   const isDarkMode = useColorScheme() === 'dark';
-  const { themeColor } = useSettings();
+  const themeColor = useSelector(selectThemeColor);
 
   const {
     currentSong,

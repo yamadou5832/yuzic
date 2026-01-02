@@ -9,7 +9,6 @@ import {
     Linking,
     Alert
 } from 'react-native';
-import { useSettings } from '@/contexts/SettingsContext';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Appearance } from 'react-native';
 import { Ionicons, Entypo, MaterialIcons } from '@expo/vector-icons';
@@ -17,12 +16,13 @@ import { useRouter } from 'expo-router';
 import { useSelector } from 'react-redux';
 import { selectActiveServer } from '@/utils/redux/selectors/serversSelectors';
 import { AnalyticsToggle } from './components/AnalyticsToggle';
+import { selectThemeColor } from '@/utils/redux/selectors/settingsSelectors';
 
 export default function Settings() {
     const router = useRouter();
     const activeServer = useSelector(selectActiveServer);
+    const themeColor = useSelector(selectThemeColor);
 
-    const { themeColor } = useSettings();
     const colorScheme = Appearance.getColorScheme();
     const isDarkMode = colorScheme === 'dark';
 

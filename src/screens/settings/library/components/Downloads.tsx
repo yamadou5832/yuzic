@@ -1,194 +1,166 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import {
-    View,
-    Text,
-    StyleSheet,
-    TouchableOpacity,
-    useColorScheme,
-    Alert,
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  useColorScheme,
+  Alert,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import CoverArt from '@/components/CoverArt';
 import { useDownload } from '@/contexts/DownloadContext';
-import { useSettings } from '@/contexts/SettingsContext';
 import { useLibrary } from '@/contexts/LibraryContext';
+import { useSelector } from 'react-redux';
+import { selectThemeColor } from '@/utils/redux/selectors/settingsSelectors';
 
 const Downloads: React.FC = () => {
-    const isDarkMode = useColorScheme() === 'dark';
-    const { themeColor } = useSettings();
-    const { albums, playlists } = useLibrary();
+  const isDarkMode = useColorScheme() === 'dark';
+  const themeColor = useSelector(selectThemeColor);
+  const { albums, playlists } = useLibrary();
 
-    const {
-        getDownloadedSongsCount,
-        clearAllDownloads,
-        isAlbumDownloaded,
-        isPlaylistDownloaded,
-        isDownloadingAlbum,
-        isDownloadingPlaylist,
-        cancelDownload,
-        getFormattedDownloadSize,
-        markedAlbums,
-        markedPlaylists,
-    } = useDownload();
+  const {
+    getDownloadedSongsCount,
+    clearAllDownloads,
+    isAlbumDownloaded,
+    isPlaylistDownloaded,
+    isDownloadingAlbum,
+    isDownloadingPlaylist,
+    cancelDownload,
+    getFormattedDownloadSize,
+    markedAlbums,
+    markedPlaylists,
+  } = useDownload();
 
-    const [downloadedSongCount, setDownloadedSongCount] = useState(0);
+  const downloadedSongCount = getDownloadedSongsCount();
 
-    useEffect(() => {
-        setDownloadedSongCount(getDownloadedSongsCount());
-    }, [getDownloadedSongsCount]);
+  const items = useMemo(() => {
+    const albumItems = albums
+      .filter(a => markedAlbums.includes(a.id))
+      .map(a => ({ ...a, type: 'album' as const }));
 
-    const items = useMemo(() => {
-        const albumItems = albums
-            .filter(a => markedAlbums.has(a.id))
-            .map(a => ({ ...a, type: 'album' as const }));
+    const playlistItems = playlists
+      .filter(p => markedPlaylists.includes(p.id))
+      .map(p => ({ ...p, type: 'playlist' as const }));
 
-        const playlistItems = playlists
-            .filter(p => markedPlaylists.has(p.id))
-            .map(p => ({ ...p, type: 'playlist' as const }));
+    return [...albumItems, ...playlistItems];
+  }, [albums, playlists, markedAlbums, markedPlaylists]);
 
-        return [...albumItems, ...playlistItems];
-    }, [albums, playlists, markedAlbums, markedPlaylists]);
-
-    const handleClearDownloads = () => {
-        Alert.alert(
-            'Clear downloads?',
-            'This will remove all downloaded songs from your device.',
-            [
-                { text: 'Cancel', style: 'cancel' },
-                { text: 'Delete', style: 'destructive', onPress: clearAllDownloads },
-            ]
-        );
-    };
-
-    return (
-        <View style={[styles.section, isDarkMode && styles.sectionDark]}>
-            <View style={styles.sectionHeader}>
-                <Text style={[styles.sectionTitle, isDarkMode && styles.sectionTitleDark]}>
-                    Downloads
-                </Text>
-
-                <TouchableOpacity
-                    onPress={handleClearDownloads}
-                    disabled={downloadedSongCount === 0}
-                    style={[
-                        styles.iconButton,
-                        {
-                            backgroundColor: themeColor,
-                            opacity: downloadedSongCount === 0 ? 0.5 : 1,
-                        },
-                    ]}
-                >
-                    <MaterialIcons name="delete" size={18} color="#fff" />
-                </TouchableOpacity>
-            </View>
-
-            <View style={styles.list}>
-                {items.map(item => {
-                    const downloaded =
-                        item.type === 'album'
-                            ? isAlbumDownloaded(item.id)
-                            : isPlaylistDownloaded(item.id);
-
-                    const downloading =
-                        item.type === 'album'
-                            ? isDownloadingAlbum(item.id)
-                            : isDownloadingPlaylist(item.id);
-
-                    const statusLabel = downloaded
-                        ? 'Downloaded'
-                        : downloading
-                            ? 'Downloading'
-                            : 'Incomplete';
-
-                    const statusColor = downloaded
-                        ? '#22c55e'
-                        : downloading
-                            ? themeColor
-                            : '#f97316';
-
-                    return (
-                        <View
-                            key={item.id}
-                            style={[
-                                styles.card,
-                                isDarkMode && styles.cardDark,
-                            ]}
-                        >
-                            <CoverArt source={item.cover} size={48} />
-
-                            <View style={styles.cardInfo}>
-                                <Text
-                                    style={[
-                                        styles.cardTitle,
-                                        isDarkMode && styles.cardTitleDark,
-                                    ]}
-                                >
-                                    {item.title}
-                                </Text>
-                                <Text
-                                    style={[
-                                        styles.cardSub,
-                                        isDarkMode && styles.cardSubDark,
-                                    ]}
-                                >
-                                    {item.type === 'album' ? 'Album' : 'Playlist'}
-                                </Text>
-                            </View>
-
-                            <View style={styles.cardActions}>
-                                <View
-                                    style={[
-                                        styles.statusBadge,
-                                        {
-                                            backgroundColor: statusColor + '22',
-                                            borderColor: statusColor,
-                                        },
-                                    ]}
-                                >
-                                    <Text
-                                        style={{
-                                            color: statusColor,
-                                            fontSize: 12,
-                                            fontWeight: '600',
-                                        }}
-                                    >
-                                        {statusLabel}
-                                    </Text>
-                                </View>
-
-                                {downloading && (
-                                    <TouchableOpacity
-                                        onPress={() => cancelDownload(item.id)}
-                                    >
-                                        <MaterialIcons
-                                            name="cancel"
-                                            size={18}
-                                            color={statusColor}
-                                        />
-                                    </TouchableOpacity>
-                                )}
-                            </View>
-                        </View>
-                    );
-                })}
-            </View>
-
-            <View style={styles.row}>
-                <Text style={[styles.rowText, isDarkMode && styles.rowTextDark]}>
-                    Download Size
-                </Text>
-                <Text style={[styles.rowValue, isDarkMode && styles.rowValueDark]}>
-                    {getFormattedDownloadSize()}
-                </Text>
-            </View>
-
-            {downloadedSongCount > 0 && (
-                <Text style={[styles.note, isDarkMode && styles.noteDark]}>
-                    These songs are stored locally for offline playback.
-                </Text>
-            )}
-        </View>
+  const handleClearDownloads = () => {
+    Alert.alert(
+      'Clear downloads?',
+      'This will remove all downloaded songs from your device.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Delete', style: 'destructive', onPress: clearAllDownloads },
+      ]
     );
+  };
+
+  return (
+    <View style={[styles.section, isDarkMode && styles.sectionDark]}>
+      <View style={styles.sectionHeader}>
+        <Text style={[styles.sectionTitle, isDarkMode && styles.sectionTitleDark]}>
+          Downloads
+        </Text>
+
+        <TouchableOpacity
+          onPress={handleClearDownloads}
+          disabled={downloadedSongCount === 0}
+          style={[
+            styles.iconButton,
+            {
+              backgroundColor: themeColor,
+              opacity: downloadedSongCount === 0 ? 0.5 : 1,
+            },
+          ]}
+        >
+          <MaterialIcons name="delete" size={18} color="#fff" />
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.list}>
+        {items.map(item => {
+          const downloaded =
+            item.type === 'album'
+              ? isAlbumDownloaded(item.id)
+              : isPlaylistDownloaded(item.id);
+
+          const downloading =
+            item.type === 'album'
+              ? isDownloadingAlbum(item.id)
+              : isDownloadingPlaylist(item.id);
+
+          const statusLabel = downloaded
+            ? 'Downloaded'
+            : downloading
+            ? 'Downloading'
+            : 'Incomplete';
+
+          const statusColor = downloaded
+            ? '#22c55e'
+            : downloading
+            ? themeColor
+            : '#f97316';
+
+          return (
+            <View
+              key={item.id}
+              style={[styles.card, isDarkMode && styles.cardDark]}
+            >
+              <CoverArt source={item.cover} size={48} />
+
+              <View style={styles.cardInfo}>
+                <Text style={[styles.cardTitle, isDarkMode && styles.cardTitleDark]}>
+                  {item.title}
+                </Text>
+                <Text style={[styles.cardSub, isDarkMode && styles.cardSubDark]}>
+                  {item.type === 'album' ? 'Album' : 'Playlist'}
+                </Text>
+              </View>
+
+              <View style={styles.cardActions}>
+                <View
+                  style={[
+                    styles.statusBadge,
+                    {
+                      backgroundColor: statusColor + '22',
+                      borderColor: statusColor,
+                    },
+                  ]}
+                >
+                  <Text style={{ color: statusColor, fontSize: 12, fontWeight: '600' }}>
+                    {statusLabel}
+                  </Text>
+                </View>
+
+                {downloading && (
+                  <TouchableOpacity onPress={() => cancelDownload(item.id)}>
+                    <MaterialIcons name="cancel" size={18} color={statusColor} />
+                  </TouchableOpacity>
+                )}
+              </View>
+            </View>
+          );
+        })}
+      </View>
+
+      <View style={styles.row}>
+        <Text style={[styles.rowText, isDarkMode && styles.rowTextDark]}>
+          Download Size
+        </Text>
+        <Text style={[styles.rowValue, isDarkMode && styles.rowValueDark]}>
+          {getFormattedDownloadSize()}
+        </Text>
+      </View>
+
+      {downloadedSongCount > 0 && (
+        <Text style={[styles.note, isDarkMode && styles.noteDark]}>
+          These songs are stored locally for offline playback.
+        </Text>
+      )}
+    </View>
+  );
 };
 
 export default Downloads;

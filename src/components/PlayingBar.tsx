@@ -18,12 +18,13 @@ import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import { BlurView } from 'expo-blur';
 import { useProgress } from 'react-native-track-player';
 import ExpandedPlayingScreen from './ExpandedPlayingScreen';
-import { useSettings } from '@/contexts/SettingsContext';
 import { Image } from 'expo-image';
 import { usePlaying } from '@/contexts/PlayingContext';
 import { useAI } from '@/contexts/AIContext';
 import { Loader2 } from 'lucide-react-native';
 import BottomSheet from 'react-native-gesture-bottom-sheet';
+import { selectAiButtonEnabled, selectOpenaiApiKey, selectThemeColor } from '@/utils/redux/selectors/settingsSelectors';
+import { useSelector } from 'react-redux';
 
 const PlayingBar: React.FC = () => {
     const colorScheme = useColorScheme();
@@ -33,7 +34,9 @@ const PlayingBar: React.FC = () => {
     const position = appState === 'active' ? playbackProgress.position : 0;
     const duration = appState === 'active' ? playbackProgress.duration : 1;
     const progress = duration > 0 ? position / duration : 0;
-    const { themeColor, openaiApiKey, aiButtonEnabled } = useSettings();
+    const themeColor = useSelector(selectThemeColor);
+    const openaiApiKey = useSelector(selectOpenaiApiKey);
+    const aiButtonEnabled = useSelector(selectAiButtonEnabled);
     const { generateQueue, isLoading } = useAI();
     const [inputValue, setInputValue] = useState('');
     const { currentSong, isPlaying, pauseSong, resumeSong } = usePlaying();

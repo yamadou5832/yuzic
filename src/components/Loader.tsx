@@ -1,10 +1,11 @@
-import { useSettings } from "@/contexts/SettingsContext";
+import { selectThemeColor } from "@/utils/redux/selectors/settingsSelectors";
 import { Loader2 } from "lucide-react-native";
 import { useEffect, useRef } from "react";
 import { Animated, Easing, View } from "react-native";
+import { useSelector } from "react-redux";
 
 function Loader() {
-  const { themeColor } = useSettings();
+  const themeColor = useSelector(selectThemeColor);
   const spinAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {

@@ -9,7 +9,6 @@ import { Toasts } from '@backpackapp-io/react-native-toast';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { LibraryProvider } from "@/contexts/LibraryContext";
 import { PlayingProvider } from "@/contexts/PlayingContext";
-import { SettingsProvider } from "@/contexts/SettingsContext";
 import { SearchProvider } from "@/contexts/SearchContext";
 import { LidarrProvider } from "@/contexts/LidarrContext";
 import { DownloadProvider } from "@/contexts/DownloadContext";
@@ -82,54 +81,52 @@ We will need to restart the app.
         <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
             <Provider store={store}>
                 <PersistGate loading={null} persistor={persistor}>
-                    <SettingsProvider>
-                        <LibraryProvider>
-                            <LidarrProvider>
-                                <DownloadProvider>
-                                    <PlayingProvider>
-                                        <AIProvider>
-                                            <SearchProvider>
-                                                <GestureHandlerRootView style={{ flex: 1 }}>
-                                                    <BottomSheetModalProvider>
-                                                        <Stack>
-                                                            <Stack.Screen name="(onboarding)" options={{ headerShown: false }} />
-                                                            <Stack.Screen name="(home)" options={{ headerShown: false }} />
-                                                            <Stack.Screen name="index" options={{ headerShown: false }} />
-                                                            <Stack.Screen name="+not-found" />
-                                                        </Stack>
-                                                        <StatusBar style="auto" />
-                                                        <Toasts
-                                                            defaultStyle={{
-                                                                view: {
-                                                                    backgroundColor: isDarkMode ? 'rgba(32,32,32,0.9)' : 'rgba(255,255,255,0.9)',
-                                                                    borderRadius: 10,
-                                                                    shadowColor: '#000',
-                                                                    shadowOpacity: 0.15,
-                                                                    shadowRadius: 10,
-                                                                    elevation: 4,
-                                                                },
-                                                                pressable: {
-                                                                    backgroundColor: 'transparent',
-                                                                },
-                                                                text: {
-                                                                    color: isDarkMode ? 'white' : 'black',
-                                                                    fontSize: 16,
-                                                                    fontWeight: '500',
-                                                                },
-                                                                indicator: {
-                                                                    marginRight: 12,
-                                                                },
-                                                            }}
-                                                        />
-                                                    </BottomSheetModalProvider>
-                                                </GestureHandlerRootView>
-                                            </SearchProvider>
-                                        </AIProvider>
-                                    </PlayingProvider>
-                                </DownloadProvider>
-                            </LidarrProvider>
-                        </LibraryProvider>
-                    </SettingsProvider>
+                    <LibraryProvider>
+                        <LidarrProvider>
+                            <DownloadProvider>
+                                <PlayingProvider>
+                                    <AIProvider>
+                                        <SearchProvider>
+                                            <GestureHandlerRootView style={{ flex: 1 }}>
+                                                <BottomSheetModalProvider>
+                                                    <Stack>
+                                                        <Stack.Screen name="(onboarding)" options={{ headerShown: false }} />
+                                                        <Stack.Screen name="(home)" options={{ headerShown: false }} />
+                                                        <Stack.Screen name="index" options={{ headerShown: false }} />
+                                                        <Stack.Screen name="+not-found" />
+                                                    </Stack>
+                                                    <StatusBar style="auto" />
+                                                    <Toasts
+                                                        defaultStyle={{
+                                                            view: {
+                                                                backgroundColor: isDarkMode ? 'rgba(32,32,32,0.9)' : 'rgba(255,255,255,0.9)',
+                                                                borderRadius: 10,
+                                                                shadowColor: '#000',
+                                                                shadowOpacity: 0.15,
+                                                                shadowRadius: 10,
+                                                                elevation: 4,
+                                                            },
+                                                            pressable: {
+                                                                backgroundColor: 'transparent',
+                                                            },
+                                                            text: {
+                                                                color: isDarkMode ? 'white' : 'black',
+                                                                fontSize: 16,
+                                                                fontWeight: '500',
+                                                            },
+                                                            indicator: {
+                                                                marginRight: 12,
+                                                            },
+                                                        }}
+                                                    />
+                                                </BottomSheetModalProvider>
+                                            </GestureHandlerRootView>
+                                        </SearchProvider>
+                                    </AIProvider>
+                                </PlayingProvider>
+                            </DownloadProvider>
+                        </LidarrProvider>
+                    </LibraryProvider>
                 </PersistGate>
             </Provider>
         </ThemeProvider>

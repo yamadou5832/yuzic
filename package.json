@@ -1,7 +1,7 @@
 {
   "name": "yuzic",
   "main": "expo-router/entry",
-  "version": "1.0.2",
+  "version": "1.0.5",
   "scripts": {
     "start": "expo start",
     "reset-project": "node ./scripts/reset-project.js",
@@ -21,7 +21,7 @@
     "@backpackapp-io/react-native-toast": "^0.13.0",
     "@expo/vector-icons": "~14.0.4",
     "@gorhom/bottom-sheet": "^5.1.4",
-    "@react-native-async-storage/async-storage": "^1.23.1",
+    "@react-native-async-storage/async-storage": "1.23.1",
     "@react-native-community/slider": "4.5.5",
     "@react-native-menu/menu": "^1.2.0",
     "@react-navigation/bottom-tabs": "^7.0.0",
@@ -61,8 +61,6 @@
     "react-native-ios-context-menu": "^3.2.1",
     "react-native-ios-utilities": "^5.2.0",
     "react-native-linear-gradient": "^2.8.3",
-    "react-native-mmkv": "^4.1.0",
-    "react-native-nitro-modules": "^0.32.0",
     "react-native-reanimated": "~3.16.1",
     "react-native-reorderable-list": "^0.17.0",
     "react-native-restart": "^0.0.27",

@@ -15,14 +15,15 @@ import {
 } from 'react-native';
 import { useLidarr } from '@/contexts/LidarrContext';
 import { useRouter } from 'expo-router';
-import { useSettings } from '@/contexts/SettingsContext';
 import { MaterialIcons, Ionicons } from '@expo/vector-icons';
 import { Loader2 } from 'lucide-react-native';
 import { toast } from '@backpackapp-io/react-native-toast';
+import { useSelector } from 'react-redux';
+import { selectThemeColor } from '@/utils/redux/selectors/settingsSelectors';
 
 const LidarrView: React.FC = () => {
     const { serverUrl, apiKey, isAuthenticated, setServerUrl, setApiKey, pingServer, disconnect, queue, startQueuePolling, stopQueuePolling } = useLidarr();
-    const { themeColor } = useSettings();
+    const themeColor = useSelector(selectThemeColor);
     const router = useRouter();
     const colorScheme = Appearance.getColorScheme();
     const isDarkMode = colorScheme === 'dark';
