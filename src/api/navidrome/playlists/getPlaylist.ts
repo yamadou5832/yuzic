@@ -1,10 +1,10 @@
-import { PlaylistData, SongData, ArtistData } from "@/types";
+import { Playlist, Song } from "@/types";
 import { buildCoverArtUrl } from "@/utils/urlBuilders";
 
 const API_VERSION = "1.16.0";
 const CLIENT_NAME = "Yuzic";
 
-export type GetPlaylistResult = PlaylistData | null;
+export type GetPlaylistResult = Playlist | null;
 
 export async function getPlaylist(
   serverUrl: string,
@@ -30,7 +30,7 @@ export async function getPlaylist(
 
   const entries = playlist.entry || [];
 
-  const songs: SongData[] = entries.map((s: any) => ({
+  const songs: Song[] = entries.map((s: any) => ({
     id: s.id,
     title: s.title,
     artist: s.artist,
@@ -49,7 +49,6 @@ export async function getPlaylist(
     cover: buildCoverArtUrl(playlist.coverArt, serverUrl, username, password),
     title: playlist.name ?? "Playlist",
     subtext: `Playlist • ${songs.length} songs`,
-    songs,
-    songCount: playlist.songcount
+    songs
   };
 }

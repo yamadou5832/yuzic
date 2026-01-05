@@ -18,11 +18,7 @@ export interface PlaylistBase {
     subtext: string;
 }
 
-export interface Playlist {
-    id: string;
-    cover: string;
-    title: string;
-    subtext: string;
+export interface Playlist extends PlaylistBase {
     songs: Song[]
 }
 

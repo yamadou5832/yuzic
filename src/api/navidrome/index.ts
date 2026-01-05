@@ -134,7 +134,7 @@ export const createNavidromeAdapter = (adapter: NavidromeServer): ApiAdapter => 
         username,
         password,
         playlistId,
-        index
+        index.toString()
       );
     },
   };
