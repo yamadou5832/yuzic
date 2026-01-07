@@ -11,7 +11,7 @@ import {
   AuthApi
 } from "../types";
 import { FAVORITES_ID } from '@/constants/favorites';
-import { buildFavoritesPlaylist } from '@/utils/favorites/buildFavoritesPlaylist';
+import { buildFavoritesPlaylist } from '@/utils/builders/buildFavoritesPlaylist';
 
 import { Song, NavidromeServer } from "@/types";
 

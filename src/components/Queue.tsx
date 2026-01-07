@@ -14,7 +14,7 @@ import { Gesture } from 'react-native-gesture-handler';
 import { GripVertical } from 'lucide-react-native';
 import { usePlaying } from '@/contexts/PlayingContext';
 import { useLibrary } from '@/contexts/LibraryContext';
-import { Image } from 'expo-image';
+import { MediaImage } from '@/components/MediaImage';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -37,8 +37,9 @@ const QueueItem = memo(({ item, index, isCurrent, onPress }: QueueItemProps) => 
                 isCurrent && styles.activeQueueItem,
             ]}
         >
-            <Image
-                source={{ uri: item.cover || item.artwork }}
+            <MediaImage
+                cover={item.cover}
+                size="thumb"
                 style={styles.artwork}
             />
 
@@ -112,10 +113,13 @@ const Queue: React.FC<{ onBack: () => void; width: number }> = ({
     return (
         <View style={[styles.container, { width }]}>
             <View style={styles.header}>
-                <Image
-                    source={{ uri: currentSong?.cover }}
-                    style={styles.headerImage}
-                />
+                {currentSong ? (
+                    <MediaImage
+                        cover={currentSong.cover}
+                        size="thumb"
+                        style={styles.headerImage}
+                    />
+                ) : null}
                 <View style={styles.headerTextContainer}>
                     <Text
                         style={styles.nowPlayingTitle}

@@ -18,7 +18,6 @@ import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import { BlurView } from 'expo-blur';
 import { useProgress } from 'react-native-track-player';
 import ExpandedPlayingScreen from './ExpandedPlayingScreen';
-import { Image } from 'expo-image';
 import { usePlaying } from '@/contexts/PlayingContext';
 import { useAI } from '@/contexts/AIContext';
 import { Loader2 } from 'lucide-react-native';

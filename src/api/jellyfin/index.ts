@@ -31,7 +31,7 @@ import { unstar } from "./starred/unstar";
 import { getSongsByGenre } from "./genres/getSongsByGenre";
 import { getArtist } from "./artists/getArtist";
 import { getGenres } from "./genres/getGenres";
-import { buildFavoritesPlaylist } from "@/utils/favorites/buildFavoritesPlaylist";
+import { buildFavoritesPlaylist } from "@/utils/builders/buildFavoritesPlaylist";
 import { FAVORITES_ID } from "@/constants/favorites";
 
 export const createJellyfinAdapter = (adapter: JellyfinServer): ApiAdapter => {

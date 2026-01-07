@@ -31,6 +31,7 @@ import { useLibrary } from '@/contexts/LibraryContext';
 import { useSelector } from 'react-redux';
 import { selectThemeColor } from '@/utils/redux/selectors/settingsSelectors';
 import { buildCover } from '@/utils/builders/buildCover';
+import { CoverSource } from '@/types';
 
 interface ExpandedPlayingScreenProps {
     onClose: () => void;
@@ -70,7 +71,7 @@ const ExpandedPlayingScreen: React.FC<ExpandedPlayingScreenProps> = ({
     const [seekPosition, setSeekPosition] = useState(0);
     const [showQueue, setShowQueue] = useState(false);
 
-    const lastCoverRef = useRef<string | null>(null);
+    const lastCoverRef = useRef<CoverSource | null>(null);
 
     const { width } = Dimensions.get('window');
     const isTablet = width >= 768;
@@ -152,10 +153,14 @@ const ExpandedPlayingScreen: React.FC<ExpandedPlayingScreenProps> = ({
         }
     }, [currentSong?.id]);
 
+    if (!currentSong) {
+        return <View style={{ flex: 1, backgroundColor: '#000' }} />;
+    }
+
     const coverUri =
         buildCover(currentSong?.cover, "detail") ??
-        buildCover(lastCoverRef.current) ??
-        buildCover({kind:"none"});
+        buildCover(lastCoverRef.current, "detail") ??
+        buildCover({ kind: "none" }, "detail");
 
     const navigateToArtist = () => {
         onClose();
@@ -207,7 +212,7 @@ const ExpandedPlayingScreen: React.FC<ExpandedPlayingScreenProps> = ({
                         <Ionicons name="chevron-down" size={28} color="#fff" />
                     </TouchableOpacity>
                     <Image
-                        source={{ uri: coverUri}}
+                        source={{ uri: coverUri }}
                         style={[
                             styles.coverArt,
                             { width: isTablet ? 500 : 315, height: isTablet ? 500 : 315 },

@@ -17,7 +17,6 @@ import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import { BlurView } from 'expo-blur';
 import { useProgress } from 'react-native-track-player';
 import ExpandedPlayingScreen from './ExpandedPlayingScreen';
-import { Image } from 'expo-image';
 import { usePlaying } from '@/contexts/PlayingContext';
 import { useAI } from '@/contexts/AIContext';
 import { Loader2 } from 'lucide-react-native';
@@ -28,6 +27,7 @@ import {
   selectThemeColor,
 } from '@/utils/redux/selectors/settingsSelectors';
 import { useSelector } from 'react-redux';
+import { MediaImage } from './MediaImage';
 
 const PlayingBar: React.FC = () => {
   const isDarkMode = useColorScheme() === 'dark';
@@ -68,7 +68,6 @@ const PlayingBar: React.FC = () => {
     }
   };
 
-  /* Spinner for AI button */
   const spinAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -82,7 +81,7 @@ const PlayingBar: React.FC = () => {
         toValue: 1,
         duration: 1000,
         easing: Easing.linear,
-        useNativeDriver: false, // SVG-safe
+        useNativeDriver: false,
       })
     );
 
@@ -95,7 +94,6 @@ const PlayingBar: React.FC = () => {
     outputRange: ['0deg', '360deg'],
   });
 
-  /* AI button → dialog */
   const handleAIPress = () => {
     if (!openaiApiKey) {
       toast.error('Please enter your OpenAI API key in Settings > Plugins.');
@@ -123,14 +121,9 @@ const PlayingBar: React.FC = () => {
             <View style={styles.topRowWrapper}>
               <View style={styles.topRow}>
                 {currentSong?.cover ? (
-                  <Image source={{ uri: currentSong.cover }} style={styles.coverArt} />
+                  <MediaImage cover={currentSong.cover} size='thumb' style={styles.coverArt} />
                 ) : (
-                  <Ionicons
-                    name="musical-notes-outline"
-                    size={40}
-                    style={styles.coverArt}
-                    color={isDarkMode ? '#fff' : '#333'}
-                  />
+                  <Ionicons name="musical-notes-outline" size={40} style={styles.coverArt} color={isDarkMode ? '#fff' : '#333'} />
                 )}
 
                 <View style={styles.details}>
