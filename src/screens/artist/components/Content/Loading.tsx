@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { FlashList } from '@shopify/flash-list';
 
 import LoadingArtistHeader from '../Header/Loading';
-import LoadingAlbumRow from '@/components/AlbumRow/Loading';
+import LoadingAlbumRow from '@/components/rows/AlbumRow/Loading';
 
 const ESTIMATED_ROW_HEIGHT = 80;
 const PLACEHOLDER_ROWS = 6;

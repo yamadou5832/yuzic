@@ -50,6 +50,7 @@ export default function LibraryListHeader({
 
 const styles = StyleSheet.create({
   container: {
+    marginTop: 8,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',

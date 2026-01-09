@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { FlashList } from '@shopify/flash-list';
 
 import { Playlist, Song } from '@/types';
-import SongRow from '@/components/SongRow';
+import SongRow from '@/components/rows/SongRow';
 
 import Header from '../Header';
 

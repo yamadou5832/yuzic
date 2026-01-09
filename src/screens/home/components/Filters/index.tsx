@@ -36,7 +36,7 @@ export default function LibraryFilterBar<T extends string>({
   const inactiveTextColor = isDarkMode ? '#aaa' : '#666';
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, isDarkMode && styles.containerDark]}>
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -61,7 +61,12 @@ export default function LibraryFilterBar<T extends string>({
 
 const styles = StyleSheet.create({
   container: {
-    marginVertical: 12,
+    paddingVertical: 12,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#D1D1D6',
+  },
+  containerDark: {
+    borderBottomColor: '#1C1C1E',
   },
   scrollContent: {
     flexDirection: 'row',

@@ -5,7 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 
 import { Artist, Album, AlbumBase } from '@/types';
 
-import AlbumRow from '@/components/AlbumRow';
+import AlbumRow from '@/components/rows/AlbumRow';
 import Header from '../Header';
 
 type Props = {

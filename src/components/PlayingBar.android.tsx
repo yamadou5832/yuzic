@@ -16,7 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import { BlurView } from 'expo-blur';
 import { useProgress } from 'react-native-track-player';
-import ExpandedPlayingScreen from './ExpandedPlayingScreen';
+import PlayingScreen from '@/screens/playing';
 import { usePlaying } from '@/contexts/PlayingContext';
 import { useAI } from '@/contexts/AIContext';
 import { Loader2 } from 'lucide-react-native';
@@ -210,7 +210,7 @@ const PlayingBar: React.FC = () => {
         sheetBackgroundColor="transparent"
         draggable
       >
-        <ExpandedPlayingScreen onClose={() => bottomSheetRef.current?.close()} />
+        <PlayingScreen onClose={() => bottomSheetRef.current?.close()} />
       </BottomSheet>
     </>
   );

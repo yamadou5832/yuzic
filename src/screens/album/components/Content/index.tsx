@@ -4,7 +4,7 @@ import { FlashList } from '@shopify/flash-list';
 import { Album, Song } from '@/types';
 
 import AlbumHeader from '../Header';
-import SongRow from '@/components/SongRow';
+import SongRow from '@/components/rows/SongRow';
 
 type Props = {
   album: Album;

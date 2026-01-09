@@ -4,6 +4,7 @@ import {
   Text,
   StyleSheet,
   Platform,
+  Appearance,
 } from 'react-native';
 import { ContextMenuView } from 'react-native-ios-context-menu';
 import { TouchableOpacity } from 'react-native-gesture-handler';
@@ -23,7 +24,6 @@ interface ItemProps {
   cover: CoverSource;
 
   isGridView: boolean;
-  isDarkMode: boolean;
   gridWidth: number;
 }
 
@@ -33,7 +33,6 @@ const AlbumItem: React.FC<ItemProps> = ({
   subtext,
   cover,
   isGridView,
-  isDarkMode,
   gridWidth,
 }) => {
   const {
@@ -42,6 +41,8 @@ const AlbumItem: React.FC<ItemProps> = ({
     isDownloadingAlbum,
   } = useDownload();
 
+  const colorScheme = Appearance.getColorScheme();
+  const isDarkMode = colorScheme === 'dark';
   const navigation = useNavigation();
   const api = useApi();
   const queryClient = useQueryClient();
@@ -140,16 +141,16 @@ const AlbumItem: React.FC<ItemProps> = ({
       actionTitle: isDownloading
         ? 'Downloading...'
         : isDownloaded
-        ? 'Downloaded'
-        : 'Download',
+          ? 'Downloaded'
+          : 'Download',
       icon: {
         type: 'IMAGE_SYSTEM',
         imageValue: {
           systemName: isDownloading
             ? 'hourglass'
             : isDownloaded
-            ? 'checkmark.circle'
-            : 'arrow.down.circle',
+              ? 'checkmark.circle'
+              : 'arrow.down.circle',
         },
       },
       attributes: isDownloaded || isDownloading ? ['disabled'] : [],

@@ -18,9 +18,9 @@ import { usePlaying } from '@/contexts/PlayingContext';
 import ImageColors from 'react-native-image-colors';
 import { useNavigation } from "@react-navigation/native";
 import { Image } from 'expo-image';
-import SongOptions from './options/SongOptions';
-import Queue from './Queue';
-import BackgroundGradient from './BackgroundGradient';
+import SongOptions from '@/components/options/SongOptions';
+import Queue from './components/Queue';
+import BackgroundGradient from './components/BackgroundGradient';
 import Animated, {
     useSharedValue,
     useAnimatedStyle,
@@ -33,7 +33,7 @@ import { selectThemeColor } from '@/utils/redux/selectors/settingsSelectors';
 import { buildCover } from '@/utils/builders/buildCover';
 import { CoverSource } from '@/types';
 
-interface ExpandedPlayingScreenProps {
+interface PlayingScreenProps {
     onClose: () => void;
 }
 
@@ -43,7 +43,7 @@ const formatTime = (seconds: number): string => {
     return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
 };
 
-const ExpandedPlayingScreen: React.FC<ExpandedPlayingScreenProps> = ({
+const PlayingScreen: React.FC<PlayingScreenProps> = ({
     onClose,
 }) => {
     const colorScheme = useColorScheme();
@@ -443,4 +443,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default ExpandedPlayingScreen;
+export default PlayingScreen;

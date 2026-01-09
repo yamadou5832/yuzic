@@ -4,6 +4,7 @@ import {
     Text,
     StyleSheet,
     Platform,
+    Appearance,
 } from 'react-native';
 import { ContextMenuView } from 'react-native-ios-context-menu';
 import { TouchableOpacity } from 'react-native-gesture-handler';
@@ -22,7 +23,6 @@ interface ItemProps {
     cover: CoverSource;
 
     isGridView: boolean;
-    isDarkMode: boolean;
     gridWidth: number;
 }
 
@@ -32,9 +32,10 @@ const ArtistItem: React.FC<ItemProps> = ({
     subtext,
     cover,
     isGridView,
-    isDarkMode,
     gridWidth,
 }) => {
+    const colorScheme = Appearance.getColorScheme();
+    const isDarkMode = colorScheme === 'dark';
     const navigation = useNavigation();
     const queryClient = useQueryClient();
     const api = useApi();

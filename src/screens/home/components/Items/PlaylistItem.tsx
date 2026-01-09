@@ -4,6 +4,7 @@ import {
     Text,
     StyleSheet,
     Platform,
+    Appearance,
 } from 'react-native';
 import { ContextMenuView } from 'react-native-ios-context-menu';
 import { TouchableOpacity } from 'react-native-gesture-handler';
@@ -26,7 +27,6 @@ interface ItemProps {
     cover: CoverSource;
 
     isGridView: boolean;
-    isDarkMode: boolean;
     gridWidth: number;
 }
 
@@ -36,7 +36,6 @@ const PlaylistItem: React.FC<ItemProps> = ({
     subtext,
     cover,
     isGridView,
-    isDarkMode,
     gridWidth,
 }) => {
     const {
@@ -45,6 +44,8 @@ const PlaylistItem: React.FC<ItemProps> = ({
         isDownloadingPlaylist,
     } = useDownload();
 
+    const colorScheme = Appearance.getColorScheme();
+    const isDarkMode = colorScheme === 'dark';
     const navigation = useNavigation();
     const queryClient = useQueryClient();
     const api = useApi();
@@ -182,16 +183,16 @@ const PlaylistItem: React.FC<ItemProps> = ({
                             actionTitle: isDownloading
                                 ? 'Downloading...'
                                 : isDownloaded
-                                ? 'Downloaded'
-                                : 'Download',
+                                    ? 'Downloaded'
+                                    : 'Download',
                             icon: {
                                 type: 'IMAGE_SYSTEM',
                                 imageValue: {
                                     systemName: isDownloading
                                         ? 'hourglass'
                                         : isDownloaded
-                                        ? 'checkmark.circle'
-                                        : 'arrow.down.circle',
+                                            ? 'checkmark.circle'
+                                            : 'arrow.down.circle',
                                 },
                             },
                             attributes:

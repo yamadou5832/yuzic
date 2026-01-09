@@ -33,7 +33,7 @@ const Header: React.FC<HeaderProps> = ({
     };
 
     return (
-        <View style={styles.container}>
+        <View style={[styles.container, isDarkMode && styles.containerDark]}>
             <TouchableOpacity
                 onPress={handleBack}
                 hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
@@ -71,6 +71,11 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingHorizontal: 16,
         paddingVertical: 8,
+        borderBottomWidth: StyleSheet.hairlineWidth,
+        borderBottomColor: '#D1D1D6',
+    },
+    containerDark: {
+        borderBottomColor: '#1C1C1E',
     },
     backButton: {
         width: 44,
