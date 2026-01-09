@@ -1,64 +1,95 @@
 import React from 'react';
 import { MenuView } from '@react-native-menu/menu';
-import { TouchableOpacity, StyleSheet, useColorScheme, Platform } from 'react-native';
+import {
+  TouchableOpacity,
+  StyleSheet,
+  useColorScheme,
+  Platform,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useLidarr } from '@/contexts/LidarrContext';
+import { useSelector } from 'react-redux';
+import { toast } from '@backpackapp-io/react-native-toast';
+
+import * as lidarr from '@/api/lidarr';
+import {
+  selectLidarrConfig,
+  selectLidarrAuthenticated,
+} from '@/utils/redux/selectors/lidarrSelectors';
 
 interface ExternalAlbumOptionsProps {
-    selectedAlbumTitle: string;
-    selectedAlbumArtist: string;
+  selectedAlbumTitle: string;
+  selectedAlbumArtist: string;
 }
 
-const ExternalAlbumOptions: React.FC<ExternalAlbumOptionsProps> = ({ selectedAlbumTitle, selectedAlbumArtist }) => {
-    const colorScheme = useColorScheme();
-    const { downloadAlbum } = useLidarr();
-    const isDarkMode = colorScheme === 'dark';
+const ExternalAlbumOptions: React.FC<ExternalAlbumOptionsProps> = ({
+  selectedAlbumTitle,
+  selectedAlbumArtist,
+}) => {
+  const isDarkMode = useColorScheme() === 'dark';
 
-    const handleDownloadAlbum = async () => {
-        if (!selectedAlbumTitle || !selectedAlbumArtist) return;
+  const config = useSelector(selectLidarrConfig);
+  const isAuthenticated = useSelector(selectLidarrAuthenticated);
 
-        console.log(`Starting download: Album="${selectedAlbumTitle}", Artist="${selectedAlbumArtist}"`);
+  const handleDownloadAlbum = async () => {
+    if (!selectedAlbumTitle || !selectedAlbumArtist) return;
 
-        const result = await downloadAlbum(selectedAlbumTitle, selectedAlbumArtist);
+    if (!isAuthenticated) {
+      toast.error('Lidarr is not connected.');
+      return;
+    }
 
-        if (result.success) {
-            console.log('Album added successfully to Lidarr!');
-        } else {
-            console.warn('Download failed:', result.message);
+    try {
+      const result = await lidarr.downloadAlbum(
+        config,
+        selectedAlbumTitle,
+        selectedAlbumArtist
+      );
+
+      if (result.success) {
+        toast.success('Album added to Lidarr!');
+      } else {
+        toast.error(result.message ?? 'Download failed.');
+      }
+    } catch (e) {
+      toast.error('Failed to start download.');
+    }
+  };
+
+  return (
+    <MenuView
+      title="External Album"
+      actions={[
+        {
+          id: 'download-album',
+          title: 'Download to Server',
+          image: Platform.select({
+            ios: 'arrow.down.circle',
+            android: 'ic_download',
+          }),
+          imageColor: '#fff',
+        },
+      ]}
+      onPressAction={({ nativeEvent }) => {
+        if (nativeEvent.event === 'download-album') {
+          handleDownloadAlbum();
         }
-    };
-
-    return (
-        <MenuView
-            title="External Album"
-            actions={[
-                {
-                    id: 'download-album',
-                    title: 'Download Album',
-                    image: Platform.select({
-                        ios: 'arrow.down.circle',
-                        android: 'ic_download',
-                    }),
-                    imageColor: '#fff',
-                },
-            ]}
-            onPressAction={({ nativeEvent }) => {
-                if (nativeEvent.event === 'download-album') {
-                    handleDownloadAlbum();
-                }
-            }}
-        >
-            <TouchableOpacity style={styles.moreButton}>
-                <Ionicons name="ellipsis-horizontal" size={24} color={isDarkMode ? '#fff' : '#000'} />
-            </TouchableOpacity>
-        </MenuView>
-    );
+      }}
+    >
+      <TouchableOpacity style={styles.moreButton}>
+        <Ionicons
+          name="ellipsis-horizontal"
+          size={24}
+          color={isDarkMode ? '#fff' : '#000'}
+        />
+      </TouchableOpacity>
+    </MenuView>
+  );
 };
 
 export default ExternalAlbumOptions;
 
 const styles = StyleSheet.create({
-    moreButton: {
-        padding: 8,
-    },
+  moreButton: {
+    padding: 8,
+  },
 });

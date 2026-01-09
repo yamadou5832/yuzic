@@ -96,3 +96,13 @@ export type CoverSource =
   detail: 1200,
   background: 1800,
 };
+
+export interface LidarrConfig {
+  serverUrl: string;
+  apiKey: string;
+}
+
+export interface SlskdConfig {
+  serverUrl: string;
+  apiKey: string;
+}

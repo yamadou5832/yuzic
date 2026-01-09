@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { Ionicons, MaterialIcons } from '@expo/vector-icons';
+import { MaterialIcons } from '@expo/vector-icons';
 import { toast } from '@backpackapp-io/react-native-toast';
 import { useDispatch, useSelector } from 'react-redux';
 
@@ -27,10 +27,10 @@ import {
 } from '@/utils/redux/slices/settingsSlice';
 
 import { testConnection as testOpenAI } from '@/api/openai/testConnection';
+import Header from '../../components/Header';
 
 export default function AIView() {
     const dispatch = useDispatch();
-    const router = useRouter();
 
     const themeColor = useSelector(selectThemeColor);
     const activeProvider = useSelector(selectAiProvider);
@@ -90,20 +90,7 @@ export default function AIView() {
         <SafeAreaView
             style={[styles.container, isDarkMode && styles.containerDark]}
         >
-            {/* Header */}
-            <View style={styles.header}>
-                <TouchableOpacity onPress={() => router.back()}>
-                    <Ionicons
-                        name="chevron-back"
-                        size={24}
-                        color={isDarkMode ? '#fff' : '#000'}
-                    />
-                </TouchableOpacity>
-
-                <Text style={[styles.headerTitle, isDarkMode && styles.headerTitleDark]}>
-                    AI Provider
-                </Text>
-            </View>
+            <Header title="AI Providers" />
 
             <ScrollView contentContainerStyle={styles.content}>
                 {/* Provider Selector */}

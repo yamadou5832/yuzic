@@ -12,8 +12,7 @@ interface LidarrContextType {
     isAuthenticated: boolean;
     setServerUrl: (url: string) => void;
     setApiKey: (key: string) => void;
-    connectToServer: () => Promise<{ success: boolean; message?: string }>;
-    pingServer: () => Promise<boolean>;
+    connectToServer: () => Promise<boolean>;
     testServerUrl: (url: string) => Promise<{ success: boolean; message?: string }>;
     disconnect: () => void;
     lookupArtist: (term: string) => Promise<any[] | null>;
@@ -53,11 +52,11 @@ export const LidarrProvider: React.FC<LidarrProviderProps> = ({ children }) => {
 
     useEffect(() => {
         if (serverUrl && apiKey) {
-            pingServer();
+            connectToServer();
         }
     }, [serverUrl, apiKey]);
 
-    const pingServer = async (): Promise<boolean> => {
+    const connectToServer = async (): Promise<boolean> => {
         if (!serverUrl || !apiKey) return false;
 
         const url = `${serverUrl}/api/v1/system/status?apikey=${apiKey}`;
@@ -72,6 +71,8 @@ export const LidarrProvider: React.FC<LidarrProviderProps> = ({ children }) => {
         }
     };
 
+    const disconnectServer = () => dispatch(disconnect());
+
     const testServerUrl = async (url: string): Promise<{ success: boolean; message?: string }> => {
         try {
             const response = await fetch(url);
@@ -84,15 +85,6 @@ export const LidarrProvider: React.FC<LidarrProviderProps> = ({ children }) => {
             return { success: false, message: 'Failed to connect to the server. Check the URL.' };
         }
     };
-
-    const connectToServer = async (): Promise<{ success: boolean; message?: string }> => {
-        const success = await pingServer();
-        return success
-            ? { success: true }
-            : { success: false, message: 'Failed to connect. Check server details.' };
-    };
-
-    const disconnectServer = () => dispatch(disconnect());
 
     const lookupArtist = async (term: string): Promise<any[] | null> => {
         if (!serverUrl || !apiKey) {
@@ -358,7 +350,6 @@ export const LidarrProvider: React.FC<LidarrProviderProps> = ({ children }) => {
                 setServerUrl: (url) => dispatch(setServerUrl(url)),
                 setApiKey: (key) => dispatch(setApiKey(key)),
                 connectToServer,
-                pingServer,
                 testServerUrl,
                 disconnect: disconnectServer,
                 lookupArtist,

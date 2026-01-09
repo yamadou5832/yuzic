@@ -94,11 +94,23 @@ export default function Settings() {
                     {renderDivider()}
                     <TouchableOpacity
                         style={styles.row}
-                        onPress={() => router.push('/settings/openaiView')}
+                        onPress={() => router.push('/settings/slskdView')}
                     >
                         <View style={styles.leftContent}>
                             <Text style={[styles.rowText, isDarkMode && styles.rowTextDark]}>
-                                AI
+                                Slskd
+                            </Text>
+                        </View>
+                        <MaterialIcons name="chevron-right" size={24} color={isDarkMode ? '#fff' : '#333'} />
+                    </TouchableOpacity>
+                    {renderDivider()}
+                    <TouchableOpacity
+                        style={styles.row}
+                        onPress={() => router.push('/settings/aiView')}
+                    >
+                        <View style={styles.leftContent}>
+                            <Text style={[styles.rowText, isDarkMode && styles.rowTextDark]}>
+                                AI Providers
                             </Text>
                         </View>
                         <MaterialIcons name="chevron-right" size={24} color={isDarkMode ? '#fff' : '#333'} />
@@ -128,6 +140,7 @@ export default function Settings() {
 
                         <MaterialIcons name="chevron-right" size={24} color={isDarkMode ? '#fff' : '#333'} />
                     </TouchableOpacity>
+                    {renderDivider()}
                     <TouchableOpacity
                         style={styles.row}
                         onPress={async () => {

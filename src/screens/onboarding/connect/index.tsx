@@ -126,9 +126,8 @@ export default function Connect() {
                 style={{ flex: 1 }}
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
             >
-                <ScrollView
-                    contentContainerStyle={styles.scrollContent}
-                    keyboardShouldPersistTaps="handled"
+                <View
+                    style={styles.mainContent}
                 >
                     <Text style={styles.title}>Connect to your Server</Text>
 
@@ -190,7 +189,7 @@ export default function Connect() {
                         returnKeyType="next"
                         onSubmitEditing={handleNext}
                     />
-                </ScrollView>
+                </View>
 
                 <View style={styles.buttonContainer}>
                     <TouchableOpacity
@@ -227,10 +226,11 @@ export default function Connect() {
 }
 
 const styles = StyleSheet.create({
-    scrollContent: {
+    mainContent: {
         flexGrow: 1,
         justifyContent: 'center',
         paddingHorizontal: 20,
+        marginTop: 20,
     },
     loadingContainer: {
         flex: 1,

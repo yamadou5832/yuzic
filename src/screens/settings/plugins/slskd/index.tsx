@@ -6,10 +6,8 @@ import {
   TextInput,
   TouchableOpacity,
   ScrollView,
-  FlatList,
   StyleSheet,
   Appearance,
-  Pressable,
   Animated,
   Easing,
 } from 'react-native';
@@ -19,41 +17,35 @@ import { Loader2 } from 'lucide-react-native';
 import { toast } from '@backpackapp-io/react-native-toast';
 
 import Header from '../../components/Header';
-import * as lidarr from '@/api/lidarr';
+import * as slskd from '@/api/slskd';
 
 import {
-  selectLidarrServerUrl,
-  selectLidarrApiKey,
-  selectLidarrAuthenticated,
-  selectLidarrConfig,
-} from '@/utils/redux/selectors/lidarrSelectors';
+  selectSlskdServerUrl,
+  selectSlskdApiKey,
+  selectSlskdAuthenticated,
+  selectSlskdConfig,
+} from '@/utils/redux/selectors/slskdSelectors';
 import {
   setServerUrl,
   setApiKey,
   setAuthenticated,
   disconnect,
-} from '@/utils/redux/slices/lidarrSlice';
+} from '@/utils/redux/slices/slskdSlice';
 import { selectThemeColor } from '@/utils/redux/selectors/settingsSelectors';
 
-const LidarrView: React.FC = () => {
+const SlskdView: React.FC = () => {
   const dispatch = useDispatch();
   const themeColor = useSelector(selectThemeColor);
 
-  const serverUrl = useSelector(selectLidarrServerUrl);
-  const apiKey = useSelector(selectLidarrApiKey);
-  const isAuthenticated = useSelector(selectLidarrAuthenticated);
-  const config = useSelector(selectLidarrConfig);
+  const serverUrl = useSelector(selectSlskdServerUrl);
+  const apiKey = useSelector(selectSlskdApiKey);
+  const isAuthenticated = useSelector(selectSlskdAuthenticated);
+  const config = useSelector(selectSlskdConfig);
 
   const isDarkMode = Appearance.getColorScheme() === 'dark';
 
   const [isLoading, setIsLoading] = useState(false);
-  const [queue, setQueue] = useState<any[]>([]);
-  const [loadingQueue, setLoadingQueue] = useState(false);
-  const [expandedItemId, setExpandedItemId] = useState<number | null>(null);
 
-  const previousQueueRef = useRef<any[]>([]);
-  const pollingRef = useRef<NodeJS.Timeout | null>(null);
-  
   const spinAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -72,65 +64,16 @@ const LidarrView: React.FC = () => {
     outputRange: ['0deg', '360deg'],
   });
 
-  const pollQueue = async () => {
-    if (!isAuthenticated) return;
-
-    try {
-      const { currentQueue, finishedItems } =
-        await lidarr.fetchQueueWithDiff(
-          config,
-          previousQueueRef.current
-        );
-
-      previousQueueRef.current = currentQueue;
-      setQueue(currentQueue);
-
-      if (finishedItems.length > 0) {
-        toast('Download complete!');
-      }
-    } catch {
-      console.warn('Queue polling failed');
-    }
-  };
-
-  useEffect(() => {
-    // HARD STOP when not fully connected
-    if (!config.serverUrl || !config.apiKey || !isAuthenticated) {
-      setQueue([]);
-      previousQueueRef.current = [];
-      setLoadingQueue(false);
-
-      if (pollingRef.current) {
-        clearInterval(pollingRef.current);
-        pollingRef.current = null;
-      }
-      return;
-    }
-
-    setLoadingQueue(true);
-    pollQueue().finally(() => setLoadingQueue(false));
-
-    pollingRef.current = setInterval(pollQueue, 10000);
-
-    return () => {
-      if (pollingRef.current) {
-        clearInterval(pollingRef.current);
-        pollingRef.current = null;
-      }
-    };
-  }, [config.serverUrl, config.apiKey, isAuthenticated]);
-
   const handlePing = async () => {
     setIsLoading(true);
     try {
-      await lidarr.testConnection(config);
+      await slskd.testConnection(config);
+      console.log("hello")
       dispatch(setAuthenticated(true));
-      toast.success('Lidarr connection successful.');
+      toast.success('slskd connection successful.');
     } catch {
       dispatch(setAuthenticated(false));
-      setQueue([]);
-      previousQueueRef.current = [];
-      toast.error('Failed to connect.');
+      toast.error('Failed to connect to slskd.');
     } finally {
       setIsLoading(false);
     }
@@ -138,79 +81,12 @@ const LidarrView: React.FC = () => {
 
   const handleDisconnect = () => {
     dispatch(disconnect());
-    setQueue([]);
-    previousQueueRef.current = [];
-    toast('Disconnected from Lidarr.');
-  };
-
-  const toggleExpand = (id: number) => {
-    setExpandedItemId(expandedItemId === id ? null : id);
-  };
-
-  const renderDownloadItem = ({ item }) => {
-    const totalSize = item.size || 1;
-    const sizeLeft = item.sizeleft || 0;
-    const progress = Math.min(1, (totalSize - sizeLeft) / totalSize);
-    const percent = Math.round(progress * 100);
-
-    const hasWarnings = item.statusMessages?.length > 0;
-    const isExpanded = expandedItemId === item.id;
-    const downloadState =
-      item.trackedDownloadState || item.status || 'unknown';
-
-    return (
-      <View style={styles.itemContainer}>
-        <Pressable onPress={() => hasWarnings && toggleExpand(item.id)}>
-          <Text style={[styles.albumTitle, isDarkMode && styles.albumTitleDark]}>
-            {item.album?.title || item.title || 'Unknown Album'}
-          </Text>
-
-          <Text style={[styles.artistName, isDarkMode && styles.artistNameDark]}>
-            {item.artist?.artistName || item.artistName || 'Unknown Artist'}
-          </Text>
-
-          <Text style={[styles.status, isDarkMode && styles.statusDark]}>
-            {downloadState} ({percent}%)
-          </Text>
-
-          <View style={[
-            styles.progressBarBackground,
-            isDarkMode && styles.progressBarBackgroundDark,
-          ]}>
-            <View
-              style={[
-                styles.progressBarFill,
-                { backgroundColor: themeColor, width: `${percent}%` },
-              ]}
-            />
-          </View>
-
-          {hasWarnings && isExpanded && (
-            <View style={[
-              styles.warningContainer,
-              isDarkMode && styles.warningContainerDark,
-            ]}>
-              {item.statusMessages.map((msg, idx) => (
-                <Text
-                  key={idx}
-                  style={[
-                    styles.warningMessage,
-                    isDarkMode && styles.warningMessageDark,
-                  ]}
-                >
-                  • {msg.title}
-                </Text>
-              ))}
-            </View>
-          )}
-        </Pressable>
-      </View>
-    );
+    toast('Disconnected from slskd.');
   };
 
   return (
     <SafeAreaView style={[styles.container, isDarkMode && styles.containerDark]}>
-      <Header title="Lidarr" />
+      <Header title="Slskd" />
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={[styles.section, isDarkMode && styles.sectionDark]}>
@@ -220,6 +96,8 @@ const LidarrView: React.FC = () => {
           <TextInput
             value={serverUrl}
             onChangeText={(v) => dispatch(setServerUrl(v))}
+            placeholder="http://localhost:5030"
+            placeholderTextColor="#888"
             style={[styles.input, isDarkMode && styles.inputDark]}
           />
 
@@ -229,6 +107,8 @@ const LidarrView: React.FC = () => {
           <TextInput
             value={apiKey}
             onChangeText={(v) => dispatch(setApiKey(v))}
+            placeholder="Enter API Key"
+            placeholderTextColor="#888"
             secureTextEntry
             style={[styles.input, isDarkMode && styles.inputDark]}
           />
@@ -252,34 +132,16 @@ const LidarrView: React.FC = () => {
           </TouchableOpacity>
         </View>
 
-        <View style={[styles.section, isDarkMode && styles.sectionDark]}>
-          <Text style={[styles.label, isDarkMode && styles.labelDark]}>
-            Queue
-          </Text>
-
-          {loadingQueue ? (
-            <Animated.View style={{ alignItems: 'center', marginTop: 20, transform: [{ rotate: spin }] }}>
-              <Loader2 size={32} color={isDarkMode ? '#fff' : '#000'} />
-            </Animated.View>
-          ) : queue.length === 0 ? (
-            <Text style={[styles.emptyText, isDarkMode && styles.emptyTextDark]}>
-              Nothing downloading yet.
-            </Text>
-          ) : (
-            <FlatList
-              data={queue}
-              keyExtractor={(i) => i.id.toString()}
-              renderItem={renderDownloadItem}
-              scrollEnabled={false}
-            />
-          )}
-        </View>
-
         <TouchableOpacity
           style={[styles.disconnectButton, isDarkMode && styles.disconnectButtonDark]}
           onPress={handleDisconnect}
         >
-          <MaterialIcons name="logout" size={20} color="#fff" />
+          <MaterialIcons
+            name="logout"
+            size={20}
+            color="#fff"
+            style={{ marginRight: 8 }}
+          />
           <Text style={styles.disconnectButtonText}>Disconnect</Text>
         </TouchableOpacity>
       </ScrollView>
@@ -287,18 +149,18 @@ const LidarrView: React.FC = () => {
   );
 };
 
-export default LidarrView;
+export default SlskdView;
 
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#fff' },
     containerDark: { backgroundColor: '#000' },
-    header: {
+        header: {
         flexDirection: 'row',
         alignItems: 'center',
         padding: 16,
         paddingTop: 6,
     },
-    headerDark: {
+    headerDark: { 
         // No background, keep it transparent like OpenAI
     },
     headerTitle: {

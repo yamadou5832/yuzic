@@ -8,7 +8,6 @@ import {
     ActivityIndicator,
     KeyboardAvoidingView,
     Platform,
-    ScrollView,
 } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -92,7 +91,7 @@ export default function Credentials() {
                 );
             }
 
-            track("connected new server", { type })
+            track("connected new server", { type });
             dispatch(setActiveServer(id));
             router.replace('/(home)');
         } catch (e) {
@@ -114,10 +113,8 @@ export default function Credentials() {
                 style={{ flex: 1 }}
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
             >
-                <ScrollView
-                    contentContainerStyle={styles.scrollContent}
-                    keyboardShouldPersistTaps="handled"
-                >
+                {/* Replaced ScrollView with View */}
+                <View style={styles.mainContent}>
                     <TouchableOpacity style={styles.backButton} onPress={handleBack}>
                         <AntDesign name="arrowleft" size={24} color="#fff" />
                     </TouchableOpacity>
@@ -160,7 +157,7 @@ export default function Credentials() {
                             />
                         </View>
                     </View>
-                </ScrollView>
+                </View>
 
                 <View style={styles.buttonContainer}>
                     <TouchableOpacity
@@ -185,7 +182,7 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: '#000',
     },
-    scrollContent: {
+    mainContent: {
         flexGrow: 1,
         paddingHorizontal: 20,
     },
@@ -223,7 +220,8 @@ const styles = StyleSheet.create({
     },
     content: {
         flex: 1,
-        justifyContent: 'center',
+        justifyContent: 'flex-start',
+        marginTop: 12,
     },
     title: {
         fontSize: 28,
