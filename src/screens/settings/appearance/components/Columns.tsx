@@ -30,8 +30,8 @@ export const Columns: React.FC = () => {
                   backgroundColor: active
                     ? themeColor
                     : isDarkMode
-                    ? '#222'
-                    : '#eee',
+                      ? '#222'
+                      : '#eee',
                   borderColor: isDarkMode ? '#444' : '#ccc',
                 },
               ]}
@@ -53,12 +53,15 @@ export const Columns: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
-  section: { marginBottom: 24 },
-  sectionDark: {
-    backgroundColor: '#111',
+  section: {
+    backgroundColor: '#fff',
     paddingVertical: 20,
     paddingHorizontal: 16,
     borderRadius: 10,
+    marginBottom: 24
+  },
+  sectionDark: {
+    backgroundColor: '#111',
   },
   infoText: {
     fontSize: 13,

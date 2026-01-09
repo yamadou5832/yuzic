@@ -36,7 +36,7 @@ const AppearanceSettings: React.FC = () => {
 export default AppearanceSettings;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
+  container: { flex: 1, backgroundColor: '#F2F2F7' },
   containerDark: { backgroundColor: '#000' },
   scrollContent: {
     padding: 16,

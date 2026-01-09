@@ -7,7 +7,7 @@ import {
     TouchableOpacity,
     Platform,
     Linking,
-    Alert
+    Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Appearance } from 'react-native';
@@ -26,7 +26,7 @@ export default function Settings() {
     const colorScheme = Appearance.getColorScheme();
     const isDarkMode = colorScheme === 'dark';
 
-    if (!activeServer){
+    if (!activeServer) {
         return null;
     }
 
@@ -38,9 +38,14 @@ export default function Settings() {
             edges={['top']}
             style={[styles.container, isDarkMode && styles.containerDark]}
         >
-            <View style={styles.headerContainer}>
-                <TouchableOpacity onPress={() => router.back()} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-                    <Ionicons name="chevron-back" size={24} color={isDarkMode ? '#fff' : '#000'} />
+            {/* HEADER */}
+            <View style={[styles.headerContainer, isDarkMode && styles.headerContainerDark]}>
+                <TouchableOpacity onPress={() => router.back()}>
+                    <Ionicons
+                        name="chevron-back"
+                        size={24}
+                        color={isDarkMode ? '#fff' : '#1C1C1E'}
+                    />
                 </TouchableOpacity>
 
                 <Text style={[styles.headerTitle, isDarkMode && styles.headerTitleDark]}>
@@ -51,6 +56,7 @@ export default function Settings() {
             </View>
 
             <ScrollView contentContainerStyle={styles.scrollContent}>
+                {/* PROFILE */}
                 <View style={[styles.profileCard, isDarkMode && styles.profileCardDark]}>
                     <View style={styles.profileRow}>
                         <View style={[styles.avatar, { backgroundColor: themeColor }]}>
@@ -60,14 +66,23 @@ export default function Settings() {
                             <Text style={[styles.profileName, isDarkMode && styles.profileNameDark]}>
                                 {username || 'Unknown User'}
                             </Text>
-                            <Text style={[styles.profileSubtext, isDarkMode && styles.profileSubtextDark]}>
-                                Connected to {serverType} at {serverUrl?.replace(/^https?:\/\//, '') || 'no server'}
+                            <Text
+                                style={[
+                                    styles.profileSubtext,
+                                    isDarkMode && styles.profileSubtextDark,
+                                ]}
+                            >
+                                Connected to {serverType} at{' '}
+                                {serverUrl?.replace(/^https?:\/\//, '') || 'no server'}
                             </Text>
                         </View>
                     </View>
                 </View>
 
-                <Text style={[styles.sectionTitle, isDarkMode && styles.sectionTitleDark]}>General</Text>
+                {/* GENERAL */}
+                <Text style={[styles.sectionTitle, isDarkMode && styles.sectionTitleDark]}>
+                    General
+                </Text>
                 <View style={[styles.section, isDarkMode && styles.sectionDark]}>
                     {renderRow('Server', 'drive', '/settings/serverView')}
                     {renderDivider()}
@@ -78,82 +93,52 @@ export default function Settings() {
                     {renderRow('Appearance', 'brush', '/settings/appearanceView')}
                 </View>
 
-                <Text style={[styles.sectionTitle, isDarkMode && styles.sectionTitleDark]}>Plugins</Text>
+                {/* PLUGINS */}
+                <Text style={[styles.sectionTitle, isDarkMode && styles.sectionTitleDark]}>
+                    Plugins
+                </Text>
                 <View style={[styles.section, isDarkMode && styles.sectionDark]}>
                     <TouchableOpacity
                         style={styles.row}
                         onPress={() => router.push('/settings/lidarrView')}
                     >
-                        <View style={styles.leftContent}>
-                            <Text style={[styles.rowText, isDarkMode && styles.rowTextDark]}>
-                                Lidarr
-                            </Text>
-                        </View>
-                        <MaterialIcons name="chevron-right" size={24} color={isDarkMode ? '#fff' : '#333'} />
+                        <Text style={[styles.rowText, isDarkMode && styles.rowTextDark]}>
+                            Lidarr
+                        </Text>
+                        <MaterialIcons
+                            name="chevron-right"
+                            size={24}
+                            color={isDarkMode ? '#fff' : '#6E6E73'}
+                        />
                     </TouchableOpacity>
                     {renderDivider()}
                     <TouchableOpacity
                         style={styles.row}
                         onPress={() => router.push('/settings/aiView')}
                     >
-                        <View style={styles.leftContent}>
-                            <Text style={[styles.rowText, isDarkMode && styles.rowTextDark]}>
-                                AI Providers
-                            </Text>
-                        </View>
-                        <MaterialIcons name="chevron-right" size={24} color={isDarkMode ? '#fff' : '#333'} />
+                        <Text style={[styles.rowText, isDarkMode && styles.rowTextDark]}>
+                            AI Providers
+                        </Text>
+                        <MaterialIcons
+                            name="chevron-right"
+                            size={24}
+                            color={isDarkMode ? '#fff' : '#6E6E73'}
+                        />
                     </TouchableOpacity>
                 </View>
 
-                <Text style={[styles.sectionTitle, isDarkMode && styles.sectionTitleDark]}>About</Text>
+                {/* ABOUT */}
+                <Text style={[styles.sectionTitle, isDarkMode && styles.sectionTitleDark]}>
+                    About
+                </Text>
                 <View style={[styles.section, isDarkMode && styles.sectionDark]}>
-                    <TouchableOpacity
-                        style={styles.row}
-                        onPress={async () => {
-                            const url = "https://eftpmc.github.io/yuzic-web/privacypolicy/"
-                            const supported = await Linking.canOpenURL(url);
-
-                            if (supported) {
-                                await Linking.openURL(url);
-                            } else {
-                                Alert.alert(`Don't know how to open this URL: ${url}`);
-                            }
-                        }}
-                    >
-                        <View style={styles.leftContent}>
-                            <Text style={[styles.rowText, isDarkMode && styles.rowTextDark]}>
-                                Privacy Policy
-                            </Text>
-                        </View>
-
-                        <MaterialIcons name="chevron-right" size={24} color={isDarkMode ? '#fff' : '#333'} />
-                    </TouchableOpacity>
+                    {renderLinkRow('Privacy Policy', 'https://eftpmc.github.io/yuzic-web/privacypolicy/')}
                     {renderDivider()}
-                    <TouchableOpacity
-                        style={styles.row}
-                        onPress={async () => {
-                            const url = "https://eftpmc.github.io/yuzic-web/tos/"
-                            const supported = await Linking.canOpenURL(url);
-
-                            if (supported) {
-                                await Linking.openURL(url);
-                            } else {
-                                Alert.alert(`Don't know how to open this URL: ${url}`);
-                            }
-                        }}
-                    >
-                        <View style={styles.leftContent}>
-                            <Text style={[styles.rowText, isDarkMode && styles.rowTextDark]}>
-                                Terms of Use
-                            </Text>
-                        </View>
-
-                        <MaterialIcons name="chevron-right" size={24} color={isDarkMode ? '#fff' : '#333'} />
-                    </TouchableOpacity>
+                    {renderLinkRow('Terms of Use', 'https://eftpmc.github.io/yuzic-web/tos/')}
                 </View>
 
-                <View style={{marginTop: 32}}>
-                    <AnalyticsToggle/>
+                <View style={{ marginTop: 32 }}>
+                    <AnalyticsToggle />
                 </View>
             </ScrollView>
         </SafeAreaView>
@@ -161,88 +146,115 @@ export default function Settings() {
 
     function renderRow(label: string, icon: any, route: string) {
         return (
-            <TouchableOpacity
-                style={styles.row}
-                onPress={() => router.push(route)}
-            >
+            <TouchableOpacity style={styles.row} onPress={() => router.push(route)}>
                 <View style={styles.leftContent}>
                     <Entypo
                         name={icon}
                         size={20}
-                        color={isDarkMode ? '#fff' : '#333'}
+                        color={isDarkMode ? '#fff' : '#6E6E73'}
                         style={styles.icon}
                     />
-                    <Text style={[styles.rowText, isDarkMode && styles.rowTextDark]}>{label}</Text>
+                    <Text style={[styles.rowText, isDarkMode && styles.rowTextDark]}>
+                        {label}
+                    </Text>
                 </View>
-                <MaterialIcons name="chevron-right" size={24} color={isDarkMode ? '#fff' : '#333'} />
+                <MaterialIcons
+                    name="chevron-right"
+                    size={24}
+                    color={isDarkMode ? '#fff' : '#6E6E73'}
+                />
+            </TouchableOpacity>
+        );
+    }
+
+    function renderLinkRow(label: string, url: string) {
+        return (
+            <TouchableOpacity
+                style={styles.row}
+                onPress={async () => {
+                    const supported = await Linking.canOpenURL(url);
+                    supported ? Linking.openURL(url) : Alert.alert(`Can't open ${url}`);
+                }}
+            >
+                <Text style={[styles.rowText, isDarkMode && styles.rowTextDark]}>
+                    {label}
+                </Text>
+                <MaterialIcons
+                    name="chevron-right"
+                    size={24}
+                    color={isDarkMode ? '#fff' : '#6E6E73'}
+                />
             </TouchableOpacity>
         );
     }
 
     function renderDivider() {
-        return <View style={styles.divider} />;
+        return <View style={[styles.divider, isDarkMode && styles.dividerDark]} />;
     }
 }
+
+/* STYLES ---------------------------------------------------------------- */
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#fff'
+        backgroundColor: '#F2F2F7',
     },
     containerDark: {
         backgroundColor: '#000',
     },
-    scrollContent: {
-        paddingHorizontal: 16,
-        paddingVertical: 24,
-        paddingBottom: 150
-    },
+
     headerContainer: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
         paddingHorizontal: 16,
-        paddingTop: Platform.OS === 'ios' ? 12 : 8,
-        paddingBottom: 12,
-        backgroundColor: 'transparent',
-        zIndex: 10,
+        paddingVertical: 12,
+        backgroundColor: '#F2F2F7',
+        borderBottomWidth: StyleSheet.hairlineWidth,
+        borderBottomColor: '#D1D1D6',
+    },
+    headerContainerDark: {
+        backgroundColor: '#000',
+        borderBottomColor: '#1C1C1E',
     },
     headerTitle: {
         fontSize: 18,
         fontWeight: '700',
-        color: '#000',
+        color: '#1C1C1E',
     },
     headerTitleDark: {
         color: '#fff',
     },
+
+    scrollContent: {
+        paddingHorizontal: 16,
+        paddingVertical: 24,
+        paddingBottom: 150,
+    },
+
     sectionTitle: {
         fontSize: 14,
         fontWeight: '600',
         marginBottom: 6,
         marginTop: 16,
         marginLeft: 4,
-        color: '#333',
+        color: '#6E6E73',
     },
     sectionTitleDark: {
         color: '#aaa',
     },
+
     section: {
-        marginVertical: 8,
-        backgroundColor: '#f2f2f2',
-        borderRadius: 10,
+        backgroundColor: '#fff',
+        borderRadius: 12,
         overflow: 'hidden',
     },
     sectionDark: {
         backgroundColor: '#1C1C1E',
     },
+
     row: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingHorizontal: 16,
-        paddingVertical: 14,
-    },
-    toggleRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
@@ -258,26 +270,27 @@ const styles = StyleSheet.create({
     },
     rowText: {
         fontSize: 16,
-        color: '#333',
+        color: '#1C1C1E',
     },
     rowTextDark: {
         color: '#fff',
     },
+
     divider: {
-        height: 1,
+        height: StyleSheet.hairlineWidth,
         width: '92%',
-        backgroundColor: '#222',
+        backgroundColor: '#D1D1D6',
         alignSelf: 'center',
     },
+    dividerDark: {
+        backgroundColor: '#2C2C2E',
+    },
+
     profileCard: {
-        marginBottom: 10,
         backgroundColor: '#fff',
         padding: 16,
         borderRadius: 12,
-        shadowColor: '#000',
-        shadowOpacity: 0.1,
-        shadowRadius: 6,
-        elevation: 3,
+        marginBottom: 10,
     },
     profileCardDark: {
         backgroundColor: '#1C1C1E',
@@ -285,13 +298,11 @@ const styles = StyleSheet.create({
     profileRow: {
         flexDirection: 'row',
         alignItems: 'center',
-        height: 52,
     },
     avatar: {
         width: 48,
         height: 48,
         borderRadius: 24,
-        backgroundColor: '#ccc',
         justifyContent: 'center',
         alignItems: 'center',
         marginRight: 12,
@@ -304,16 +315,16 @@ const styles = StyleSheet.create({
     profileName: {
         fontSize: 16,
         fontWeight: '600',
-        color: '#000',
+        color: '#1C1C1E',
     },
     profileNameDark: {
         color: '#fff',
     },
     profileSubtext: {
         fontSize: 12,
-        color: '#444',
+        color: '#6E6E73',
     },
     profileSubtextDark: {
         color: '#aaa',
-    }
+    },
 });

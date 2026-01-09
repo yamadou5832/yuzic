@@ -190,12 +190,11 @@ export default function AIView() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#fff',
+        backgroundColor: '#F2F2F7',
     },
     containerDark: {
         backgroundColor: '#000',
     },
-
     header: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -217,13 +216,14 @@ const styles = StyleSheet.create({
     },
 
     section: {
+        backgroundColor: '#fff',
+        paddingVertical: 16,
+        paddingHorizontal: 16,
+        borderRadius: 10,
         marginBottom: 24,
     },
     sectionDark: {
         backgroundColor: '#111',
-        paddingVertical: 16,
-        paddingHorizontal: 16,
-        borderRadius: 10,
     },
 
     infoText: {

@@ -37,7 +37,7 @@ export default PlayerSettings;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#F2F2F7',
   },
   containerDark: {
     backgroundColor: '#000',

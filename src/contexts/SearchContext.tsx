@@ -41,6 +41,8 @@ export const SearchProvider: React.FC<SearchProviderProps> = ({ children }) => {
     const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(false);
 
+    const searchRequestIdRef = React.useRef(0);
+
     const searchLibrary = async (query: string): Promise<SearchResult[]> => {
         const lowerQuery = query.toLowerCase();
 
@@ -101,7 +103,12 @@ export const SearchProvider: React.FC<SearchProviderProps> = ({ children }) => {
         }
     };
 
+    const resultKey = (r: SearchResult) =>
+        `${r.type}:${r.id}`;
+
     const handleSearch = async (query: string) => {
+        const requestId = ++searchRequestIdRef.current;
+
         if (!query.trim()) {
             clearSearch();
             return;
@@ -121,7 +128,7 @@ export const SearchProvider: React.FC<SearchProviderProps> = ({ children }) => {
             const uniqueMap = new Map<string, SearchResult>();
 
             for (const result of combined) {
-                const key = (result.title + result.subtext).toLowerCase();
+                const key = resultKey(result);
                 const existing = uniqueMap.get(key);
 
                 if (!existing) {
@@ -170,9 +177,14 @@ export const SearchProvider: React.FC<SearchProviderProps> = ({ children }) => {
             });
 
             const LIMITED_RESULTS = 25;
+
+            if (requestId !== searchRequestIdRef.current) return;
+
             setSearchResults(uniqueResults.slice(0, LIMITED_RESULTS));
         } finally {
-            setIsLoading(false);
+            if (requestId === searchRequestIdRef.current) {
+                setIsLoading(false);
+            }
         }
     };
 

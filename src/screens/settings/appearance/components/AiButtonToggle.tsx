@@ -32,8 +32,8 @@ export const AiButtonToggle: React.FC = () => {
               backgroundColor: aiButtonEnabled
                 ? themeColor
                 : isDarkMode
-                ? '#333'
-                : '#ddd',
+                  ? '#333'
+                  : '#ddd',
             },
           ]}
         >
@@ -56,13 +56,13 @@ export const AiButtonToggle: React.FC = () => {
 
 const styles = StyleSheet.create({
   section: {
-    marginBottom: 24,
-  },
-  sectionDark: {
-    backgroundColor: '#111',
+    backgroundColor: '#fff',
     paddingVertical: 16,
     paddingHorizontal: 16,
     borderRadius: 10,
+  },
+  sectionDark: {
+    backgroundColor: '#111',
   },
   row: {
     flexDirection: 'row',

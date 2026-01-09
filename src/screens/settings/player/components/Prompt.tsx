@@ -163,7 +163,8 @@ const Prompt: React.FC = () => {
                     playSongInCollection(entry.queue[0], {
                       id: 'ai-generated',
                       title: `AI Queue • ${entry.prompt}`,
-                      type: 'playlist',
+                      cover: { kind: "none" },
+                      subtext: "Playlist",
                       songs: entry.queue,
                     });
                     setInput(entry.prompt);
@@ -213,7 +214,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
     padding: 16,
     borderRadius: 12,
-    backgroundColor: '#f9f9f9',
+    backgroundColor: '#fff',
   },
   sectionDark: {
     backgroundColor: '#111',

@@ -108,15 +108,16 @@ const ServerSettings: React.FC = () => {
 export default ServerSettings;
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#fff' },
+    container: { flex: 1, backgroundColor: '#F2F2F7' },
     containerDark: { backgroundColor: '#000' },
     scrollContent: { padding: 16, paddingBottom: 100 },
-    section: { marginBottom: 24 },
-    sectionDark: {
-        backgroundColor: '#111',
+    section: { backgroundColor: '#fff',
         paddingVertical: 20,
         paddingHorizontal: 16,
-        borderRadius: 10,
+        borderRadius: 10, 
+    },
+    sectionDark: {
+        backgroundColor: '#111',
     },
     label: { fontSize: 14, fontWeight: '600', marginBottom: 8, color: '#000' },
     labelDark: { color: '#fff' },
