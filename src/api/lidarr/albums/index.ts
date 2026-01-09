@@ -62,6 +62,8 @@ export async function downloadAlbum(
       a => normalize(a.artistName) === normalizedArtist
     );
 
+    console.log(matchedArtist)
+
     if (matchedArtist) {
       const albums = await getAlbumsByArtist(config, matchedArtist.id);
       const album = albums.find(
@@ -93,11 +95,14 @@ export async function downloadAlbum(
 
       const artistId = ensured.artistId;
 
-      await delay(3000);
-
-      const albums = await getAlbumsByArtist(config, artistId);
-      const album = albums.find(
-        a => normalize(a.title) === normalizedAlbum
+      const album = await waitForAlbum(
+        config,
+        artistId,
+        normalizedAlbum,
+        {
+          timeoutMs: 90_000,
+          pollIntervalMs: 2_500,
+        }
       );
 
       if (album) {
@@ -105,7 +110,6 @@ export async function downloadAlbum(
         return { success: true };
       }
 
-      // Optional cleanup (matches your original behavior)
       if (ensured.created) {
         await deleteArtist(config, artistId);
       }
@@ -121,6 +125,32 @@ export async function downloadAlbum(
       message: e?.message ?? 'Album download failed',
     };
   }
+}
+
+async function waitForAlbum(
+  config: LidarrConfig,
+  artistId: number,
+  normalizedAlbum: string,
+  {
+    timeoutMs = 60_000,
+    pollIntervalMs = 2_000,
+  } = {}
+): Promise<LidarrAlbum | null> {
+  const started = Date.now();
+
+  while (Date.now() - started < timeoutMs) {
+    const albums = await getAlbumsByArtist(config, artistId);
+
+    const album = albums.find(
+      a => normalize(a.title) === normalizedAlbum
+    );
+
+    if (album) return album;
+
+    await delay(pollIntervalMs);
+  }
+
+  return null;
 }
 
 function delay(ms: number) {

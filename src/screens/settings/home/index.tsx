@@ -94,18 +94,6 @@ export default function Settings() {
                     {renderDivider()}
                     <TouchableOpacity
                         style={styles.row}
-                        onPress={() => router.push('/settings/slskdView')}
-                    >
-                        <View style={styles.leftContent}>
-                            <Text style={[styles.rowText, isDarkMode && styles.rowTextDark]}>
-                                Slskd
-                            </Text>
-                        </View>
-                        <MaterialIcons name="chevron-right" size={24} color={isDarkMode ? '#fff' : '#333'} />
-                    </TouchableOpacity>
-                    {renderDivider()}
-                    <TouchableOpacity
-                        style={styles.row}
                         onPress={() => router.push('/settings/aiView')}
                     >
                         <View style={styles.leftContent}>

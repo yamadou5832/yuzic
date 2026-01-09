@@ -139,7 +139,7 @@ const Search = () => {
                 {isLoading
                     ? [...Array(8)].map((_, i) => <SkeletonItem key={i} />)
                     : searchResults.map((result) => (
-                        <View key={result.id} style={styles.resultItem}>
+                        <View key={`${result.type}:${result.id}`} style={styles.resultItem}>
                             <TouchableOpacity
                                 style={styles.resultContent}
                                 onPress={() => {

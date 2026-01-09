@@ -3,7 +3,7 @@ import { LidarrConfig } from '@/types';
 
 export type LidarrArtistLookupResult = {
   artistName: string;
-  foreignArtistId: string; // MusicBrainz artist id typically
+  foreignArtistId: string;
   artistType?: string;
   disambiguation?: string;
   overview?: string;
@@ -28,11 +28,6 @@ export type EnsureArtistOptions = {
   rootFolderIndex?: number;
 };
 
-/**
- * Lidarr expects “term” like:
- * - "Artist Name"
- * - "mbid:<musicbrainz-id>"
- */
 export async function lookupArtist(
   config: LidarrConfig,
   term: string
@@ -41,10 +36,8 @@ export async function lookupArtist(
 
   if (!term?.trim()) return [];
 
-  // Lidarr uses query param "term"
-  // Since our client already appends ?apikey=..., we add &term=
   return request<LidarrArtistLookupResult[]>(
-    `/artist/lookup&term=${encodeURIComponent(term)}`
+    `/artist/lookup?term=${encodeURIComponent(term)}`
   );
 }
 

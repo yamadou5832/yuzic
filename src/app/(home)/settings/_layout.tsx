@@ -10,7 +10,6 @@ export default function SettingsLayout() {
             <Stack.Screen name='serverView' options={{ headerShown: false, title: "Server" }} />
             <Stack.Screen name='lidarrView' options={{ headerShown: false, title: "Lidarr" }} />
             <Stack.Screen name='aiView' options={{ headerShown: false, title: "OpenAI" }} />
-            <Stack.Screen name='slskdView' options={{ headerShown: false, title: "Slskd" }} />
         </Stack>
     );
 }
