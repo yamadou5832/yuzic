@@ -22,5 +22,19 @@ Yuzic provides a Navidrome demo but requires a self-hosted Jellyfin or Subsonic 
 
 ## Screenshots
 
+*Screenshots taken on iPhone 13*
+
+---
+
+### Home
+
+<p align="center">
+  <img src="screenshots/home.png" alt="Jellify Home" width="275" height="600">
+  <img src="screenshots/home-list.png" alt="Jellify Home" width="275" height="600">
+  <img src="screenshots/home-menu.png" alt="Jellify Home" width="275" height="600">
+</p>
+
+---
+
 ## Contribution
 Contributions are welcome! Please open an issue or submit a pull request.
