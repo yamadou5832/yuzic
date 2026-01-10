@@ -31,7 +31,30 @@ Yuzic provides a Navidrome demo but requires a self-hosted Jellyfin or Subsonic 
 <p align="center">
   <img src="screenshots/home.png" alt="Jellify Home" width="275" height="600">
   <img src="screenshots/home-list.png" alt="Jellify Home" width="275" height="600">
-  <img src="screenshots/home-menu.png" alt="Jellify Home" width="275" height="600">
+</p>
+
+---
+
+### Album
+
+<p align="center">
+  <img src="screenshots/album.png" alt="Jellify Home" width="275" height="600">
+</p>
+
+---
+
+### Artist
+
+<p align="center">
+  <img src="screenshots/artist.png" alt="Jellify Home" width="275" height="600">
+</p>
+
+---
+
+### Playlist
+
+<p align="center">
+  <img src="screenshots/playlist.png" alt="Jellify Home" width="275" height="600">
 </p>
 
 ---
