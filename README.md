@@ -64,8 +64,6 @@ Yuzic provides a Navidrome demo but requires a self-hosted Jellyfin or Subsonic 
 
 Screenshots taken on iPhone 13
 
----
-
 ### Home
 
 <p align="center">
