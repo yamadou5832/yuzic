@@ -2,10 +2,16 @@
 
   [![Latest Version](https://img.shields.io/github/package-json/version/eftpmc/yuzic?label=Latest%20Version&color=orange)](https://github.com/eftpmc/yuzic/releases) [![iTunes App Store](https://img.shields.io/itunes/v/6740042497?logo=app-store&logoColor=white&label=Apple%20App%20Store&labelColor=%60&color=blue)](https://apps.apple.com/us/app/yuzic-navidrome-jellyfin/id6740042497) [![Google Play](https://img.shields.io/badge/Google%20Play-Download-red?logo=googleplay&logoColor=white)](https://play.google.com/store/apps/details?id=com.arinora.rawarr)
 
+<p align="center">
+  <img src="screenshots/feature.png" alt="Feature image" width="400" height="700">
+</p>
+
 ## Contents
 
 - [Info](#info)
+- [Download](#download)
 - [Features](#features)
+- [Future](#future)
 - [Screenshots](#screenshots)
 - [Contribution](#Contribution)
 
@@ -16,17 +22,51 @@ This project started in December of 2024. The goal of this app is to encompass a
 
 Yuzic provides a Navidrome demo but requires a self-hosted Jellyfin or Subsonic server to function as intended.
 
+## Download
+
+### IOS
+
+[![iTunes App Store](https://img.shields.io/itunes/v/6740042497?logo=app-store&logoColor=white&label=Apple%20App%20Store&labelColor=%60&color=blue)](https://apps.apple.com/us/app/yuzic-navidrome-jellyfin/id6740042497)
+
+[IPA](https://github.com/eftpmc/yuzic/releases)
+
+### Android
+
+[![Google Play](https://img.shields.io/badge/Google%20Play-Download-red?logo=googleplay&logoColor=white)](https://play.google.com/store/apps/details?id=com.arinora.rawarr)
+
+[APK](https://github.com/eftpmc/yuzic/releases)
+
 ## Features
-- Switch seamlessly between Navidrome and Jellyfin
-- Text-to-Music button
-- Enriched data via Last.fm
-- Download albums and playlists to listen to offline
+- Unified Music Library Across Servers
+- Offline & Download Support
+- Customizable UI & Layout
+- A pretty UI
+- Search & Browsing
+- Text-to-Music
+- Privacy-First by Design
+- Fast, Reliable Playback
+- Plugins
+
+## Future
+- Crossfading
+- Carplay & Android auto
+- QuickConnect
+- Show owned only albums in artist
+- Apple TV app
+- Apple watch
+- Google casting
+- F-droid
+- Lyrics
+- Plex
+- EQ
+- Lyrion
+- UPNP or DLNA
+- Ollama
+- Theme switch
 
 ## Screenshots
 
 Screenshots taken on iPhone 13
-
----
 
 ### Home
 
@@ -35,8 +75,6 @@ Screenshots taken on iPhone 13
   <img src="screenshots/home-list.png" alt="Jellify Home" width="275" height="600">
 </p>
 
----
-
 ### Playing
 
 <p align="center">
@@ -44,15 +82,11 @@ Screenshots taken on iPhone 13
   <img src="screenshots/queue.png" alt="Jellify Home" width="275" height="600">
 </p>
 
----
-
 ### Album
 
 <p align="center">
   <img src="screenshots/album.png" alt="Jellify Home" width="275" height="600">
 </p>
-
----
 
 ### Artist
 
@@ -60,15 +94,11 @@ Screenshots taken on iPhone 13
   <img src="screenshots/artist.png" alt="Jellify Home" width="275" height="600">
 </p>
 
----
-
 ### Playlist
 
 <p align="center">
   <img src="screenshots/playlist.png" alt="Jellify Home" width="275" height="600">
 </p>
-
----
 
 ### Onboarding
 
@@ -79,16 +109,12 @@ Screenshots taken on iPhone 13
   <img src="screenshots/credentials.png" alt="Jellify Home" width="275" height="600">
 </p>
 
----
-
 ### Search
 
 <p align="center">
   <img src="screenshots/search.png" alt="Jellify Home" width="275" height="600">
   <img src="screenshots/search-results.png" alt="Jellify Home" width="275" height="600">
 </p>
-
----
 
 ### Settings
 
@@ -99,8 +125,6 @@ Screenshots taken on iPhone 13
   <img src="screenshots/settings-player.png" alt="Jellify Home" width="275" height="600">
   <img src="screenshots/settings-appearance.png" alt="Jellify Home" width="275" height="600">
 </p>
-
----
 
 ### Plugins
 
