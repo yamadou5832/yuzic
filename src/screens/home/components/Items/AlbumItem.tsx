@@ -1,12 +1,11 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   Appearance,
-  TouchableOpacity
+  Pressable,
 } from 'react-native';
-import { MenuView } from '@react-native-menu/menu';
 import { useDownload } from '@/contexts/DownloadContext';
 import { usePlaying } from '@/contexts/PlayingContext';
 import { useNavigation } from '@react-navigation/native';
@@ -15,6 +14,17 @@ import { useApi } from '@/api';
 import { QueryKeys } from '@/enums/queryKeys';
 import { MediaImage } from '@/components/MediaImage';
 import { CoverSource } from '@/types';
+import ContextMenuModal, {
+  ContextMenuAction,
+} from '@/components/ContextMenuModal';
+
+import {
+  Play,
+  Shuffle,
+  Download,
+  CheckCircle,
+  Album,
+} from 'lucide-react-native';
 
 interface ItemProps {
   id: string;
@@ -33,23 +43,24 @@ const AlbumItem: React.FC<ItemProps> = ({
   isGridView,
   gridWidth,
 }) => {
-  const {
-    downloadAlbumById,
-    isAlbumDownloaded,
-    isDownloadingAlbum,
-  } = useDownload();
+  const { downloadAlbumById, isAlbumDownloaded, isDownloadingAlbum } =
+    useDownload();
 
-  const colorScheme = Appearance.getColorScheme();
-  const isDarkMode = colorScheme === 'dark';
-  const navigation = useNavigation();
+  const isDarkMode = Appearance.getColorScheme() === 'dark';
+  const navigation = useNavigation<any>();
   const api = useApi();
   const queryClient = useQueryClient();
   const { playSongInCollection } = usePlaying();
 
+  const [menuVisible, setMenuVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   const isDownloaded = isAlbumDownloaded(id);
   const isDownloadingNow = isDownloadingAlbum(id);
+
+  const handleNavigation = useCallback(() => {
+    navigation.navigate('albumView', { id });
+  }, [navigation, id]);
 
   const handlePlay = useCallback(
     async (shuffle: boolean) => {
@@ -59,13 +70,13 @@ const AlbumItem: React.FC<ItemProps> = ({
         staleTime: 5 * 60 * 1000,
       });
 
-      if (!album || album.songs.length === 0) return;
+      if (!album || !album.songs?.length) return;
       playSongInCollection(album.songs[0], album, shuffle);
     },
-    [id]
+    [id, api, queryClient, playSongInCollection]
   );
 
-  const handleDownload = async () => {
+  const handleDownload = useCallback(async () => {
     if (isDownloaded || isDownloadingNow || isLoading) return;
     setIsLoading(true);
     try {
@@ -73,124 +84,87 @@ const AlbumItem: React.FC<ItemProps> = ({
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [id, isDownloaded, isDownloadingNow, isLoading, downloadAlbumById]);
 
-  const handleNavigation = () => {
-    navigation.navigate('albumView', { id });
-  };
-
-  const image = isGridView ? (
-    <MediaImage
-      cover={cover}
-      size="grid"
-      style={{
-        width: gridWidth,
-        aspectRatio: 1,
-        borderRadius: 8,
-      }}
-    />
-  ) : (
-    <MediaImage
-      cover={cover}
-      size="thumb"
-      style={{
-        width: 50,
-        height: 50,
-        borderRadius: 4,
-        marginRight: 12,
-      }}
-    />
-  );
-
-  const menuActions = [
+  const menuActions: ContextMenuAction[] = [
     {
       id: 'play',
-      title: 'Play',
-      image: 'play.fill',
+      label: 'Play',
+      icon: 'play',
+      onPress: () => handlePlay(false),
     },
     {
       id: 'shuffle',
-      title: 'Shuffle',
-      image: 'shuffle',
+      label: 'Shuffle',
+      icon: 'shuffle',
+      onPress: () => handlePlay(true),
     },
     {
-      id: 'go-to',
-      title: 'Go to Album',
-      image: 'music.note.list',
+      id: 'navigate',
+      label: 'Go to Album',
+      icon: 'albums',
+      onPress: handleNavigation,
     },
     {
       id: 'download',
-      title: isDownloadingNow
+      label: isDownloadingNow
         ? 'Downloading…'
         : isDownloaded
           ? 'Downloaded'
           : 'Download',
-      image: isDownloadingNow
-        ? 'hourglass'
-        : isDownloaded
-          ? 'checkmark.circle'
-          : 'arrow.down.circle',
-      attributes: {
-        disabled: isDownloaded || isDownloadingNow,
-      },
+      icon: isDownloaded ? 'checkmark-circle' : 'arrow-down-circle',
+      onPress: handleDownload,
+      disabled: isDownloaded || isDownloadingNow,
     },
   ];
 
-  const onMenuAction = ({ nativeEvent }: any) => {
-    switch (nativeEvent.event) {
-      case 'play':
-        handlePlay(false);
-        break;
-      case 'shuffle':
-        handlePlay(true);
-        break;
-      case 'go-to':
-        handleNavigation();
-        break;
-      case 'download':
-        handleDownload();
-        break;
-    }
-  };
-
   return (
-    <MenuView
-  title={title || 'Options'}
-  actions={menuActions}
-  onPressAction={onMenuAction}
-  shouldOpenOnLongPress={false}
->
-  <TouchableOpacity
-    onPress={handleNavigation}
-    onLongPress={() => {}}
-    delayLongPress={300}
-    activeOpacity={0.9}
-    style={
-      isGridView
-        ? [styles.gridItemContainer, { width: gridWidth }]
-        : styles.itemContainer
-    }
-  >
-    {image}
+    <>
+      <Pressable
+        onPress={handleNavigation}
+        onLongPress={() => setMenuVisible(true)}
+        delayLongPress={300}
+        style={({ pressed }) => [
+          isGridView
+            ? [styles.gridItemContainer, { width: gridWidth }]
+            : styles.itemContainer,
+          pressed && styles.pressed,
+        ]}
+      >
+        <MediaImage
+          cover={cover}
+          size={isGridView ? 'grid' : 'thumb'}
+          style={
+            isGridView
+              ? { width: gridWidth, aspectRatio: 1, borderRadius: 10 }
+              : { width: 52, height: 52, borderRadius: 8, marginRight: 12 }
+          }
+        />
 
-    <View
-      style={isGridView ? styles.gridTextContainer : styles.textContainer}
-    >
-      <Text
-        style={[styles.title, isDarkMode && styles.titleDark]}
-        numberOfLines={1}
-      >
-        {title}
-      </Text>
-      <Text
-        style={[styles.subtext, isDarkMode && styles.subtextDark]}
-        numberOfLines={1}
-      >
-        {subtext}
-      </Text>
-    </View>
-  </TouchableOpacity>
-</MenuView>
+        <View
+          style={isGridView ? styles.gridTextContainer : styles.textContainer}
+        >
+          <Text
+            style={[styles.title, isDarkMode && styles.titleDark]}
+            numberOfLines={1}
+          >
+            {title}
+          </Text>
+          <Text
+            style={[styles.subtext, isDarkMode && styles.subtextDark]}
+            numberOfLines={1}
+          >
+            {subtext}
+          </Text>
+        </View>
+      </Pressable>
+
+      <ContextMenuModal
+        visible={menuVisible}
+        onClose={() => setMenuVisible(false)}
+        actions={menuActions}
+      />
+    </>
   );
 };
 
@@ -201,32 +175,36 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: 10,
+    borderRadius: 12,
   },
   gridItemContainer: {
     marginVertical: 8,
     marginHorizontal: 8,
-    alignItems: 'flex-start',
+    borderRadius: 14,
   },
   gridTextContainer: {
-    marginTop: 4,
+    marginTop: 6,
     width: '100%',
   },
   textContainer: {
     flex: 1,
   },
   title: {
-    fontSize: 16,
-    fontWeight: 'bold',
+    fontSize: 15,
+    fontWeight: '700',
     color: '#000',
   },
   titleDark: {
-    color: '#ccc',
+    color: '#e6e6e6',
   },
   subtext: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#666',
   },
   subtextDark: {
     color: '#aaa',
+  },
+  pressed: {
+    opacity: 0.9,
   },
 });
