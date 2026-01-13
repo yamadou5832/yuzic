@@ -9,12 +9,13 @@ import {
 import { useDispatch, useSelector } from 'react-redux';
 import { selectInternalOnlyEnabled, selectThemeColor } from '@/utils/redux/selectors/settingsSelectors';
 import { setInternalOnlyEnabled } from '@/utils/redux/slices/settingsSlice';
+import { useTheme } from '@/hooks/useTheme';
 
 export const InternalToggle: React.FC = () => {
   const dispatch = useDispatch();
   const themeColor = useSelector(selectThemeColor);
   const internalEnabled = useSelector(selectInternalOnlyEnabled);
-  const isDarkMode = Appearance.getColorScheme() === 'dark';
+  const { isDarkMode } = useTheme();
 
   return (
     <View style={[styles.section, isDarkMode && styles.sectionDark]}>

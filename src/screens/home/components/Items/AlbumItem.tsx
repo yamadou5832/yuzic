@@ -18,6 +18,7 @@ import ContextMenuModal, {
   ContextMenuAction,
 } from '@/components/ContextMenuModal';
 import InfoModal, { InfoRow } from '@/components/InfoModal';
+import { useTheme } from '@/hooks/useTheme';
 
 interface ItemProps {
   id: string;
@@ -46,7 +47,7 @@ const AlbumItem: React.FC<ItemProps> = ({
   const { downloadAlbumById, isAlbumDownloaded, isDownloadingAlbum } =
     useDownload();
 
-  const isDarkMode = Appearance.getColorScheme() === 'dark';
+  const { isDarkMode } = useTheme();
   const navigation = useNavigation<any>();
   const api = useApi();
   const queryClient = useQueryClient();

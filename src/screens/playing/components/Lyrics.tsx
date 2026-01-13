@@ -11,8 +11,9 @@ import {
   StyleSheet,
   ScrollView,
   LayoutChangeEvent,
+  Platform,
 } from "react-native";
-import TrackPlayer, { useProgress } from "react-native-track-player";
+import { useProgress } from "react-native-track-player";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LyricsResult } from "@/api/types";
 
@@ -28,20 +29,18 @@ const Lyrics: React.FC<Props> = ({ lyrics, width }) => {
   const insets = useSafeAreaInsets();
 
   const scrollRef = useRef<ScrollView>(null);
+  const lineLayouts = useRef<Record<number, { y: number; height: number }>>(
+    {}
+  );
 
   const [viewportHeight, setViewportHeight] = useState(0);
-  const [activeLineY, setActiveLineY] = useState(0);
-  const [activeLineHeight, setActiveLineHeight] = useState(0);
 
   const lines = useMemo(() => lyrics.lines, [lyrics]);
 
   const currentLineIndex = useMemo(() => {
     const timeMs = position * 1000;
-
     for (let i = lines.length - 1; i >= 0; i--) {
-      if (timeMs >= lines[i].startMs) {
-        return i;
-      }
+      if (timeMs >= lines[i].startMs) return i;
     }
     return 0;
   }, [position, lines]);
@@ -50,29 +49,40 @@ const Lyrics: React.FC<Props> = ({ lyrics, width }) => {
     setViewportHeight(e.nativeEvent.layout.height);
   };
 
-  const onActiveLineLayout = (e: LayoutChangeEvent) => {
-    setActiveLineY(e.nativeEvent.layout.y);
-    setActiveLineHeight(e.nativeEvent.layout.height);
+  const onLineLayout =
+    (index: number) => (e: LayoutChangeEvent) => {
+      if (lineLayouts.current[index]) return;
+      lineLayouts.current[index] = {
+        y: e.nativeEvent.layout.y,
+        height: e.nativeEvent.layout.height,
+      };
+    };
+
+  const getTargetScrollY = () => {
+    const layout = lineLayouts.current[currentLineIndex];
+    if (!layout || viewportHeight === 0) return null;
+
+    const usableHeight =
+      viewportHeight -
+      BOTTOM_CONTROLS_HEIGHT -
+      insets.bottom;
+
+    const centerY = usableHeight / 2;
+
+    return layout.y + layout.height / 2 - centerY;
   };
 
   useEffect(() => {
-    if (!scrollRef.current || viewportHeight === 0) return;
+    if (!scrollRef.current) return;
 
-    const usableHeight =
-      viewportHeight - BOTTOM_CONTROLS_HEIGHT;
-
-    const visualCenterY = usableHeight / 2;
-
-    const targetScrollY =
-      activeLineY +
-      activeLineHeight / 2 -
-      visualCenterY;
+    const target = getTargetScrollY();
+    if (target === null) return;
 
     scrollRef.current.scrollTo({
-      y: Math.max(0, targetScrollY),
+      y: Math.max(0, target),
       animated: true,
     });
-  }, [activeLineY, activeLineHeight, viewportHeight]);
+  }, [currentLineIndex, viewportHeight, insets.bottom]);
 
   return (
     <View
@@ -80,13 +90,16 @@ const Lyrics: React.FC<Props> = ({ lyrics, width }) => {
         styles.container,
         {
           width,
-          paddingTop: insets.top + 12,
+          paddingTop:
+            insets.top +
+            (Platform.OS === "android" ? 48 : 12),
         },
       ]}
       onLayout={onContainerLayout}
     >
       <ScrollView
         ref={scrollRef}
+        scrollEnabled={false}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[
           styles.scrollContent,
@@ -97,14 +110,13 @@ const Lyrics: React.FC<Props> = ({ lyrics, width }) => {
           const isActive = index === currentLineIndex;
 
           return (
-            <View
-              key={index}
-              onLayout={isActive ? onActiveLineLayout : undefined}
-            >
+            <View key={index} onLayout={onLineLayout(index)}>
               <Text
                 style={[
                   styles.line,
-                  isActive ? styles.activeLine : styles.inactiveLine,
+                  isActive
+                    ? styles.activeLine
+                    : styles.inactiveLine,
                 ]}
               >
                 {line.text}
@@ -124,23 +136,19 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 20,
   },
-
   scrollContent: {
     paddingBottom: BOTTOM_CONTROLS_HEIGHT,
   },
-
   line: {
     textAlign: "center",
     marginVertical: 12,
-    fontWeight: 700,
+    fontWeight: "700",
     fontSize: 26,
   },
-
   inactiveLine: {
     color: "#666",
-    opacity: 0.6
+    opacity: 0.6,
   },
-
   activeLine: {
     color: "#fff",
     opacity: 1,

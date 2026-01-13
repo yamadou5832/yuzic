@@ -17,6 +17,7 @@ import ContextMenuModal, {
   ContextMenuAction,
 } from '@/components/ContextMenuModal';
 import InfoModal, { InfoRow } from '@/components/InfoModal';
+import { useTheme } from '@/hooks/useTheme';
 
 interface ItemProps {
   id: string;
@@ -35,7 +36,7 @@ const ArtistItem: React.FC<ItemProps> = ({
   isGridView,
   gridWidth,
 }) => {
-  const isDarkMode = Appearance.getColorScheme() === 'dark';
+  const { isDarkMode } = useTheme();
   const navigation = useNavigation<any>();
   const queryClient = useQueryClient();
   const api = useApi();

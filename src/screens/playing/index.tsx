@@ -36,6 +36,7 @@ import { useApi } from '@/api';
 import { LyricsResult } from '@/api/types';
 import { toast } from '@backpackapp-io/react-native-toast';
 import Lyrics from './components/Lyrics';
+import { useTheme } from '@/hooks/useTheme';
 
 interface PlayingScreenProps {
     onClose: () => void;
@@ -97,9 +98,8 @@ const usePlayingTransitions = (mode: PlayingViewMode) => {
 const PlayingScreen: React.FC<PlayingScreenProps> = ({
     onClose,
 }) => {
-    const colorScheme = useColorScheme();
     const navigation = useNavigation();
-    const isDarkMode = colorScheme === 'dark';
+    const { isDarkMode } = useTheme();
     const { position } = useProgress(250);
     const {
         currentSong,
@@ -530,7 +530,7 @@ const styles = StyleSheet.create({
         marginBottom: 4,
     },
     artist: {
-        fontSize: 18,
+        fontSize: 14,
         fontWeight: '400',
     },
     slider: {

@@ -12,6 +12,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { BlurView } from 'expo-blur';
+import { useTheme } from '@/hooks/useTheme';
 
 export type ContextMenuAction = {
   id: string;
@@ -35,7 +36,7 @@ const ContextMenuModal: React.FC<ContextMenuModalProps> = ({
   onClose,
   actions,
 }) => {
-  const isDarkMode = Appearance.getColorScheme() === 'dark';
+  const { isDarkMode } = useTheme();
 
   const opacity = useRef(new Animated.Value(0)).current;
   const scale = useRef(new Animated.Value(0.975)).current;
@@ -77,7 +78,7 @@ const ContextMenuModal: React.FC<ContextMenuModalProps> = ({
           ]}
         >
           <BlurView
-            intensity={100}
+            intensity={isDarkMode ? 140 : 100}
             tint={isDarkMode ? 'dark' : 'light'}
             style={styles.menu}
           >
@@ -112,6 +113,7 @@ const ContextMenuModal: React.FC<ContextMenuModalProps> = ({
                       size={19}
                       style={[
                         styles.icon,
+                        isDarkMode && styles.iconDark,
                         action.destructive && styles.iconDestructive,
                       ]}
                     />
@@ -149,7 +151,10 @@ const ContextMenuModal: React.FC<ContextMenuModalProps> = ({
               <Ionicons
                 name="close"
                 size={19}
-                style={styles.icon}
+                style={[
+                  styles.icon,
+                  isDarkMode && styles.iconDark,
+                ]}
               />
               <Text
                 style={[
@@ -217,7 +222,11 @@ const styles = StyleSheet.create({
 
   icon: {
     marginRight: 14,
-    color: '#fff',
+    color: '#111',
+  },
+
+  iconDark: {
+    color: '#f2f2f2',
   },
 
   iconDestructive: {
@@ -226,7 +235,7 @@ const styles = StyleSheet.create({
 
   menuText: {
     fontSize: 15.5,
-    color: '#fff',
+    color: '#111',
     flexShrink: 1,
   },
 

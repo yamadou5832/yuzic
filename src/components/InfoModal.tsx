@@ -5,14 +5,13 @@ import {
   StyleSheet,
   Modal,
   Pressable,
-  Appearance,
   Animated,
-  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { MediaImage } from '@/components/MediaImage';
 import { CoverSource } from '@/types';
+import { useTheme } from '@/hooks/useTheme';
 
 export type InfoRow = {
   id: string;
@@ -37,7 +36,7 @@ const InfoModal: React.FC<InfoModalProps> = ({
   cover,
   rows,
 }) => {
-  const isDarkMode = Appearance.getColorScheme() === 'dark';
+  const { isDarkMode } = useTheme();
 
   const opacity = useRef(new Animated.Value(0)).current;
   const scale = useRef(new Animated.Value(0.975)).current;
@@ -75,7 +74,7 @@ const InfoModal: React.FC<InfoModalProps> = ({
           ]}
         >
           <BlurView
-            intensity={100}
+            intensity={isDarkMode ? 140 : 100}
             tint={isDarkMode ? 'dark' : 'light'}
             style={styles.card}
           >
@@ -225,7 +224,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 17,
     fontWeight: '700',
-    color: '#fff',
+    color: '#111',
   },
 
   titleDark: {
@@ -235,7 +234,7 @@ const styles = StyleSheet.create({
   subtitle: {
     marginTop: 4,
     fontSize: 14,
-    color: 'rgba(255,255,255,0.7)',
+    color: '#555',
   },
 
   subtitleDark: {
@@ -244,7 +243,7 @@ const styles = StyleSheet.create({
 
   divider: {
     height: StyleSheet.hairlineWidth,
-    backgroundColor: 'rgba(255,255,255,0.25)',
+    backgroundColor: 'rgba(0,0,0,0.15)',
   },
 
   dividerDark: {
@@ -260,7 +259,7 @@ const styles = StyleSheet.create({
 
   label: {
     fontSize: 14,
-    color: 'rgba(255,255,255,0.7)',
+    color: '#555',
   },
 
   labelDark: {
@@ -270,7 +269,7 @@ const styles = StyleSheet.create({
   value: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#fff',
+    color: '#111',
     marginLeft: 12,
     flexShrink: 1,
     textAlign: 'right',
@@ -293,7 +292,7 @@ const styles = StyleSheet.create({
 
   icon: {
     marginRight: 14,
-    color: '#fff',
+    color: '#111',
   },
 
   iconDark: {
@@ -302,7 +301,7 @@ const styles = StyleSheet.create({
 
   closeText: {
     fontSize: 16,
-    color: '#fff',
+    color: '#111',
   },
 
   closeTextDark: {

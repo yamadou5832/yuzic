@@ -22,7 +22,7 @@ export const AppearanceToggles: React.FC = () => {
   return (
     <View style={styles.container}>
       <ToggleRow
-        label="Hide unowned albums"
+        label="Internal data only"
         value={internalEnabled}
         activeColor={themeColor}
         onToggle={() =>
