@@ -194,7 +194,7 @@ const styles = StyleSheet.create({
     },
     scrollWrapper: {
         flex: 1,
-        paddingBottom: 100,
+        paddingBottom: 120,
     },
     header: {
         flexDirection: 'row',

@@ -132,7 +132,7 @@ export default function Settings() {
                     About
                 </Text>
                 <View style={[styles.section, isDarkMode && styles.sectionDark]}>
-                    {renderLinkRow('Discord', 'https://discord.gg/NzsGEhg5Fs')}
+                    {renderLinkRow('Github', 'https://github.com/eftpmc/yuzic')}
                     {renderDivider()}
                     {renderLinkRow('Privacy Policy', 'https://eftpmc.github.io/yuzic-web/privacypolicy/')}
                     {renderDivider()}

@@ -7,13 +7,13 @@ import {
   Appearance,
 } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
-import { selectOwnedAlbumsEnabled, selectThemeColor } from '@/utils/redux/selectors/settingsSelectors';
-import { setOwnedAlbumsEnabled } from '@/utils/redux/slices/settingsSlice';
+import { selectInternalOnlyEnabled, selectThemeColor } from '@/utils/redux/selectors/settingsSelectors';
+import { setInternalOnlyEnabled } from '@/utils/redux/slices/settingsSlice';
 
-export const OwnedAlbumsToggle: React.FC = () => {
+export const InternalToggle: React.FC = () => {
   const dispatch = useDispatch();
   const themeColor = useSelector(selectThemeColor);
-  const ownedAlbumsEnabled = useSelector(selectOwnedAlbumsEnabled);
+  const internalEnabled = useSelector(selectInternalOnlyEnabled);
   const isDarkMode = Appearance.getColorScheme() === 'dark';
 
   return (
@@ -25,11 +25,11 @@ export const OwnedAlbumsToggle: React.FC = () => {
 
         <TouchableOpacity
           activeOpacity={0.8}
-          onPress={() => dispatch(setOwnedAlbumsEnabled(!ownedAlbumsEnabled))}
+          onPress={() => dispatch(setInternalOnlyEnabled(!internalEnabled))}
           style={[
             styles.switch,
             {
-              backgroundColor: ownedAlbumsEnabled
+              backgroundColor: internalEnabled
                 ? themeColor
                 : isDarkMode
                   ? '#333'
@@ -43,7 +43,7 @@ export const OwnedAlbumsToggle: React.FC = () => {
               {
                 backgroundColor: '#fff',
                 transform: [
-                  { translateX: ownedAlbumsEnabled ? 18 : 2 },
+                  { translateX: internalEnabled ? 18 : 2 },
                 ],
               },
             ]}

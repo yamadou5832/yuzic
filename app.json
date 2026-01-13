@@ -16,6 +16,9 @@
         "UIBackgroundModes": [
           "audio"
         ],
+        "NSAppTransportSecurity": {
+          "NSAllowsArbitraryLoads": true
+        },
         "ITSAppUsesNonExemptEncryption": false
       }
     },
