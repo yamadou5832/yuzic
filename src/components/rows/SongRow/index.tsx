@@ -98,7 +98,7 @@ const styles = StyleSheet.create({
     color: isDark ? '#fff' : '#000',
   }),
   subtitle: (isDark: boolean) => ({
-    fontSize: 14,
+    fontSize: 12,
     color: isDark ? '#aaa' : '#666',
   }),
 });

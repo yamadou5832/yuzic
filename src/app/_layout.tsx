@@ -23,6 +23,9 @@ import RNRestart from 'react-native-restart';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { initAnalytics } from '@/utils/analytics/amplitude';
 import { useTheme } from '@/hooks/useTheme';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client'
+import { createAsyncStoragePersister } from '@tanstack/query-async-storage-persister'
 
 SplashScreen.preventAutoHideAsync();
 
@@ -35,6 +38,10 @@ const queryClient = new QueryClient({
     },
   },
 });
+
+const asyncStoragePersister = createAsyncStoragePersister({
+  storage: AsyncStorage,
+})
 
 function AppShell() {
   const { resolved, isDarkMode, colors } = useTheme();
@@ -130,12 +137,12 @@ export default function RootLayout() {
   if (!loaded) return null;
 
   return (
-    <QueryClientProvider client={queryClient}>
+    <PersistQueryClientProvider client={queryClient} persistOptions={{ persister: asyncStoragePersister }}>
       <Provider store={store}>
         <PersistGate loading={null} persistor={persistor}>
           <AppShell />
         </PersistGate>
       </Provider>
-    </QueryClientProvider>
+    </PersistQueryClientProvider>
   );
 }

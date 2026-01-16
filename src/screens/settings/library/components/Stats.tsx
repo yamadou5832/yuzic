@@ -111,7 +111,7 @@ const Stats: React.FC = () => {
     <View style={[styles.section, isDarkMode && styles.sectionDark]}>
       <View style={styles.sectionHeader}>
         <Text style={[styles.sectionTitle, isDarkMode && styles.sectionTitleDark]}>
-          Library Cache
+          Library
         </Text>
 
         <TouchableOpacity

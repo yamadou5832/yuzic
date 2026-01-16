@@ -109,53 +109,46 @@ export default function Credentials() {
 
     return (
         <SafeAreaView style={styles.container}>
-            <KeyboardAvoidingView
+            <View
                 style={{ flex: 1 }}
-                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
             >
-                {/* Replaced ScrollView with View */}
                 <View style={styles.mainContent}>
-                    <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-                        <AntDesign name="arrowleft" size={24} color="#fff" />
-                    </TouchableOpacity>
+                    <Text style={styles.title}>Enter Your Credentials</Text>
 
-                    <View style={styles.content}>
-                        <Text style={styles.title}>Enter Your Credentials</Text>
-                        <Text style={styles.subtitle}>
-                            {isJellyfin
-                                ? 'Provide your Jellyfin username and password to continue.'
-                                : 'Provide your Navidrome username and password to continue.'}
-                        </Text>
+                    <Text style={styles.subtitle}>
+                        {isJellyfin
+                            ? 'Provide your Jellyfin username and password to continue.'
+                            : 'Provide your Navidrome username and password to continue.'}
+                    </Text>
 
-                        <View style={styles.inputWrapper}>
-                            <AntDesign name="user" size={20} color="#888" style={styles.inputIcon} />
-                            <TextInput
-                                style={styles.input}
-                                placeholder="Username"
-                                placeholderTextColor="#888"
-                                value={localUsername}
-                                onChangeText={setLocalUsername}
-                                autoCapitalize="none"
-                                returnKeyType="next"
-                                onSubmitEditing={() => passwordRef.current?.focus()}
-                            />
-                        </View>
+                    <View style={styles.inputWrapper}>
+                        <AntDesign name="user" size={20} color="#888" style={styles.inputIcon} />
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Username"
+                            placeholderTextColor="#888"
+                            value={localUsername}
+                            onChangeText={setLocalUsername}
+                            autoCapitalize="none"
+                            returnKeyType="next"
+                            onSubmitEditing={() => passwordRef.current?.focus()}
+                        />
+                    </View>
 
-                        <View style={styles.inputWrapper}>
-                            <AntDesign name="lock" size={20} color="#888" style={styles.inputIcon} />
-                            <TextInput
-                                ref={passwordRef}
-                                style={styles.input}
-                                placeholder="Password"
-                                placeholderTextColor="#888"
-                                secureTextEntry
-                                value={localPassword}
-                                onChangeText={setLocalPassword}
-                                autoCapitalize="none"
-                                returnKeyType="done"
-                                onSubmitEditing={handleNext}
-                            />
-                        </View>
+                    <View style={styles.inputWrapper}>
+                        <AntDesign name="lock" size={20} color="#888" style={styles.inputIcon} />
+                        <TextInput
+                            ref={passwordRef}
+                            style={styles.input}
+                            placeholder="Password"
+                            placeholderTextColor="#888"
+                            secureTextEntry
+                            value={localPassword}
+                            onChangeText={setLocalPassword}
+                            autoCapitalize="none"
+                            returnKeyType="done"
+                            onSubmitEditing={handleNext}
+                        />
                     </View>
                 </View>
 
@@ -171,8 +164,19 @@ export default function Credentials() {
                             <Text style={styles.nextButtonText}>Done</Text>
                         )}
                     </TouchableOpacity>
+
+                    <TouchableOpacity
+                        style={[
+                            styles.backButton
+                        ]}
+                        onPress={handleBack}
+                    >
+                        <Text style={styles.backButtonText}>
+                            Back
+                        </Text>
+                    </TouchableOpacity>
                 </View>
-            </KeyboardAvoidingView>
+            </View>
         </SafeAreaView>
     );
 }
@@ -185,6 +189,7 @@ const styles = StyleSheet.create({
     mainContent: {
         flexGrow: 1,
         paddingHorizontal: 20,
+        marginTop: 40,
     },
     buttonContainer: {
         padding: 20,
@@ -209,14 +214,6 @@ const styles = StyleSheet.create({
         flex: 1,
         color: '#fff',
         fontSize: 16,
-    },
-    backButton: {
-        marginTop: 10,
-        marginBottom: 10,
-        width: 40,
-        height: 40,
-        alignItems: 'center',
-        justifyContent: 'center',
     },
     content: {
         flex: 1,
@@ -247,6 +244,19 @@ const styles = StyleSheet.create({
     },
     nextButtonText: {
         color: '#000',
+        fontSize: 16,
+        fontWeight: '600',
+    },
+    backButton: {
+        backgroundColor: '#333',
+        paddingVertical: 15,
+        borderRadius: 999,
+        alignItems: 'center',
+        width: '100%',
+        marginBottom: 4,
+    },
+    backButtonText: {
+        color: '#fff',
         fontSize: 16,
         fontWeight: '600',
     },

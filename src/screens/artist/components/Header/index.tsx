@@ -22,6 +22,7 @@ import { useApi } from '@/api';
 import { QueryKeys } from '@/enums/queryKeys';
 import { buildCover } from '@/utils/builders/buildCover';
 import { useTheme } from '@/hooks/useTheme';
+import { staleTime } from '@/constants/staleTime';
 
 type Props = {
   artist: Artist;
@@ -57,7 +58,7 @@ const ArtistHeader: React.FC<Props> = ({ artist }) => {
             queryClient.fetchQuery({
               queryKey: [QueryKeys.Album, a.id],
               queryFn: () => api.albums.get(a.id),
-              staleTime: 5 * 60 * 1000,
+              staleTime: staleTime.albums,
             })
           )
         );
@@ -107,6 +108,8 @@ const ArtistHeader: React.FC<Props> = ({ artist }) => {
         cover: artist.cover,
         songs: artistSongs,
         subtext: 'Playlist',
+        changed: new Date("1995-12-17T03:24:00"),
+        created: new Date("1995-12-17T03:24:00"),
         userPlayCount: 0,
       },
       shuffle

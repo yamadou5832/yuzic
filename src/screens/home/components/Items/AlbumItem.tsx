@@ -19,6 +19,7 @@ import ContextMenuModal, {
 } from '@/components/ContextMenuModal';
 import InfoModal, { InfoRow } from '@/components/InfoModal';
 import { useTheme } from '@/hooks/useTheme';
+import { staleTime } from '@/constants/staleTime';
 
 interface ItemProps {
   id: string;
@@ -68,7 +69,7 @@ const AlbumItem: React.FC<ItemProps> = ({
     return queryClient.fetchQuery({
       queryKey: [QueryKeys.Album, id],
       queryFn: () => api.albums.get(id),
-      staleTime: 5 * 60 * 1000,
+      staleTime: staleTime.albums,
     });
   }, [api, queryClient, id]);
 
@@ -146,6 +147,11 @@ const AlbumItem: React.FC<ItemProps> = ({
         id: 'year',
         label: 'Year',
         value: albumInfo.year
+      },
+      {
+        id: 'genres',
+        label: 'Genres',
+        value: albumInfo.genres.join(', ')
       },
       {
         id: 'songs',

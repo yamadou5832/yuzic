@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { QueryKeys } from '@/enums/queryKeys';
 import { Artist } from '@/types';
 import { useApi } from '@/api';
+import { staleTime } from '@/constants/staleTime';
 
 type UseArtistResult = {
   artist: Artist | null;
@@ -16,7 +17,7 @@ export function useArtist(id: string): UseArtistResult {
     queryKey: [QueryKeys.Artist, id],
     queryFn: () => api.artists.get(id),
     enabled: !!id,
-    staleTime: 10 * 60 * 1000,
+    staleTime: staleTime.artists,
   });
 
   return {

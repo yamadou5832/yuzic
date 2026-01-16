@@ -6,6 +6,8 @@ export interface PlaylistBase {
     cover: CoverSource;
     title: string;
     subtext: string;
+    changed: Date;
+    created: Date;
 }
 
 export interface Playlist extends PlaylistBase {

@@ -25,6 +25,7 @@ import { Song, Playlist } from '@/types';
 import { QueryKeys } from '@/enums/queryKeys';
 import { MediaImage } from './MediaImage';
 import { useTheme } from '@/hooks/useTheme';
+import { staleTime } from '@/constants/staleTime';
 
 type PlaylistListProps = {
   selectedSong: Song | null;
@@ -71,7 +72,7 @@ const PlaylistList = forwardRef<BottomSheet, PlaylistListProps>(
               queryClient.fetchQuery({
                 queryKey: [QueryKeys.Playlist, p.id],
                 queryFn: () => api.playlists.get(p.id),
-                staleTime: 2 * 60 * 1000,
+                staleTime: staleTime.playlists,
               })
             )
           );

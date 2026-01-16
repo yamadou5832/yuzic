@@ -16,7 +16,6 @@ import {
     setGenres,
 } from "@/utils/redux/slices/librarySlice";
 import { AlbumBase, ArtistBase, GenreListing, PlaylistBase, Song } from "@/types";
-import { selectFavoritesPlaylist } from "@/utils/redux/selectors/selectFavoritesPlaylist";
 import { selectAlbumList, selectArtistList, selectGenres, selectPlaylistList, selectStarred } from "@/utils/redux/selectors/librarySelectors";
 import { useQueryClient } from "@tanstack/react-query";
 import { QueryKeys } from "@/enums/queryKeys";
@@ -175,7 +174,7 @@ export const LibraryProvider = ({ children }: { children: ReactNode }) => {
                 removeSongFromPlaylist,
                 createPlaylist,
 
-                isLoading,
+                isLoading
             }}
         >
             {children}

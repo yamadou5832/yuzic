@@ -101,19 +101,12 @@ export const createJellyfinAdapter = (adapter: JellyfinServer): ApiAdapter => {
 
   const playlists: PlaylistsApi = {
     list: async () => {
-      const [raw, starred] = await Promise.all([
+      const [base, starred] = await Promise.all([
         getPlaylists(serverUrl, userId, token),
         getStarredItems(serverUrl, userId, token),
       ]);
 
       const favorites = buildFavoritesPlaylist(starred.songs ?? []);
-
-      const base = raw.map((p) => ({
-        id: p.id,
-        cover: p.cover,
-        title: p.title,
-        subtext: p.subtext,
-      }));
 
       return [favorites, ...base];
     },
@@ -134,9 +127,7 @@ export const createJellyfinAdapter = (adapter: JellyfinServer): ApiAdapter => {
       const songs = await getPlaylistItems(serverUrl, id, userId, token);
 
       return {
-        id: base.id,
-        cover: base.cover,
-        title: base.title,
+        ...base,
         subtext: `Playlist • ${songs.length} songs`,
         songs,
       } as Playlist;

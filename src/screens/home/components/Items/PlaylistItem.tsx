@@ -22,6 +22,8 @@ import ContextMenuModal, {
 } from '@/components/ContextMenuModal';
 import InfoModal, { InfoRow } from '@/components/InfoModal';
 import { useTheme } from '@/hooks/useTheme';
+import { buildFavoritesPlaylist } from '@/utils/builders/buildFavoritesPlaylist';
+import { staleTime } from '@/constants/staleTime';
 
 interface ItemProps {
   id: string;
@@ -75,19 +77,13 @@ const PlaylistItem: React.FC<ItemProps> = ({
   const fetchPlaylist = useCallback(async () => {
     if (id === FAVORITES_ID) {
       if (!favorites || !favorites.songs?.length) return null;
-      return {
-        id: FAVORITES_ID,
-        title: favorites.title ?? 'Favorites',
-        cover: { kind: 'special', name: 'heart' },
-        subtext: 'Playlist',
-        songs: favorites.songs,
-      } as Playlist;
+      return buildFavoritesPlaylist(favorites.songs);
     }
 
     return queryClient.fetchQuery({
       queryKey: [QueryKeys.Playlist, id],
       queryFn: () => api.playlists.get(id),
-      staleTime: 2 * 60 * 1000,
+      staleTime: staleTime.playlists,
     });
   }, [id, favorites, api, queryClient]);
 
@@ -156,6 +152,16 @@ const PlaylistItem: React.FC<ItemProps> = ({
   const infoRows: InfoRow[] = useMemo(() => {
     if (!playlistInfo) return [];
     return [
+      {
+        id: 'changed',
+        label: 'Last changed',
+        value: new Date(playlistInfo.changed).toDateString()
+      },
+      {
+        id: 'created',
+        label: 'Created',
+        value: new Date(playlistInfo.created).toDateString()
+      },
       {
         id: 'songs',
         label: 'Songs',

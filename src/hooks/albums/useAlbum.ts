@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { QueryKeys } from '@/enums/queryKeys';
 import { Album } from '@/types';
 import { useApi } from '@/api';
+import { staleTime } from '@/constants/staleTime';
 
 type UseAlbumResult = {
   album: Album | null;
@@ -16,7 +17,7 @@ export function useAlbum(id: string): UseAlbumResult {
     queryKey: [QueryKeys.Album, id],
     queryFn: () => api.albums.get(id),
     enabled: !!id,
-    staleTime: 5 * 60 * 1000,
+    staleTime: staleTime.albums,
   });
 
   return {

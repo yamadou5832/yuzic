@@ -9,6 +9,7 @@ export interface AlbumBase {
     subtext: string;
     artist: ArtistBase;
     year: number;
+    genres: string[];
     userPlayCount: number;
 }
 

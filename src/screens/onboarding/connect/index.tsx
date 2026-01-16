@@ -121,14 +121,29 @@ export default function Connect() {
 
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: '#000' }}>
-            <KeyboardAvoidingView
+            <View
                 style={{ flex: 1 }}
-                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
             >
                 <View
                     style={styles.mainContent}
                 >
                     <Text style={styles.title}>Connect to your Server</Text>
+
+                    <Text style={styles.subtitle}>Enter your server URL (http/https)</Text>
+
+                    <TextInput
+                        style={styles.input}
+                        placeholder={'https://navidrome.example.com'}
+                        placeholderTextColor="#888"
+                        value={localServerUrl}
+                        onChangeText={setLocalServerUrl}
+                        autoCapitalize="none"
+                        autoCorrect={false}
+                        keyboardAppearance="dark"
+                        keyboardType="url"
+                        returnKeyType="next"
+                        onSubmitEditing={handleNext}
+                    />
 
                     <View style={styles.serverTypeContainer}>
                         {(['navidrome', 'jellyfin'] as const).map((type) => {
@@ -168,26 +183,6 @@ export default function Connect() {
                                 : 'A full-featured media server for music, movies, and TV.'}
                         </Text>
                     )}
-
-                    <Text style={styles.subtitle}>Enter your server URL (http/https)</Text>
-
-                    <TextInput
-                        style={styles.input}
-                        placeholder={
-                            selectedType === 'jellyfin'
-                                ? 'https://jellyfin.example.com'
-                                : 'https://navidrome.example.com'
-                        }
-                        placeholderTextColor="#888"
-                        value={localServerUrl}
-                        onChangeText={setLocalServerUrl}
-                        autoCapitalize="none"
-                        autoCorrect={false}
-                        keyboardAppearance="dark"
-                        keyboardType="url"
-                        returnKeyType="next"
-                        onSubmitEditing={handleNext}
-                    />
                 </View>
 
                 <View style={styles.buttonContainer}>
@@ -219,7 +214,7 @@ export default function Connect() {
                         </Text>
                     </TouchableOpacity>
                 </View>
-            </KeyboardAvoidingView>
+            </View>
         </SafeAreaView>
     );
 }
@@ -227,9 +222,8 @@ export default function Connect() {
 const styles = StyleSheet.create({
     mainContent: {
         flexGrow: 1,
-        justifyContent: 'center',
         paddingHorizontal: 20,
-        marginTop: 20,
+        marginTop: 40,
     },
     loadingContainer: {
         flex: 1,
