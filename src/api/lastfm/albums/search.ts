@@ -18,8 +18,7 @@ const normalizeLastFmAlbum = (album: any): AlbumBase => ({
     subtext: 'Artist',
   },
   year: 2000,
-  genres: [],
-  userPlayCount: 0,
+  genres: []
 });
 
 export const searchAlbums = async (

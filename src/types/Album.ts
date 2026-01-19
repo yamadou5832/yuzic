@@ -10,7 +10,6 @@ export interface AlbumBase {
     artist: ArtistBase;
     year: number;
     genres: string[];
-    userPlayCount: number;
 }
 
 export interface Album extends AlbumBase {

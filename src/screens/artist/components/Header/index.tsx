@@ -116,8 +116,7 @@ const ArtistHeader: React.FC<Props> = ({ artist }) => {
         songs: artistSongs,
         subtext: 'Playlist',
         changed: new Date('1995-12-17T03:24:00'),
-        created: new Date('1995-12-17T03:24:00'),
-        userPlayCount: 0,
+        created: new Date('1995-12-17T03:24:00')
       },
       shuffle
     );

@@ -45,12 +45,6 @@ const ArtistContent: React.FC<Props> = ({ artist }) => {
       isExternal: false,
     }));
 
-    if (!lastfmConfig) {
-      return owned.sort(
-        (a, b) => (b.userPlayCount ?? 0) - (a.userPlayCount ?? 0)
-      );
-    }
-
     const ownedMap = new Map(
       owned.map(a => [a.title.toLowerCase(), true])
     );
@@ -59,9 +53,7 @@ const ArtistContent: React.FC<Props> = ({ artist }) => {
       .filter(a => !ownedMap.has(a.title.toLowerCase()))
       .map(a => ({ ...a, isExternal: true }));
 
-    return [...owned, ...external].sort(
-      (a, b) => (b.userPlayCount ?? 0) - (a.userPlayCount ?? 0)
-    );
+    return [...owned, ...external];
   }, [artist.ownedAlbums, lastfmData?.albums, lastfmConfig]);
 
   const navigateToAlbum = (album: CombinedAlbum) => {

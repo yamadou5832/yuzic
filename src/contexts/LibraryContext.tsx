@@ -21,6 +21,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { QueryKeys } from "@/enums/queryKeys";
 import { FAVORITES_ID } from "@/constants/favorites";
 import { useExplore } from "./ExploreContext";
+import { selectLastfmConfig } from "@/utils/redux/selectors/lastfmSelectors";
 
 interface LibraryContextType {
     fetchLibrary: (force?: boolean) => Promise<void>;
@@ -67,6 +68,7 @@ export const LibraryProvider = ({ children }: { children: ReactNode }) => {
 
     const isLibraryFetchedRef = useRef(false);
     const [isLoading, setIsLoading] = useState(false);
+    const lastfmConfig = useSelector(selectLastfmConfig);
 
     const albums = useSelector(selectAlbumList);
     const artists = useSelector(selectArtistList);
@@ -97,7 +99,7 @@ export const LibraryProvider = ({ children }: { children: ReactNode }) => {
                 .slice(0, 5)
                 .map(a => a.name);
 
-            if (seedArtists.length > 0) {
+            if (seedArtists.length > 0 && lastfmConfig.apiKey) {
                 refresh(seedArtists);
             }
         } catch (e) {
