@@ -28,6 +28,11 @@ async function normalizeAlbum(
       title: a.Name ?? "Unknown Album",
       subtext: `Album • ${artist.name}`,
       artist,
+      year: a.ProductionYear,
+      genres: (a.Genres ?? [])
+      .flatMap((g: string) => g.split(";"))
+      .map((g: string) => g.trim())
+      .filter(Boolean),
       userPlayCount: a.UserData.PlayCount ?? 0,
     };
   } catch (error) {

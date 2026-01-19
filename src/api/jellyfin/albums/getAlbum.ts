@@ -34,9 +34,9 @@ async function normalizeAlbum(
   const a = raw?.Items?.[0];
   if (!a) return null;
 
-    const cover: CoverSource = a.Id
-      ? { kind: "jellyfin", itemId: a.Id }
-      : { kind: "none" };
+  const cover: CoverSource = a.Id
+    ? { kind: "jellyfin", itemId: a.Id }
+    : { kind: "none" };
 
   const artist: Artist | null = await getArtist(serverUrl, token, a.AlbumArtists[0].Id)
   if (!artist) return null;
@@ -45,9 +45,14 @@ async function normalizeAlbum(
     id: a.Id,
     cover,
     title: a.Name,
-    subtext: `Album • ${artist.name}`,
+    subtext: "",
     artist,
+    year: a.ProductionYear,
     songs: [],
+    genres: (a.Genres ?? [])
+      .flatMap((g: string) => g.split(";"))
+      .map((g: string) => g.trim())
+      .filter(Boolean),
     userPlayCount: a.UserData.PlayCount,
   };
 }

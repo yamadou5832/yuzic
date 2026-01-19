@@ -1,6 +1,6 @@
-import { CoverSource, Playlist } from "@/types";
+import { CoverSource, PlaylistBase } from "@/types";
 
-export type GetPlaylistsResult = Playlist[];
+export type GetPlaylistsResult = PlaylistBase[];
 
 async function fetchGetPlaylists(
   serverUrl: string,
@@ -27,10 +27,8 @@ async function fetchGetPlaylists(
 }
 
 function normalizePlaylistEntry(
-  p: any,
-  serverUrl: string,
-  token: string
-): Playlist {
+  p: any
+): PlaylistBase {
   const id = p.Id;
 
   const cover: CoverSource = id
@@ -42,7 +40,8 @@ function normalizePlaylistEntry(
     cover,
     title: p.Name ?? "Playlist",
     subtext: "Playlist",
-    songs: [],
+    changed: new Date(p.DateLastMediaAdded),
+    created: new Date(p.DateCreated)
   };
 }
 
@@ -54,6 +53,6 @@ export async function getPlaylists(
   const raw = await fetchGetPlaylists(serverUrl, userId, token);
   const items = raw?.Items ?? [];
   return items.map((p: any) =>
-    normalizePlaylistEntry(p, serverUrl, token)
+    normalizePlaylistEntry(p)
   );
 }

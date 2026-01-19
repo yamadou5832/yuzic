@@ -52,6 +52,8 @@ export async function getPlaylist(
       : { kind: "none" },
     title: playlist.name ?? "Playlist",
     subtext: `Playlist • ${songs.length} songs`,
+    changed: new Date(playlist.changed),
+    created: new Date(playlist.created),
     songs
   };
 }

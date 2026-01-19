@@ -18,6 +18,7 @@ import ContextMenuModal, {
 } from '@/components/ContextMenuModal';
 import InfoModal, { InfoRow } from '@/components/InfoModal';
 import { useTheme } from '@/hooks/useTheme';
+import { staleTime } from '@/constants/staleTime';
 
 interface ItemProps {
   id: string;
@@ -54,7 +55,7 @@ const ArtistItem: React.FC<ItemProps> = ({
     return queryClient.fetchQuery({
       queryKey: [QueryKeys.Artist, id],
       queryFn: () => api.artists.get(id),
-      staleTime: 10 * 60 * 1000,
+      staleTime: staleTime.artists,
     });
   }, [api, queryClient, id]);
 
@@ -71,7 +72,7 @@ const ArtistItem: React.FC<ItemProps> = ({
           queryClient.fetchQuery({
             queryKey: [QueryKeys.Album, albumId],
             queryFn: () => api.albums.get(albumId),
-            staleTime: 5 * 60 * 1000,
+            staleTime: staleTime.albums,
           })
         )
       );
@@ -87,6 +88,8 @@ const ArtistItem: React.FC<ItemProps> = ({
           artist,
           cover: artist.cover,
           subtext: 'Artist',
+          changed: new Date("1995-12-17T03:24:00"),
+          created: new Date("1995-12-17T03:24:00"),
           userPlayCount: 0,
           songs,
         },
@@ -110,12 +113,7 @@ const ArtistItem: React.FC<ItemProps> = ({
         id: 'albums',
         label: 'Albums',
         value: artistInfo.ownedAlbums.length,
-      },
-      {
-        id: 'externalAlbums',
-        label: 'External Albums',
-        value: artistInfo.externalAlbums.length,
-      },
+      }
     ];
   }, [artistInfo]);
 

@@ -35,8 +35,8 @@ export async function getPlaylists(
       cover,
       title: pl.name ?? "Playlist",
       subtext: "Playlist",
-      songs: [],
-      songCount: pl.songCount
+      changed: new Date(pl.changed),
+      created: new Date(pl.created),
     };
   });
 }

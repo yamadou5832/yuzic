@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { QueryKeys } from '@/enums/queryKeys';
 import { Playlist } from '@/types';
 import { useApi } from '@/api';
+import { staleTime } from '@/constants/staleTime';
 
 type UsePlaylistResult = {
   playlist: Playlist | null;
@@ -16,7 +17,7 @@ export function usePlaylist(id: string): UsePlaylistResult {
     queryKey: [QueryKeys.Playlist, id],
     queryFn: () => api.playlists.get(id),
     enabled: !!id,
-    staleTime: 2 * 60 * 1000,
+    staleTime: staleTime.playlists,
   });
 
   return {

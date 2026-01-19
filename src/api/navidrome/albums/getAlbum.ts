@@ -58,6 +58,8 @@ export async function getAlbum(
         ? `Album • ${artist.name}`
         : `Single • ${artist.name}`,
     artist,
+    year: album.year,
+    genres: album.genre ? [album.genre] : [],
     userPlayCount: 0,
     songs,
   };

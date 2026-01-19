@@ -20,6 +20,7 @@ import { selectAudioQuality } from '@/utils/redux/selectors/settingsSelectors';
 import { useQueryClient } from '@tanstack/react-query';
 import { useApi } from '@/api';
 import { QueryKeys } from '@/enums/queryKeys';
+import { staleTime } from '@/constants/staleTime';
 
 type DownloadContextType = {
     downloadAlbumById: (albumId: string) => Promise<void>;
@@ -162,7 +163,7 @@ export const DownloadProvider: React.FC<{ children: ReactNode }> = ({ children }
         const album: Album = await queryClient.fetchQuery({
             queryKey: [QueryKeys.Album, albumId],
             queryFn: () => api.albums.get(albumId),
-            staleTime: 5 * 60 * 1000,
+            staleTime: staleTime.albums,
         });
 
         dispatch(markAlbum(albumId));
@@ -187,7 +188,7 @@ export const DownloadProvider: React.FC<{ children: ReactNode }> = ({ children }
         const playlist: Playlist = await queryClient.fetchQuery({
             queryKey: [QueryKeys.Playlist, playlistId],
             queryFn: () => api.playlists.get(playlistId),
-            staleTime: 2 * 60 * 1000,
+            staleTime: staleTime.playlists,
         });
 
         dispatch(markPlaylist(playlistId));
