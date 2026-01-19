@@ -6,34 +6,36 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-import { Album } from '@/types';
+import { useSelector } from 'react-redux';
 import AlbumOptions from '@/components/options/AlbumOptions';
 import ExternalAlbumOptions from '@/components/options/ExternalAlbumOptions';
-import { useSelector } from 'react-redux';
 import { selectThemeColor } from '@/utils/redux/selectors/settingsSelectors';
 import { MediaImage } from '@/components/MediaImage';
 import { useTheme } from '@/hooks/useTheme';
+import { AlbumBase, ExternalAlbumBase } from '@/types';
 
-type CombinedAlbum = Album & {
-  isExternal?: boolean;
-};
+type AlbumRowItem =
+  | (AlbumBase & { source: 'owned' })
+  | (ExternalAlbumBase & { source: 'external' });
 
 type Props = {
-  album: CombinedAlbum;
+  album: AlbumRowItem;
   artistName: string;
-  onPress?: (album: CombinedAlbum) => void;
+  onPress?: (album: AlbumRowItem) => void;
 };
 
 const AlbumRow: React.FC<Props> = ({ album, artistName, onPress }) => {
   const { isDarkMode } = useTheme();
   const themeColor = useSelector(selectThemeColor);
 
+  const isExternal = album.source === 'external';
+
   return (
     <View style={styles.wrapper}>
       <View style={styles.albumItem}>
         <TouchableOpacity
           style={styles.albumContent}
-          disabled={album.isExternal}
+          disabled={isExternal}
           onPress={() => onPress?.(album)}
         >
           <MediaImage
@@ -66,7 +68,7 @@ const AlbumRow: React.FC<Props> = ({ album, artistName, onPress }) => {
         </TouchableOpacity>
 
         <View style={styles.optionsContainer}>
-          {!album.isExternal && (
+          {!isExternal && (
             <MaterialIcons
               name="check-circle"
               size={20}
@@ -75,7 +77,7 @@ const AlbumRow: React.FC<Props> = ({ album, artistName, onPress }) => {
             />
           )}
 
-          {album.isExternal ? (
+          {isExternal ? (
             <ExternalAlbumOptions
               selectedAlbumTitle={album.title}
               selectedAlbumArtist={artistName}
@@ -88,6 +90,8 @@ const AlbumRow: React.FC<Props> = ({ album, artistName, onPress }) => {
     </View>
   );
 };
+
+export default AlbumRow;
 
 const styles = StyleSheet.create({
   wrapper: {
@@ -103,18 +107,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 16,
   },
-
   albumContent: {
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
   },
-
   albumTextContainer: {
     flex: 1,
     marginLeft: 12,
   },
-
   albumTitle: {
     fontSize: 16,
     fontWeight: '600',
@@ -123,7 +124,6 @@ const styles = StyleSheet.create({
   albumTitleDark: {
     color: '#fff',
   },
-
   albumSubtext: {
     fontSize: 14,
     color: '#666',
@@ -132,11 +132,8 @@ const styles = StyleSheet.create({
   albumSubtextDark: {
     color: '#aaa',
   },
-
   optionsContainer: {
     flexDirection: 'row',
     alignItems: 'center',
   },
 });
-
-export default AlbumRow;

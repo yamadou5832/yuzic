@@ -10,3 +10,12 @@ export interface Song {
     streamUrl: string;
     albumId: string;
 }
+
+export interface ExternalSong {
+    id: string;
+    title: string;
+    artist: string;
+    cover: CoverSource;
+    duration: string;
+    albumId: string;
+}

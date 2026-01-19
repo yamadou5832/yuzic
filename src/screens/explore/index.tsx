@@ -6,6 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
+import { FlashList } from '@shopify/flash-list';
 import { useTheme } from '@/hooks/useTheme';
 import { MediaImage } from '@/components/MediaImage';
 import { useGridLayout } from '@/hooks/useGridLayout';
@@ -42,7 +43,7 @@ function Section({
   );
 }
 
-function MediaTile({
+const MediaTile = React.memo(function MediaTile({
   cover,
   title,
   subtitle,
@@ -93,9 +94,9 @@ function MediaTile({
       </Text>
     </Wrapper>
   );
-}
+});
 
-function PlaceholderTile({
+const PlaceholderTile = React.memo(function PlaceholderTile({
   size,
   radius,
   isDarkMode,
@@ -132,17 +133,22 @@ function PlaceholderTile({
       />
     </View>
   );
-}
+});
 
 export default function Explore({ onBack }: Props) {
   const { isDarkMode } = useTheme();
   const navigation = useNavigation();
   const { artists, albums } = useExplore();
 
-  const {
-    gridItemWidth,
-    gridGap,
-  } = useGridLayout();
+  const { gridItemWidth, gridGap } = useGridLayout();
+
+  const artistData = artists.length
+    ? artists
+    : Array.from({ length: 6 });
+
+  const albumData = albums.length
+    ? albums
+    : Array.from({ length: 6 });
 
   return (
     <ScrollView
@@ -154,75 +160,81 @@ export default function Explore({ onBack }: Props) {
       showsVerticalScrollIndicator={false}
     >
       <Section title="Artists for You" isDarkMode={isDarkMode}>
-        <ScrollView
+        <FlashList
           horizontal
+          data={artistData}
+          keyExtractor={(item, index) =>
+            item?.id ?? `placeholder-artist-${index}`
+          }
+          estimatedItemSize={gridItemWidth}
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={{
             paddingHorizontal: H_PADDING,
-            gap: gridGap,
           }}
-        >
-          {(artists.length ? artists : Array.from({ length: 6 })).map(
-            (artist: any, i: number) =>
-              artist?.id ? (
-                <MediaTile
-                  key={artist.id}
-                  cover={artist.cover}
-                  title={artist.name}
-                  subtitle="Artist"
-                  size={gridItemWidth}
-                  radius={gridItemWidth / 2}
-                  isDarkMode={isDarkMode}
-                  onPress={() =>
-                    navigation.navigate('artistView', { id: artist.id })
-                  }
-                />
-              ) : (
-                <PlaceholderTile
-                  key={i}
-                  size={gridItemWidth}
-                  radius={gridItemWidth / 2}
-                  isDarkMode={isDarkMode}
-                />
-              )
+          ItemSeparatorComponent={() => (
+            <View style={{ width: gridGap }} />
           )}
-        </ScrollView>
+          renderItem={({ item }) =>
+            item?.id ? (
+              <MediaTile
+                cover={item.cover}
+                title={item.name}
+                subtitle="Artist"
+                size={gridItemWidth}
+                radius={gridItemWidth / 2}
+                isDarkMode={isDarkMode}
+                onPress={() =>
+                  navigation.navigate('artistView', { id: item.id })
+                }
+              />
+            ) : (
+              <PlaceholderTile
+                size={gridItemWidth}
+                radius={gridItemWidth / 2}
+                isDarkMode={isDarkMode}
+              />
+            )
+          }
+        />
       </Section>
 
       <Section title="Albums You Might Like" isDarkMode={isDarkMode}>
-        <ScrollView
+        <FlashList
           horizontal
+          data={albumData}
+          keyExtractor={(item, index) =>
+            item?.id ?? `placeholder-album-${index}`
+          }
+          estimatedItemSize={gridItemWidth}
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={{
             paddingHorizontal: H_PADDING,
-            gap: gridGap,
           }}
-        >
-          {(albums.length ? albums : Array.from({ length: 6 })).map(
-            (album: any, i: number) =>
-              album?.id ? (
-                <MediaTile
-                  key={album.id}
-                  cover={album.cover}
-                  title={album.title}
-                  subtitle={album.subtext}
-                  size={gridItemWidth}
-                  radius={12}
-                  isDarkMode={isDarkMode}
-                  onPress={() =>
-                    navigation.navigate('albumView', { id: album.id })
-                  }
-                />
-              ) : (
-                <PlaceholderTile
-                  key={i}
-                  size={gridItemWidth}
-                  radius={12}
-                  isDarkMode={isDarkMode}
-                />
-              )
+          ItemSeparatorComponent={() => (
+            <View style={{ width: gridGap }} />
           )}
-        </ScrollView>
+          renderItem={({ item }) =>
+            item?.id ? (
+              <MediaTile
+                cover={item.cover}
+                title={item.title}
+                subtitle={item.subtext}
+                size={gridItemWidth}
+                radius={12}
+                isDarkMode={isDarkMode}
+                onPress={() =>
+                  navigation.navigate('albumView', { id: item.id })
+                }
+              />
+            ) : (
+              <PlaceholderTile
+                size={gridItemWidth}
+                radius={12}
+                isDarkMode={isDarkMode}
+              />
+            )
+          }
+        />
       </Section>
     </ScrollView>
   );

@@ -4,7 +4,11 @@ import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { useQuery } from '@tanstack/react-query';
 
-import { Artist, Album, AlbumBase } from '@/types';
+import {
+  Artist,
+  AlbumBase,
+  ExternalAlbumBase,
+} from '@/types';
 import AlbumRow from '@/components/rows/AlbumRow';
 import Header from '../Header';
 
@@ -18,9 +22,9 @@ type Props = {
   artist: Artist;
 };
 
-type CombinedAlbum = (Album | AlbumBase) & {
-  isExternal?: boolean;
-};
+type CombinedAlbum =
+  | (AlbumBase & { source: 'owned' })
+  | (ExternalAlbumBase & { source: 'external' });
 
 const ESTIMATED_ROW_HEIGHT = 80;
 
@@ -34,30 +38,33 @@ const ArtistContent: React.FC<Props> = ({ artist }) => {
     queryFn: () =>
       lastfmConfig
         ? lastfm.getArtistInfo(lastfmConfig, artist.name)
-        : null,
+        : Promise.resolve(null),
     staleTime: staleTime.lastfm,
     enabled: !!lastfmConfig,
   });
 
   const mergedAlbums: CombinedAlbum[] = useMemo(() => {
-    const owned = artist.ownedAlbums.map(a => ({
+    const owned: CombinedAlbum[] = artist.ownedAlbums.map(a => ({
       ...a,
-      isExternal: false,
+      source: 'owned',
     }));
 
-    const ownedMap = new Map(
-      owned.map(a => [a.title.toLowerCase(), true])
+    const ownedTitles = new Set(
+      owned.map(a => a.title.toLowerCase())
     );
 
-    const external = (lastfmData?.albums ?? [])
-      .filter(a => !ownedMap.has(a.title.toLowerCase()))
-      .map(a => ({ ...a, isExternal: true }));
+    const external: CombinedAlbum[] = (lastfmData?.albums ?? [])
+      .filter(a => !ownedTitles.has(a.title.toLowerCase()))
+      .map(a => ({
+        ...a,
+        source: 'external',
+      }));
 
     return [...owned, ...external];
-  }, [artist.ownedAlbums, lastfmData?.albums, lastfmConfig]);
+  }, [artist.ownedAlbums, lastfmData?.albums]);
 
   const navigateToAlbum = (album: CombinedAlbum) => {
-    if (album.isExternal) return;
+    if (album.source === 'external') return;
     navigation.navigate('albumView', { id: album.id });
   };
 

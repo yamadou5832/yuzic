@@ -63,7 +63,7 @@ const Search = () => {
         }, 300);
     };
 
-    const navigateToResult = (result) => {
+    const navigateToResult = (result: SearchResult) => {
         const { id, type } = result;
         switch (type) {
             case 'album':
@@ -75,20 +75,33 @@ const Search = () => {
             case 'artist':
                 navigation.navigate('artistView', { id });
                 break;
-            default:
-                console.warn(`Unknown search type: ${type}`);
         }
     };
 
-    const SkeletonItem = () => (
-        <View style={[styles.resultItem]}>
-            <View style={[styles.skeletonImage, isDarkMode && styles.skeletonImageDark]} />
+    const SkeletonItem = React.useCallback(() => (
+        <View style={styles.resultItem}>
+            <View
+                style={[
+                    styles.skeletonImage,
+                    isDarkMode && styles.skeletonImageDark,
+                ]}
+            />
             <View style={styles.resultTextContainer}>
-                <View style={[styles.skeletonTitle, isDarkMode && styles.skeletonTitleDark]} />
-                <View style={[styles.skeletonSubtext, isDarkMode && styles.skeletonSubtextDark]} />
+                <View
+                    style={[
+                        styles.skeletonTitle,
+                        isDarkMode && styles.skeletonTitleDark,
+                    ]}
+                />
+                <View
+                    style={[
+                        styles.skeletonSubtext,
+                        isDarkMode && styles.skeletonSubtextDark,
+                    ]}
+                />
             </View>
         </View>
-    );
+    ), [isDarkMode]);
 
     return (
         <SafeAreaView style={[styles.container, isDarkMode && styles.containerDark]}>
@@ -137,7 +150,7 @@ const Search = () => {
             <ScrollView contentContainerStyle={styles.scrollContent}>
                 {isLoading
                     ? [...Array(8)].map((_, i) => <SkeletonItem key={i} />)
-                    : searchResults.map((result) => (
+                    : searchResults.map((result: SearchResult) => (
                         <View key={`${result.type}:${result.id}`} style={styles.resultItem}>
                             <TouchableOpacity
                                 style={styles.resultContent}

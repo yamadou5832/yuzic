@@ -1,29 +1,31 @@
-import { AlbumBase, LastfmConfig } from '@/types';
+import { ExternalAlbumBase, LastfmConfig } from '@/types';
 import { createLastfmClient } from '../client';
+import { nanoid } from 'nanoid/non-secure';
 
 export type GetArtistInfoResult = {
-  albums: AlbumBase[];
+  albums: ExternalAlbumBase[];
   bio: string;
   artistUrl: string;
   globalPlayCount: number;
 };
 
-const normalizeLastFmAlbum = (album: any): AlbumBase => ({
-  id: album.mbid || album.name,
+const normalizeLastFmAlbum = (album: any): ExternalAlbumBase => ({
+  id: album.mbid || `lastfm:${nanoid()}`,
   title: album.name,
-  cover: {
-    kind: 'lastfm',
-    url: album.image?.find((i: any) => i.size === 'large')?.['#text'] ?? '',
-  },
+  artist: album.artist?.name ?? album.artist ?? '',
   subtext: album.artist?.name ?? album.artist ?? '',
-  artist: {
-    id: '',
-    cover: { kind: 'none' },
-    name: album.artist?.name ?? album.artist ?? '',
-    subtext: 'Artist',
-  },
-  year: 2000,
-  genres: []
+  cover:
+    album.image?.find((i: any) => i.size === 'extralarge')?.['#text']
+      ? {
+          kind: 'lastfm',
+          url: album.image.find((i: any) => i.size === 'extralarge')['#text'],
+        }
+      : album.image?.find((i: any) => i.size === 'large')?.['#text']
+      ? {
+          kind: 'lastfm',
+          url: album.image.find((i: any) => i.size === 'large')['#text'],
+        }
+      : { kind: 'none' },
 });
 
 export const getArtistInfo = async (
@@ -34,9 +36,7 @@ export const getArtistInfo = async (
     const { request } = createLastfmClient(config);
 
     const [albumsRes, infoRes] = await Promise.all([
-      request<{
-        topalbums?: { album?: any[] };
-      }>({
+      request<{ topalbums?: { album?: any[] } }>({
         method: 'artist.gettopalbums',
         artist: artistName,
       }),
@@ -52,18 +52,19 @@ export const getArtistInfo = async (
       }),
     ]);
 
-    const albums = Array.isArray(albumsRes.topalbums?.album)
-      ? albumsRes.topalbums!.album.map(normalizeLastFmAlbum)
-      : [];
-
     return {
-      albums,
+      albums: Array.isArray(albumsRes.topalbums?.album)
+        ? albumsRes.topalbums.album.map(normalizeLastFmAlbum)
+        : [],
       bio: infoRes.artist?.bio?.summary ?? '',
       artistUrl: infoRes.artist?.url ?? '',
       globalPlayCount: Number(infoRes.artist?.stats?.playcount ?? 0),
     };
   } catch (error) {
-    console.warn(`❌ Failed to fetch Last.fm data for "${artistName}":`, error);
+    console.warn(
+      `❌ Failed to fetch Last.fm data for "${artistName}":`,
+      error
+    );
     return {
       albums: [],
       bio: '',

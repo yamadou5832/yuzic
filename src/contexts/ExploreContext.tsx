@@ -8,13 +8,16 @@ import React, {
 } from 'react';
 import { useSelector } from 'react-redux';
 
-import { ArtistBase, AlbumBase } from '@/types';
+import {
+  ExternalArtistBase,
+  ExternalAlbumBase,
+} from '@/types';
 import { selectLastfmConfig } from '@/utils/redux/selectors/lastfmSelectors';
 import * as lastfm from '@/api/lastfm';
 
 type ExploreContextType = {
-  artists: ArtistBase[];
-  albums: AlbumBase[];
+  artists: ExternalArtistBase[];
+  albums: ExternalAlbumBase[];
   isLoading: boolean;
   refresh: (seedArtists: string[]) => Promise<void>;
   clear: () => void;
@@ -39,8 +42,8 @@ type Props = {
 export const ExploreProvider: React.FC<Props> = ({ children }) => {
   const lastfmConfig = useSelector(selectLastfmConfig);
 
-  const [artists, setArtists] = useState<ArtistBase[]>([]);
-  const [albums, setAlbums] = useState<AlbumBase[]>([]);
+  const [artists, setArtists] = useState<ExternalArtistBase[]>([]);
+  const [albums, setAlbums] = useState<ExternalAlbumBase[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
   const clear = useCallback(() => {
@@ -58,6 +61,7 @@ export const ExploreProvider: React.FC<Props> = ({ children }) => {
       setIsLoading(true);
 
       try {
+
         const similarArtistsResults = await Promise.all(
           seedArtists.map(name =>
             lastfm.getSimilarArtists(lastfmConfig, name, 6)
@@ -66,10 +70,18 @@ export const ExploreProvider: React.FC<Props> = ({ children }) => {
 
         const flattenedArtists = similarArtistsResults.flat();
 
-        const uniqueArtistsMap = new Map<string, ArtistBase>();
+        const uniqueArtistsMap = new Map<string, ExternalArtistBase>();
+
         for (const artist of flattenedArtists) {
-          if (!uniqueArtistsMap.has(artist.name.toLowerCase())) {
-            uniqueArtistsMap.set(artist.name.toLowerCase(), artist);
+          const key = artist.name.toLowerCase();
+
+          if (!uniqueArtistsMap.has(key)) {
+            uniqueArtistsMap.set(key, {
+              id: artist.id,
+              name: artist.name,
+              cover: artist.cover,
+              subtext: 'Artist',
+            });
           }
         }
 
@@ -89,9 +101,10 @@ export const ExploreProvider: React.FC<Props> = ({ children }) => {
           r => r.albums
         );
 
-        const uniqueAlbumsMap = new Map<string, AlbumBase>();
+        const uniqueAlbumsMap = new Map<string, ExternalAlbumBase>();
+
         for (const album of flattenedAlbums) {
-          const key = `${album.artist.name}-${album.title}`.toLowerCase();
+          const key = `${album.artist}-${album.title}`.toLowerCase();
           if (!uniqueAlbumsMap.has(key)) {
             uniqueAlbumsMap.set(key, album);
           }
@@ -101,10 +114,8 @@ export const ExploreProvider: React.FC<Props> = ({ children }) => {
           uniqueAlbumsMap.values()
         ).slice(0, 24);
 
-        console.log(curatedAlbums[0].year)
-
         setAlbums(curatedAlbums);
-      } catch (e) {
+      } catch {
         clear();
       } finally {
         setIsLoading(false);
