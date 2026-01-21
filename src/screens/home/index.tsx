@@ -29,7 +29,7 @@ import LibraryContent from './components/Content';
 import Explore from '@/screens/explore';
 import { useTheme } from '@/hooks/useTheme';
 import { useGridLayout } from '@/hooks/useGridLayout';
-import { selectLastfmConfig } from '@/utils/redux/selectors/lastfmSelectors';
+import { selectListenBrainzConfig } from '@/utils/redux/selectors/listenbrainzSelectors';
 import { toast } from '@backpackapp-io/react-native-toast';
 
 export default function HomeScreen() {
@@ -37,7 +37,7 @@ export default function HomeScreen() {
     const router = useRouter();
     const dispatch = useDispatch();
 
-    const lastfmConfig = useSelector(selectLastfmConfig);
+    const listenbrainzConfig = useSelector(selectListenBrainzConfig);
     const activeServer = useSelector(selectActiveServer);
     const isAuthenticated = activeServer?.isAuthenticated;
     const username = activeServer?.username;
@@ -226,8 +226,8 @@ export default function HomeScreen() {
                 filters={filters}
                 onChange={setActiveFilter}
                 onExplorePress={() => {
-                    if (!lastfmConfig.apiKey) {
-                        toast.error('Connect Last.fm to use Explore');
+                    if (!listenbrainzConfig?.token) {
+                        toast.error('Connect ListenBrainz to use Explore');
                         return;
                     }
                     fadeTo(mode === 'explore' ? 'home' : 'explore');

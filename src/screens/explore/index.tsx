@@ -192,8 +192,7 @@ export default function Explore({ onBack }: Props) {
                 radius={14}
                 onPress={() =>
                   navigation.navigate('externalAlbumView', {
-                    album: item.title,
-                    artist: item.artist,
+                    albumId: item.id
                   })
                 }
               />

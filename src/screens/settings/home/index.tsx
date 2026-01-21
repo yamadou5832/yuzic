@@ -111,10 +111,10 @@ export default function Settings() {
                     {renderDivider()}
                     <TouchableOpacity
                         style={styles.row}
-                        onPress={() => router.push('/settings/lastfmView')}
+                        onPress={() => router.push('/settings/listenbrainzView')}
                     >
                         <Text style={[styles.rowText, isDarkMode && styles.rowTextDark]}>
-                            Last.fm
+                            ListenBrainz
                         </Text>
                         <MaterialIcons
                             name="chevron-right"
