@@ -35,8 +35,6 @@ export async function getSimilarArtists(
       }
     );
 
-    console.log(res)
-
     if (Array.isArray(res)) {
       return res;
     }

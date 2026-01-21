@@ -12,9 +12,11 @@ import {
   CoverSource,
   ExternalAlbumBase,
 } from '@/types';
-import { useLibrary } from './LibraryContext';
 
 import * as musicbrainz from '@/api/musicbrainz';
+import { useAlbums } from '@/hooks/albums';
+import { useArtists } from '@/hooks/artists';
+import { usePlaylists } from '@/hooks/playlists';
 
 interface SearchContextType {
   searchResults: SearchResult[];
@@ -55,7 +57,9 @@ export const useSearch = () => {
 export const SearchProvider: React.FC<SearchProviderProps> = ({
   children,
 }) => {
-  const { albums, artists, playlists } = useLibrary();
+  const { albums } = useAlbums();
+  const { artists } = useArtists();
+  const { playlists } = usePlaylists();
 
   const [searchResults, setSearchResults] =
     useState<SearchResult[]>([]);
@@ -199,8 +203,8 @@ export const SearchProvider: React.FC<SearchProviderProps> = ({
           type === 'album'
             ? 1
             : type === 'artist'
-            ? 2
-            : 3;
+              ? 2
+              : 3;
 
         const diff =
           typePriority(a.type) -

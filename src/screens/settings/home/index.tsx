@@ -38,22 +38,22 @@ export default function Settings() {
             style={[styles.container, isDarkMode && styles.containerDark]}
         >
             <View style={[styles.headerContainer, isDarkMode && styles.headerContainerDark]}>
-    <TouchableOpacity onPress={() => router.back()}>
-        <Ionicons
-            name="chevron-back"
-            size={24}
-            color={isDarkMode ? '#fff' : '#1C1C1E'}
-        />
-    </TouchableOpacity>
+                <TouchableOpacity onPress={() => router.back()}>
+                    <Ionicons
+                        name="chevron-back"
+                        size={24}
+                        color={isDarkMode ? '#fff' : '#1C1C1E'}
+                    />
+                </TouchableOpacity>
 
-    <View pointerEvents="none" style={styles.headerTitleWrapper}>
-        <Text style={[styles.headerTitle, isDarkMode && styles.headerTitleDark]}>
-            Settings
-        </Text>
-    </View>
+                <View pointerEvents="none" style={styles.headerTitleWrapper}>
+                    <Text style={[styles.headerTitle, isDarkMode && styles.headerTitleDark]}>
+                        Settings
+                    </Text>
+                </View>
 
-    <View style={{ width: 24 }} />
-</View>
+                <View style={{ width: 24 }} />
+            </View>
 
             <ScrollView contentContainerStyle={styles.scrollContent}>
                 <View style={[styles.profileCard, isDarkMode && styles.profileCardDark]}>
@@ -263,12 +263,12 @@ const styles = StyleSheet.create({
     sectionDark: {
         backgroundColor: '#1C1C1E',
     },
-headerTitleWrapper: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    alignItems: 'center',
-},
+    headerTitleWrapper: {
+        position: 'absolute',
+        left: 0,
+        right: 0,
+        alignItems: 'center',
+    },
     row: {
         flexDirection: 'row',
         justifyContent: 'space-between',

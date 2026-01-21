@@ -4,6 +4,7 @@ import React, {
   useMemo,
   useState,
   useCallback,
+  useEffect,
   ReactNode,
 } from 'react';
 import { InteractionManager } from 'react-native';
@@ -16,6 +17,7 @@ import {
 import * as listenbrainz from '@/api/listenbrainz';
 import * as musicbrainz from '@/api/musicbrainz';
 import { resolveArtistMbid } from '@/utils/musicbrainz/resolveArtistMbid';
+import { useArtists } from '@/hooks/artists';
 
 const MIN_ARTISTS = 12;
 const MIN_ALBUMS = 12;
@@ -32,7 +34,6 @@ export type ExploreContextType = {
   artistPool: ExternalArtistBase[];
   albumPool: ExternalAlbumBase[];
   isLoading: boolean;
-  refresh: (seedArtists: ExploreSeedArtist[]) => Promise<void>;
   clear: () => void;
 };
 
@@ -53,16 +54,22 @@ type Props = {
 };
 
 export const ExploreProvider: React.FC<Props> = ({ children }) => {
+  const { artists } = useArtists();
+
   const [artistPool, setArtistPool] = useState<ExternalArtistBase[]>([]);
   const [albumPool, setAlbumPool] = useState<ExternalAlbumBase[]>([]);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const clear = useCallback(() => {
     setArtistPool([]);
     setAlbumPool([]);
   }, []);
 
-  const refresh = useCallback(
+  const refreshInternal = useCallback(
     async (seedArtists: ExploreSeedArtist[]) => {
+      if (!seedArtists.length) return;
+
+      setIsRefreshing(true);
       clear();
 
       const seedMbids = (
@@ -75,7 +82,10 @@ export const ExploreProvider: React.FC<Props> = ({ children }) => {
         .filter((m): m is string => !!m)
         .slice(0, 2);
 
-      if (!seedMbids.length) return;
+      if (!seedMbids.length) {
+        setIsRefreshing(false);
+        return;
+      }
 
       const similar = (
         await Promise.all(
@@ -92,7 +102,7 @@ export const ExploreProvider: React.FC<Props> = ({ children }) => {
       );
 
       InteractionManager.runAfterInteractions(async () => {
-        const artists: ExternalArtistBase[] = [];
+        const discoveredArtists: ExternalArtistBase[] = [];
 
         await runSerial(
           artistMbids.slice(0, MAX_ARTISTS),
@@ -100,13 +110,13 @@ export const ExploreProvider: React.FC<Props> = ({ children }) => {
             const artist = await musicbrainz.getArtist(mbid);
             if (!artist) return;
 
-            artists.push(artist);
+            discoveredArtists.push(artist);
             setArtistPool(prev => mergeArtists(prev, [artist]));
           }
         );
 
         await runSerial(
-          artists.slice(0, MAX_ALBUM_ARTISTS),
+          discoveredArtists.slice(0, MAX_ALBUM_ARTISTS),
           async artist => {
             const albums =
               await musicbrainz.getArtistAlbums(
@@ -119,12 +129,31 @@ export const ExploreProvider: React.FC<Props> = ({ children }) => {
             );
           }
         );
+
+        setIsRefreshing(false);
       });
     },
     [clear]
   );
 
+  useEffect(() => {
+    if (!artists.length) {
+      clear();
+      return;
+    }
+
+    const seeds: ExploreSeedArtist[] = artists
+      .slice(0, 5)
+      .map(a => ({
+        id: a.id,
+        name: a.name,
+      }));
+
+    refreshInternal(seeds);
+  }, [artists.map(a => a.id).join(',')]);
+
   const isLoading =
+    isRefreshing ||
     artistPool.length < MIN_ARTISTS ||
     albumPool.length < MIN_ALBUMS;
 
@@ -133,10 +162,9 @@ export const ExploreProvider: React.FC<Props> = ({ children }) => {
       artistPool,
       albumPool,
       isLoading,
-      refresh,
       clear,
     }),
-    [artistPool, albumPool, isLoading, refresh, clear]
+    [artistPool, albumPool, isLoading, clear]
   );
 
   return (
