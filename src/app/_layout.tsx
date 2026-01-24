@@ -33,6 +33,8 @@ const queryClient = new QueryClient({
       retry: 1,
       refetchOnReconnect: true,
       refetchOnWindowFocus: false,
+      networkMode: 'offlineFirst', // Serve cached data immediately when offline
+      gcTime: Infinity, // Keep cached data in memory indefinitely for offline use
     },
   },
 });
