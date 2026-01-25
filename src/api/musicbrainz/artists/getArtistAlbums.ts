@@ -36,6 +36,7 @@ export async function getArtistAlbums(
       return ay - by;
     });
 
+    console.log(groups[0])
     return groups.slice(0, limit).map(rg =>
       normalizeReleaseGroup(rg, artistName)
     );

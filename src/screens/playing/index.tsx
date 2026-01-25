@@ -220,20 +220,20 @@ const PlayingScreen: React.FC<PlayingScreenProps> = ({
 
                         <View style={styles.centerContent}>
                             <PlayingMain
-                                width={isTablet ? 500 : 330}
+                                width={isTablet ? 500 : width - 48}
                                 onPressArtist={navigateToArtist}
                                 onPressOptions={() => songOptionsRef.current?.present()}
                                 onPressAdd={() => playlistRef.current?.present()}
                             />
 
-                            <View style={{ width: isTablet ? 500 : 330 }}>
+                            <View style={{ width: isTablet ? 500 : width - 48 }}>
                                 <Controls />
                             </View>
                         </View>
                     </Animated.View>
 
                 </View>
-                <View style={{ width: isTablet ? 500 : 330, marginTop: 24, bottom: insets.bottom + (Platform.OS === "ios" ? 12 : 12) }}>
+                <View style={{ width: isTablet ? 500 : width - 48, marginTop: 24, bottom: insets.bottom + (Platform.OS === "ios" ? 12 : 12) }}>
                     <BottomControls
                         lyricsAvailable={lyricsAvailable}
                         mode={mode}
