@@ -1,67 +1,91 @@
 import * as listenbrainz from '@/api/listenbrainz'
 import * as musicbrainz from '@/api/musicbrainz'
 import { resolveArtistMbid } from '@/utils/musicbrainz/resolveArtistMbid'
+import { getTopAlbumsForGenre } from '@/api/musicbrainz/genres/getTopAlbumsForGenre'
 import {
-  addArtist,
-  addAlbums,
+  addSimilarArtist,
+  addAlbumsToSimilarArtist,
+  addAlbumsToGenre,
   mapServerArtistToMbid,
+  markBootstrapped,
+  markSeedExpanded,
 } from '@/utils/redux/slices/exploreSlice'
 import { AppDispatch, RootState } from '@/utils/redux/store'
 
-const DELAY_MS = 2000
-const MAX_SIMILAR = 10
-const MAX_ARTISTS_TOTAL = 300
-const MAX_ALBUMS_TOTAL = 600
+const BOOTSTRAP_SIMILAR_ARTISTS = 20
+const INCREMENT_SIMILAR_ARTISTS = 4
+const REQUEST_DELAY_MS = 1000
+const SIMILAR_PER_SEED = 8
+const ALBUMS_PER_ARTIST = 3
+const GENRE_ALBUM_TARGET = 12
 
 type SeedArtist = {
   id?: string
   name: string
 }
 
+const sleep = (ms: number) =>
+  new Promise(resolve => setTimeout(resolve, ms))
+
 export class ExploreController {
   private running = false
-  private lastRun = 0
-  private expandedMbids = new Set<string>()
-  private albumFetchedMbids = new Set<string>()
+  private lastRequestAt = 0
+  private generation = 0
 
-  async tick(
+  invalidateSession() {
+    this.generation++
+    this.running = false
+  }
+
+  private async rateLimit() {
+    const now = Date.now()
+    const delta = now - this.lastRequestAt
+    if (delta < REQUEST_DELAY_MS) {
+      await sleep(REQUEST_DELAY_MS - delta)
+    }
+    this.lastRequestAt = Date.now()
+  }
+
+  private async fetchSimilarArtists(
     dispatch: AppDispatch,
     getState: () => RootState,
-    seeds: SeedArtist[]
+    seeds: SeedArtist[],
+    runGeneration: number
   ) {
-    const now = Date.now()
-    if (this.running) return
-    if (now - this.lastRun < DELAY_MS) return
-    if (!seeds.length) return
+    const explore = getState().explore
+    const existingCount = explore.similarArtists.length
 
-    const state = getState().explore
+    const desiredTotal = explore.bootstrapped
+      ? existingCount + INCREMENT_SIMILAR_ARTISTS
+      : BOOTSTRAP_SIMILAR_ARTISTS
 
-    if (
-      state.artists.length >= MAX_ARTISTS_TOTAL &&
-      state.albums.length >= MAX_ALBUMS_TOTAL
-    ) {
-      return
-    }
+    for (const seed of seeds) {
+      if (this.generation !== runGeneration) return
 
-    this.running = true
-    this.lastRun = now
+      if (
+        getState().explore.similarArtists.length >=
+        desiredTotal
+      ) {
+        break
+      }
 
-    try {
-      const seed =
-        seeds[Math.floor(Math.random() * seeds.length)]
-
-      let seedMbid =
+      let mbid =
         seed.id &&
-        state.serverArtistMbidMap[seed.id]
+        getState().explore.serverArtistMbidMap[
+        seed.id
+        ]
 
-      if (!seedMbid) {
+      if (!mbid) {
+        await this.rateLimit()
+        if (this.generation !== runGeneration) return
+
         const resolved = await resolveArtistMbid(
           seed.id,
           seed.name
         )
-        if (!resolved) return
+        if (!resolved) continue
 
-        seedMbid = resolved
+        mbid = resolved
 
         if (seed.id) {
           dispatch(
@@ -71,58 +95,143 @@ export class ExploreController {
             })
           )
         }
-
-        return
       }
 
-      if (this.expandedMbids.has(seedMbid)) {
-        return
+      if (getState().explore.expandedSeedMbids[mbid]) {
+        continue
       }
 
-      this.expandedMbids.add(seedMbid)
+      await this.rateLimit()
+      if (this.generation !== runGeneration) return
 
-      const similar = await listenbrainz.getSimilarArtists(
-        seedMbid,
-        { limit: MAX_SIMILAR }
-      )
+      const similar =
+        await listenbrainz.getSimilarArtists(
+          mbid,
+          { limit: SIMILAR_PER_SEED }
+        )
 
       for (const s of similar) {
-        if (
-          state.artists.some(a => a.id === s.artist_mbid)
-        )
-          continue
+        if (this.generation !== runGeneration) return
 
-        if (state.artists.length >= MAX_ARTISTS_TOTAL)
-          break
+        if (
+          getState().explore.similarArtists.some(
+            e => e.artist.id === s.artist_mbid
+          )
+        ) {
+          continue
+        }
+
+        await this.rateLimit()
+        if (this.generation !== runGeneration) return
 
         const artist = await musicbrainz.getArtist(
           s.artist_mbid
         )
         if (!artist) continue
 
-        dispatch(addArtist(artist))
+        dispatch(addSimilarArtist(artist))
+
+        await this.rateLimit()
+        if (this.generation !== runGeneration) return
+
+        const albums =
+          await musicbrainz.getArtistAlbums(
+            artist.id,
+            artist.name
+          )
+
+        dispatch(
+          addAlbumsToSimilarArtist({
+            artistId: artist.id,
+            albums: albums.slice(0, ALBUMS_PER_ARTIST),
+          })
+        )
 
         if (
-          state.albums.length < MAX_ALBUMS_TOTAL &&
-          !this.albumFetchedMbids.has(s.artist_mbid)
+          getState().explore.similarArtists.length >=
+          desiredTotal
         ) {
-          this.albumFetchedMbids.add(s.artist_mbid)
-
-          const albums =
-            await musicbrainz.getArtistAlbums(
-              artist.id,
-              artist.name
-            )
-
-          if (albums.length) {
-            dispatch(addAlbums(albums))
-          }
+          break
         }
+      }
 
-        break
+      dispatch(markSeedExpanded(mbid))
+    }
+  }
+
+  private async fetchGenres(
+    dispatch: AppDispatch,
+    getState: () => RootState,
+    runGeneration: number
+  ) {
+    const explore = getState().explore
+
+    for (const entry of explore.genres) {
+      if (this.generation !== runGeneration) return
+      if (entry.fetched) continue
+
+      await this.rateLimit()
+      if (this.generation !== runGeneration) return
+
+      const albums = await getTopAlbumsForGenre(
+        entry.genre,
+        GENRE_ALBUM_TARGET
+      )
+
+      dispatch(
+        addAlbumsToGenre({
+          genre: entry.genre,
+          albums,
+        })
+      )
+    }
+  }
+
+  async run(
+    dispatch: AppDispatch,
+    getState: () => RootState,
+    seeds: SeedArtist[]
+  ) {
+    if (this.running) return
+    if (!seeds.length) return
+
+    const state = getState()
+    const activeServer =
+      state.servers.servers.find(
+        s => s.id === state.servers.activeServerId
+      ) ?? null
+
+    if (!activeServer || !activeServer.isAuthenticated) {
+      return
+    }
+
+    const runGeneration = this.generation
+    this.running = true
+
+    try {
+      await this.fetchSimilarArtists(
+        dispatch,
+        getState,
+        seeds,
+        runGeneration
+      )
+
+      await this.fetchGenres(
+        dispatch,
+        getState,
+        runGeneration
+      )
+
+      if (
+        !getState().explore.bootstrapped &&
+        this.generation === runGeneration
+      ) {
+        dispatch(markBootstrapped())
       }
     } finally {
-      this.running = false
+      if (this.generation === runGeneration) {
+        this.running = false
+      }
     }
   }
 }

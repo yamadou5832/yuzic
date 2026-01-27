@@ -1,16 +1,16 @@
-// exploreSelectors.ts
 import { RootState } from '@/utils/redux/store'
 
-export const selectExploreArtists = (state: RootState) =>
-  state.explore.artists
+export const selectSimilarArtists = (state: RootState) =>
+  state.explore.similarArtists
 
-export const selectExploreAlbums = (state: RootState) =>
-  state.explore.albums
+export const selectExploreBootstrapped = (
+  state: RootState
+) => state.explore.bootstrapped
 
-export const selectServerArtistMbidMap = (state: RootState) =>
-  state.explore.serverArtistMbidMap
+export const selectServerArtistMbidMap = (
+  state: RootState
+) => state.explore.serverArtistMbidMap
 
-export const selectMbidForServerArtist =
-  (serverArtistId: string) =>
-  (state: RootState) =>
-    state.explore.serverArtistMbidMap[serverArtistId] ?? null
+export const selectExploreHasNewData = (
+  state: RootState
+) => state.explore.newDataAvailable

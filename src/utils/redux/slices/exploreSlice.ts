@@ -4,39 +4,128 @@ import {
   ExternalAlbumBase,
 } from '@/types'
 
-type ExploreState = {
-  artists: ExternalArtistBase[]
+type SimilarArtistEntry = {
+  artist: ExternalArtistBase
   albums: ExternalAlbumBase[]
+  fetchedAlbums: boolean
+}
+
+type GenreEntry = {
+  genre: string
+  albums: ExternalAlbumBase[]
+  fetched: boolean
+}
+
+type ExploreState = {
+  similarArtists: SimilarArtistEntry[]
+  genres: GenreEntry[]
   serverArtistMbidMap: Record<string, string>
+  expandedSeedMbids: Record<string, true>
+  bootstrapped: boolean
+  newDataAvailable: boolean
 }
 
 const initialState: ExploreState = {
-  artists: [],
-  albums: [],
+  similarArtists: [],
+  genres: [],
   serverArtistMbidMap: {},
+  expandedSeedMbids: {},
+  bootstrapped: false,
+  newDataAvailable: false,
 }
 
 const exploreSlice = createSlice({
   name: 'explore',
   initialState,
   reducers: {
-    addArtist(state, action: PayloadAction<ExternalArtistBase>) {
-      if (!state.artists.some(a => a.id === action.payload.id)) {
-        state.artists.push(action.payload)
+    addSimilarArtist(
+      state,
+      action: PayloadAction<ExternalArtistBase>
+    ) {
+      if (
+        state.similarArtists.some(
+          e => e.artist.id === action.payload.id
+        )
+      ) {
+        return
       }
+
+      state.similarArtists.push({
+        artist: action.payload,
+        albums: [],
+        fetchedAlbums: false,
+      })
+
+      state.newDataAvailable = true
     },
 
-    addAlbums(state, action: PayloadAction<ExternalAlbumBase[]>) {
-      for (const album of action.payload) {
+    addAlbumsToSimilarArtist(
+      state,
+      action: PayloadAction<{
+        artistId: string
+        albums: ExternalAlbumBase[]
+      }>
+    ) {
+      const entry = state.similarArtists.find(
+        e => e.artist.id === action.payload.artistId
+      )
+      if (!entry) return
+
+      const existing = new Set(
+        entry.albums.map(a => `${a.artist}-${a.title}`)
+      )
+
+      for (const album of action.payload.albums) {
         const key = `${album.artist}-${album.title}`
-        if (
-          !state.albums.some(
-            a => `${a.artist}-${a.title}` === key
-          )
-        ) {
-          state.albums.push(album)
+        if (!existing.has(key)) {
+          entry.albums.push(album)
+          state.newDataAvailable = true
         }
       }
+
+      entry.fetchedAlbums = true
+    },
+
+    addGenre(state, action: PayloadAction<string>) {
+      if (
+        state.genres.some(
+          g => g.genre === action.payload
+        )
+      ) {
+        return
+      }
+
+      state.genres.push({
+        genre: action.payload,
+        albums: [],
+        fetched: false,
+      })
+    },
+
+    addAlbumsToGenre(
+      state,
+      action: PayloadAction<{
+        genre: string
+        albums: ExternalAlbumBase[]
+      }>
+    ) {
+      const entry = state.genres.find(
+        g => g.genre === action.payload.genre
+      )
+      if (!entry) return
+
+      const existing = new Set(
+        entry.albums.map(a => a.id)
+      )
+
+      for (const album of action.payload.albums) {
+        if (!existing.has(album.id)) {
+          entry.albums.push(album)
+          state.newDataAvailable = true
+        }
+      }
+
+      entry.fetched = true
     },
 
     mapServerArtistToMbid(
@@ -50,6 +139,21 @@ const exploreSlice = createSlice({
         action.payload.mbid
     },
 
+    markSeedExpanded(
+      state,
+      action: PayloadAction<string>
+    ) {
+      state.expandedSeedMbids[action.payload] = true
+    },
+
+    markBootstrapped(state) {
+      state.bootstrapped = true
+    },
+
+    clearExploreNewData(state) {
+      state.newDataAvailable = false
+    },
+
     resetExplore() {
       return initialState
     },
@@ -57,9 +161,14 @@ const exploreSlice = createSlice({
 })
 
 export const {
-  addArtist,
-  addAlbums,
+  addSimilarArtist,
+  addAlbumsToSimilarArtist,
+  addGenre,
+  addAlbumsToGenre,
   mapServerArtistToMbid,
+  markSeedExpanded,
+  markBootstrapped,
+  clearExploreNewData,
   resetExplore,
 } = exploreSlice.actions
 

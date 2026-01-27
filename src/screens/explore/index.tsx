@@ -1,34 +1,87 @@
-import React, { useCallback, useState } from 'react'
+import React, {
+  useCallback,
+  useEffect,
+  useState,
+} from 'react'
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
-  Dimensions,
   RefreshControl,
 } from 'react-native'
-import { FlashList } from '@shopify/flash-list'
-import { useNavigation } from '@react-navigation/native'
 import { useSelector } from 'react-redux'
 import { useTheme } from '@/hooks/useTheme'
-import MediaTile from './components/MediaTile'
-import LoaderCard from './components/LoaderCard'
 import {
   ExternalArtistBase,
   ExternalAlbumBase,
 } from '@/types'
 import {
-  selectExploreArtists,
-  selectExploreAlbums,
+  selectSimilarArtists,
 } from '@/utils/redux/selectors/exploreSelectors'
+import { useAppDispatch } from '@/utils/redux/hooks'
+import { clearExploreNewData } from '@/utils/redux/slices/exploreSlice'
+import ArtistsForYouSection from './components/ArtistsForYouSection'
+import AlbumsForYouSection from './components/AlbumsForYouSection'
+import NewAlbumsSection from './components/NewAlbumsSection'
+import GenresForYouSection from './components/GenresForYouSection'
 
 const H_PADDING = 16
-const VISIBLE_ITEMS = 2.5
 const ARTIST_TARGET = 12
 const ALBUM_TARGET = 12
+const GENRE_TARGET = 12
 
-function shuffle<T>(arr: T[]) {
+function shuffle<T>(arr: T[]): T[] {
   return [...arr].sort(() => Math.random() - 0.5)
+}
+
+function buildAlbumSnapshot(
+  entries: { albums: ExternalAlbumBase[] }[],
+  target: number
+): ExternalAlbumBase[] {
+  const result: ExternalAlbumBase[] = []
+  const shuffled = shuffle(entries)
+  let index = 0
+
+  while (result.length < target) {
+    let added = false
+    for (const entry of shuffled) {
+      if (entry.albums[index]) {
+        result.push(entry.albums[index])
+        added = true
+        if (result.length >= target) return result
+      }
+    }
+    if (!added) break
+    index++
+  }
+
+  return result
+}
+
+function buildNewAlbumSnapshot(
+  entries: { albums: ExternalAlbumBase[] }[],
+  target: number
+): ExternalAlbumBase[] {
+  const seen = new Set<string>()
+  const all: ExternalAlbumBase[] = []
+
+  for (const entry of entries) {
+    for (const album of entry.albums) {
+      if (!album.releaseDate) continue
+      if (seen.has(album.id)) continue
+      seen.add(album.id)
+      all.push(album)
+    }
+  }
+
+  all.sort((a, b) =>
+    (b.releaseDate ?? '').localeCompare(
+      a.releaseDate ?? ''
+    )
+  )
+
+  return all.slice(0, target)
 }
 
 function Section({
@@ -57,52 +110,103 @@ function Section({
 
 export default function Explore() {
   const { isDarkMode } = useTheme()
-  const navigation = useNavigation()
+  const dispatch = useAppDispatch()
 
-  const artistPool = useSelector(selectExploreArtists)
-  const albumPool = useSelector(selectExploreAlbums)
+  const similarArtists = useSelector(selectSimilarArtists)
+  const genres = useSelector(
+    (state: any) => state.explore.genres
+  )
 
-  const [visibleArtists, setVisibleArtists] =
+  const [artistSnapshot, setArtistSnapshot] =
     useState<ExternalArtistBase[]>([])
-  const [visibleAlbums, setVisibleAlbums] =
+  const [albumSnapshot, setAlbumSnapshot] =
     useState<ExternalAlbumBase[]>([])
-  const [refreshing, setRefreshing] = useState(false)
+  const [newAlbumSnapshot, setNewAlbumSnapshot] =
+    useState<ExternalAlbumBase[]>([])
+  const [genreSnapshot, setGenreSnapshot] =
+    useState<any[]>([])
+
   const [initialized, setInitialized] = useState(false)
+  const [refreshing, setRefreshing] = useState(false)
 
-  const takeSnapshot = useCallback(() => {
-    setVisibleArtists(
-      shuffle(artistPool).slice(0, ARTIST_TARGET)
-    )
-    setVisibleAlbums(
-      shuffle(albumPool).slice(0, ALBUM_TARGET)
-    )
-  }, [artistPool, albumPool])
+  useEffect(() => {
+    dispatch(clearExploreNewData())
+  }, [])
 
-  if (!initialized && artistPool.length && albumPool.length) {
-    takeSnapshot()
+  useEffect(() => {
+    if (initialized) return
+    if (similarArtists.length < ARTIST_TARGET) return
+
+    setArtistSnapshot(
+      shuffle(
+        similarArtists.map(e => e.artist)
+      ).slice(0, ARTIST_TARGET)
+    )
+
+    setAlbumSnapshot(
+      buildAlbumSnapshot(
+        similarArtists,
+        ALBUM_TARGET
+      )
+    )
+
+    setNewAlbumSnapshot(
+      buildNewAlbumSnapshot(
+        similarArtists,
+        ALBUM_TARGET
+      )
+    )
+
     setInitialized(true)
-  }
+  }, [similarArtists, initialized])
+
+  useEffect(() => {
+    if (!genres.length) return
+
+    const readyGenres = genres.filter(
+      g => g.albums.length
+    )
+
+    if (!readyGenres.length) return
+
+    setGenreSnapshot(
+      shuffle(readyGenres).slice(0, GENRE_TARGET)
+    )
+  }, [genres])
 
   const onRefresh = useCallback(() => {
     setRefreshing(true)
-    takeSnapshot()
+
+    setArtistSnapshot(
+      shuffle(
+        similarArtists.map(e => e.artist)
+      ).slice(0, ARTIST_TARGET)
+    )
+
+    setAlbumSnapshot(
+      buildAlbumSnapshot(
+        similarArtists,
+        ALBUM_TARGET
+      )
+    )
+
+    setNewAlbumSnapshot(
+      buildNewAlbumSnapshot(
+        similarArtists,
+        ALBUM_TARGET
+      )
+    )
+
+    const readyGenres = genres.filter(
+      g => g.albums.length
+    )
+
+    setGenreSnapshot(
+      shuffle(readyGenres).slice(0, GENRE_TARGET)
+    )
+
     setRefreshing(false)
-  }, [takeSnapshot])
-
-  const screenWidth = Dimensions.get('window').width
-  const gridGap = 12
-
-  const gridItemWidth =
-    (screenWidth - H_PADDING * 2 - gridGap * 2) /
-    VISIBLE_ITEMS
-
-  const tileHeight =
-    gridItemWidth + 8 + 14 + 4 + 12
-
-  const artistsReady =
-    visibleArtists.length >= ARTIST_TARGET
-  const albumsReady =
-    visibleAlbums.length >= ALBUM_TARGET
+  }, [similarArtists, genres])
 
   return (
     <ScrollView
@@ -124,89 +228,31 @@ export default function Explore() {
       showsVerticalScrollIndicator={false}
     >
       <Section title="Artists for You" isDarkMode={isDarkMode}>
-        {!artistsReady ? (
-          <View style={styles.rowLoaderWrapper}>
-            <LoaderCard
-              width={screenWidth - H_PADDING * 2}
-              height={tileHeight}
-              radius={14}
-            />
-          </View>
-        ) : (
-          <FlashList
-            horizontal
-            data={visibleArtists}
-            keyExtractor={item => item.id}
-            estimatedItemSize={gridItemWidth}
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{
-              paddingHorizontal: H_PADDING,
-            }}
-            ItemSeparatorComponent={() => (
-              <View style={{ width: gridGap }} />
-            )}
-            renderItem={({ item }) => (
-              <MediaTile
-                cover={item.cover}
-                title={item.name}
-                subtitle={item.subtext}
-                size={gridItemWidth}
-                radius={gridItemWidth / 2}
-                onPress={() =>
-                  navigation.navigate('artistView', {
-                    id: item.id,
-                  })
-                }
-              />
-            )}
-          />
-        )}
+        <ArtistsForYouSection
+          data={artistSnapshot}
+          ready={artistSnapshot.length >= ARTIST_TARGET}
+        />
       </Section>
 
-      <Section
-        title="Albums You Might Like"
-        isDarkMode={isDarkMode}
-      >
-        {!albumsReady ? (
-          <View style={styles.rowLoaderWrapper}>
-            <LoaderCard
-              width={screenWidth - H_PADDING * 2}
-              height={tileHeight}
-              radius={14}
-            />
-          </View>
-        ) : (
-          <FlashList
-            horizontal
-            data={visibleAlbums}
-            keyExtractor={item => item.id}
-            estimatedItemSize={gridItemWidth}
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{
-              paddingHorizontal: H_PADDING,
-            }}
-            ItemSeparatorComponent={() => (
-              <View style={{ width: gridGap }} />
-            )}
-            renderItem={({ item }) => (
-              <MediaTile
-                cover={item.cover}
-                title={item.title}
-                subtitle={item.subtext}
-                size={gridItemWidth}
-                radius={14}
-                onPress={() =>
-                  navigation.navigate(
-                    'externalAlbumView',
-                    {
-                      albumId: item.id,
-                    }
-                  )
-                }
-              />
-            )}
-          />
-        )}
+      <Section title="Genres You Might Like" isDarkMode={isDarkMode}>
+        <GenresForYouSection
+          data={genreSnapshot}
+          ready={genreSnapshot.length >= GENRE_TARGET}
+        />
+      </Section>
+
+      <Section title="New Albums to Check Out" isDarkMode={isDarkMode}>
+        <NewAlbumsSection
+          data={newAlbumSnapshot}
+          ready={newAlbumSnapshot.length >= ALBUM_TARGET}
+        />
+      </Section>
+
+      <Section title="Albums You Might Like" isDarkMode={isDarkMode}>
+        <AlbumsForYouSection
+          data={albumSnapshot}
+          ready={albumSnapshot.length >= ALBUM_TARGET}
+        />
       </Section>
     </ScrollView>
   )
@@ -235,8 +281,5 @@ const styles = StyleSheet.create({
   },
   sectionTitleDark: {
     color: '#fff',
-  },
-  rowLoaderWrapper: {
-    paddingHorizontal: H_PADDING,
   },
 })

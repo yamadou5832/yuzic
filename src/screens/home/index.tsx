@@ -35,11 +35,13 @@ import { useArtists } from '@/hooks/artists';
 import { usePlaylists } from '@/hooks/playlists';
 import { QueryKeys } from '@/enums/queryKeys';
 import { useQueryClient } from '@tanstack/react-query';
+import { useExploreController } from '@/hooks/useExploreController';
 
 export default function HomeScreen() {
     const navigation = useNavigation();
     const router = useRouter();
     const dispatch = useDispatch();
+    useExploreController();
 
     const listenbrainzConfig = useSelector(selectListenBrainzConfig);
     const activeServer = useSelector(selectActiveServer);
@@ -235,10 +237,7 @@ export default function HomeScreen() {
                 filters={filters}
                 onChange={setActiveFilter}
                 onExplorePress={() => {
-                    if (true) {
-                        toast.error('Music discovery coming soon');
-                        return;
-                    }
+                    
                     if (!listenbrainzConfig?.token) {
                         toast.error('Connect ListenBrainz to use Explore');
                         return;

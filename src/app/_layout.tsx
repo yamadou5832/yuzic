@@ -23,7 +23,6 @@ import { useTheme } from '@/hooks/useTheme';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client'
 import { createAsyncStoragePersister } from '@tanstack/query-async-storage-persister'
-import { useExploreController } from '@/hooks/useExploreController';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -45,7 +44,6 @@ const asyncStoragePersister = createAsyncStoragePersister({
 
 function AppShell() {
   const { resolved, isDarkMode, colors } = useTheme();
-  //useExploreController();
 
   return (
     <ThemeProvider value={resolved === 'dark' ? DarkTheme : DefaultTheme}>
