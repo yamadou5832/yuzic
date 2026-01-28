@@ -35,16 +35,19 @@ import { useArtists } from '@/hooks/artists';
 import { usePlaylists } from '@/hooks/playlists';
 import { QueryKeys } from '@/enums/queryKeys';
 import { useQueryClient } from '@tanstack/react-query';
-import { useExploreController } from '@/hooks/useExploreController';
+import { useApi } from '@/api';
+import { runExploreSync } from '@/features/explore/exploreSync';
+import { useExploreMeta } from '@/features/explore/hooks/useExploreMeta';
 
 export default function HomeScreen() {
     const navigation = useNavigation();
     const router = useRouter();
     const dispatch = useDispatch();
-    useExploreController();
+    const api = useApi();
 
     const listenbrainzConfig = useSelector(selectListenBrainzConfig);
     const activeServer = useSelector(selectActiveServer);
+    const { hasInitialFill: hasInitialExploreFill } = useExploreMeta();
     const isAuthenticated = activeServer?.isAuthenticated;
     const username = activeServer?.username;
 
@@ -85,6 +88,11 @@ export default function HomeScreen() {
         queryClient.refetchQueries({ queryKey: [QueryKeys.Artists] });
         queryClient.refetchQueries({ queryKey: [QueryKeys.Playlists] });
     }, [activeServer?.id, activeServer?.isAuthenticated]);
+
+    useEffect(() => {
+        if (!activeServer?.isAuthenticated || hasInitialExploreFill) return;
+        runExploreSync(queryClient, api);
+    }, [activeServer?.id, activeServer?.isAuthenticated, hasInitialExploreFill, queryClient, api]);
 
     useEffect(() => {
         setIsMounted(true);

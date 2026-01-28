@@ -1,28 +1,20 @@
 import { ExternalArtistBase } from '@/types'
 import { createMusicBrainzClient } from '../client'
 
-async function resolveArtistImageFromWikidata(
-  artistMbid: string
+/** Uses artist.relations from a single MB artist call (inc=url-rels) so we don’t make a 2nd MB request. */
+async function resolveArtistImageFromRelations(
+  relations: any[] | undefined
 ): Promise<string | null> {
   try {
-    const mbRes = await fetch(
-      `https://musicbrainz.org/ws/2/artist/${artistMbid}?inc=url-rels&fmt=json`
-    )
-    if (!mbRes.ok) return null
-
-    const mbData = await mbRes.json()
-
-    const wikidataRel = mbData.relations?.find(
+    const wikidataRel = relations?.find(
       (r: any) =>
         r.type === 'wikidata' &&
         r.url?.resource?.includes('wikidata.org')
     )
-
     if (!wikidataRel) return null
 
     const wikidataId =
       wikidataRel.url.resource.split('/').pop()
-
     if (!wikidataId) return null
 
     const wdRes = await fetch(
@@ -32,45 +24,33 @@ async function resolveArtistImageFromWikidata(
 
     const wdData = await wdRes.json()
     const entity = wdData.entities?.[wikidataId]
-
     const imageName =
-      entity?.claims?.P18?.[0]?.mainsnak?.datavalue
-        ?.value
-
+      entity?.claims?.P18?.[0]?.mainsnak?.datavalue?.value
     if (!imageName) return null
 
     const commonsName = encodeURIComponent(
       imageName.replace(/ /g, '_')
     )
-
-    const width = 512
-
-    return `https://commons.wikimedia.org/w/thumb.php?f=${commonsName}&w=${width}`
+    return `https://commons.wikimedia.org/w/thumb.php?f=${commonsName}&w=512`
   } catch {
     return null
   }
 }
 
+/** Single MusicBrainz call (artist + url-rels). Image comes from Wikidata only. */
 export async function getArtist(
   artistMbid: string
 ): Promise<ExternalArtistBase | null> {
   try {
     const { request } = createMusicBrainzClient()
+    const artist = await request<any>(`artist/${artistMbid}`, {
+      inc: 'url-rels',
+    })
 
-    const artist = await request<any>(`artist/${artistMbid}`)
-
-    let cover: ExternalArtistBase['cover'] = {
-      kind: 'none',
-    }
-
-    const imageUrl =
-      await resolveArtistImageFromWikidata(artist.id)
-
+    let cover: ExternalArtistBase['cover'] = { kind: 'none' }
+    const imageUrl = await resolveArtistImageFromRelations(artist.relations)
     if (imageUrl) {
-      cover = {
-        kind: 'lastfm',
-        url: imageUrl,
-      }
+      cover = { kind: 'lastfm', url: imageUrl }
     }
 
     return {

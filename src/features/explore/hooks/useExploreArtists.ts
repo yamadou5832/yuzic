@@ -1,21 +1,23 @@
 import { useMemo } from 'react'
-import { useSelector } from 'react-redux'
 import { ExternalArtistBase } from '@/types'
-import { selectSimilarArtists } from '@/utils/redux/selectors/exploreSelectors'
+import { EXPLORE_LIMITS } from '../exploreLimits'
 import { shuffle } from '../utils/snapshot'
+import { useExploreArtistsEntries } from './useExploreArtistsEntries'
 
-const ARTIST_TARGET = 12
+export function useExploreArtists(shuffleKey: number) {
+  const similar = useExploreArtistsEntries()
 
-export function useExploreArtists(refreshKey: number) {
-  const similarArtists = useSelector(selectSimilarArtists)
-
-  const data: ExternalArtistBase[] = useMemo(() => {
-    return shuffle(similarArtists.map(e => e.artist))
-      .slice(0, ARTIST_TARGET)
-  }, [similarArtists, refreshKey])
+  const [data, allData] = useMemo(() => {
+    const shuffled = shuffle(similar.map((e) => e.artist))
+    return [
+      shuffled.slice(0, EXPLORE_LIMITS.displayPerSection),
+      shuffled,
+    ] as const
+  }, [similar, shuffleKey])
 
   return {
     data,
-    ready: data.length >= ARTIST_TARGET,
+    allData,
+    ready: data.length >= EXPLORE_LIMITS.displayPerSection,
   }
 }

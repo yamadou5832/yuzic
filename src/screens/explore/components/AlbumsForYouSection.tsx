@@ -3,7 +3,7 @@ import { View, Dimensions } from 'react-native'
 import { FlashList } from '@shopify/flash-list'
 import { useNavigation } from '@react-navigation/native'
 import MediaTile from './MediaTile'
-import LoaderCard from './LoaderCard'
+import ExploreEmptyCard from './ExploreEmptyCard'
 import { ExternalAlbumBase } from '@/types'
 
 const H_PADDING = 16
@@ -29,13 +29,15 @@ export default function AlbumsForYouSection({
   const tileHeight =
     gridItemWidth + 8 + 14 + 4 + 12
 
-  if (!ready) {
+  const showEmpty = !ready || data.length === 0
+  if (showEmpty) {
     return (
       <View style={{ paddingHorizontal: H_PADDING }}>
-        <LoaderCard
+        <ExploreEmptyCard
           width={screenWidth - H_PADDING * 2}
           height={tileHeight}
           radius={14}
+          loading={!ready}
         />
       </View>
     )

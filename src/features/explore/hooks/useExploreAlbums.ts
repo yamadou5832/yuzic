@@ -1,23 +1,26 @@
 import { useMemo } from 'react'
-import { useSelector } from 'react-redux'
 import { ExternalAlbumBase } from '@/types'
-import { selectSimilarArtists } from '@/utils/redux/selectors/exploreSelectors'
+import { EXPLORE_LIMITS } from '../exploreLimits'
 import { buildAlbumSnapshot } from '../utils/snapshot'
+import { useExploreArtistsEntries } from './useExploreArtistsEntries'
 
-const ALBUM_TARGET = 12
+const ALL_CAP = 9999
 
-export function useExploreAlbums(refreshKey: number) {
-  const similarArtists = useSelector(selectSimilarArtists)
+export function useExploreAlbums(shuffleKey: number) {
+  const similar = useExploreArtistsEntries()
 
-  const data: ExternalAlbumBase[] = useMemo(() => {
-    return buildAlbumSnapshot(
-      similarArtists,
-      ALBUM_TARGET
+  const [data, allData] = useMemo(() => {
+    const displayed = buildAlbumSnapshot(
+      similar,
+      EXPLORE_LIMITS.displayPerSection
     )
-  }, [similarArtists, refreshKey])
+    const all = buildAlbumSnapshot(similar, ALL_CAP)
+    return [displayed, all] as const
+  }, [similar, shuffleKey])
 
   return {
     data,
-    ready: data.length >= ALBUM_TARGET,
+    allData,
+    ready: data.length >= EXPLORE_LIMITS.displayPerSection,
   }
 }

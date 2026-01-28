@@ -8,7 +8,6 @@ import settingsReducer from './slices/settingsSlice';
 import downloadsReducer from './slices/downloadsSlice';
 import listenbrainzReducer from './slices/listenbrainzSlice';
 import statsReducer from './slices/statsSlice';
-import exploreReducer from './slices/exploreSlice'
 
 const serversPersistConfig = { key: 'servers', storage };
 const lidarrPersistConfig = { key: 'lidarr', storage };
@@ -16,7 +15,6 @@ const settingsPersistConfig = { key: 'settings', storage };
 const downloadsPersistConfig = { key: 'downloads', storage };
 const listenbrainzPersistConfig = { key: 'listenbrainz', storage };
 const statsPersistConfig = { key: 'stats', storage };
-const explorePersistConfig = { key: 'explore', storage };
 
 export const rootReducer = combineReducers({
     servers: serversReducer,
@@ -25,7 +23,6 @@ export const rootReducer = combineReducers({
     downloads: downloadsReducer,
     listenbrainz: listenbrainzReducer,
     stats: statsReducer,
-    explore: exploreReducer
 });
 
 const persistedReducer = combineReducers({
@@ -35,7 +32,6 @@ const persistedReducer = combineReducers({
     downloads: persistReducer(downloadsPersistConfig, downloadsReducer),
     listenbrainz: persistReducer(listenbrainzPersistConfig, listenbrainzReducer),
     stats: persistReducer(statsPersistConfig, statsReducer),
-    explore: persistReducer(explorePersistConfig, exploreReducer)
 });
 
 const store = configureStore({

@@ -1,1 +1,0 @@
-export { getTopAlbumsForGenre } from './getTopAlbumsForGenre'

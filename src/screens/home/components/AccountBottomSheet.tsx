@@ -20,7 +20,6 @@ import { selectActiveServer } from '@/utils/redux/selectors/serversSelectors';
 import { selectThemeColor } from '@/utils/redux/selectors/settingsSelectors';
 import { useTheme } from '@/hooks/useTheme';
 import { useQueryClient } from '@tanstack/react-query';
-import { resetExplore } from '@/utils/redux/slices/exploreSlice';
 
 type Props = {
   onDismiss?: () => void;
@@ -69,7 +68,6 @@ const AccountBottomSheet = forwardRef<BottomSheetModal, Props>(
         await pauseSong();
         await resetQueue();
         queryClient.clear();
-        dispatch(resetExplore());
         dispatch(disconnect());
         router.replace('/(onboarding)');
       } catch {
