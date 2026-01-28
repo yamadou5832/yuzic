@@ -1,34 +1,35 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import { FlashList } from '@shopify/flash-list'
 import { useNavigation } from '@react-navigation/native'
-import type { Artist } from '@/types'
-import AlbumRow from '@/components/rows/AlbumRow'
+import type { ExternalArtist } from '@/types'
+import ExternalAlbumRow from '@/components/rows/ExternalAlbumRow'
 import Header from '../Header'
 import { useTheme } from '@/hooks/useTheme'
-import { useArtistMbid } from '@/hooks/artists'
 
 type Props = {
-  artist: Artist
+  artist: ExternalArtist
 }
 
 const ESTIMATED_ROW_HEIGHT = 80
 
-export default function ArtistContent({ artist }: Props) {
+export default function ExternalArtistContent({ artist }: Props) {
   const navigation = useNavigation()
   const { isDarkMode } = useTheme()
-  const { data: mbid } = useArtistMbid({ id: artist.id, name: artist.name })
+
+  const header = useMemo(() => <Header artist={artist} />, [artist])
 
   return (
     <FlashList
-      data={artist.ownedAlbums}
+      data={artist.albums}
       keyExtractor={(item) => item.id}
       estimatedItemSize={ESTIMATED_ROW_HEIGHT}
-      ListHeaderComponent={<Header artist={artist} mbid={mbid ?? null} />}
+      ListHeaderComponent={header}
       renderItem={({ item }) => (
-        <AlbumRow
+        <ExternalAlbumRow
           album={item}
+          artistName={artist.name}
           onPress={(album) =>
-            navigation.navigate('albumView', { id: album.id })
+            navigation.navigate('externalAlbumView', { albumId: album.id })
           }
         />
       )}

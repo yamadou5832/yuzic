@@ -128,8 +128,10 @@ export default function Explore() {
     (item: ViewAllItem) => {
       if (!viewAll) return
       if (viewAll.variant === 'artists') {
-        navigation.navigate('artistView', {
-          id: (item as ExternalArtistBase).id,
+        const a = item as ExternalArtistBase
+        navigation.navigate('externalArtistView', {
+          mbid: a.id,
+          name: a.name,
         })
       } else {
         navigation.navigate('externalAlbumView', {

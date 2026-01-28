@@ -64,8 +64,9 @@ export default function ArtistsForYouSection({
           size={gridItemWidth}
           radius={gridItemWidth / 2}
           onPress={() =>
-            navigation.navigate('artistView', {
-              id: item.id,
+            navigation.navigate('externalArtistView', {
+              mbid: item.id,
+              name: item.name,
             })
           }
         />
