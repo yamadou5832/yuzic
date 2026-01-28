@@ -52,7 +52,7 @@ const LibrarySettings: React.FC = () => {
                             isDarkMode && styles.infoTextDark,
                         ]}
                     >
-                        How Explore suggests artists and albums from your
+                        How Discovery suggests artists and albums from your
                         library.
                     </Text>
                     <TouchableOpacity

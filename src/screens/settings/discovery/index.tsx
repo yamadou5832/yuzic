@@ -28,12 +28,12 @@ const DiscoverySettings: React.FC = () => {
           <Text
             style={[styles.sectionTitle, isDarkMode && styles.sectionTitleDark]}
           >
-            Explore
+            Discovery
           </Text>
           <Text
             style={[styles.infoText, isDarkMode && styles.infoTextDark]}
           >
-            The Explore tab suggests artists and albums based on your library.
+            The Discovery tab suggests artists and albums based on your library.
             You see similar artists, albums you might like, and new releases
             from those artists.
           </Text>
@@ -64,7 +64,7 @@ const DiscoverySettings: React.FC = () => {
             style={[styles.infoText, isDarkMode && styles.infoTextDark]}
           >
             Discovery syncs when you connect to a server. Pull to refresh on
-            Explore only shuffles what’s already loaded; it doesn’t re-fetch. If
+            Discovery only shuffles what’s already loaded; it doesn’t re-fetch. If
             something fails, you’ll see a message and can tap “Try again” to
             retry.
           </Text>
