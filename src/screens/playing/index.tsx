@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { usePlaying } from '@/contexts/PlayingContext';
-import { useNavigation } from "@react-navigation/native";
+import { useRouter } from 'expo-router';
 import SongOptions from '@/components/options/SongOptions';
 import Queue from './components/Queue';
 import Animated, {
@@ -29,7 +29,6 @@ import PlayingMain from './components/PlayingMain';
 import Controls from './components/Controls';
 import BottomControls from './components/BottomControls';
 import { ChevronDown, Ellipsis } from 'lucide-react-native';
-import { useArtists } from '@/hooks/artists';
 
 interface PlayingScreenProps {
     onClose: () => void;
@@ -85,13 +84,12 @@ const usePlayingTransitions = (mode: PlayingViewMode) => {
 const PlayingScreen: React.FC<PlayingScreenProps> = ({
     onClose,
 }) => {
-    const navigation = useNavigation();
+    const router = useRouter();
     const { isDarkMode } = useTheme();
     const {
         currentSong
     } = usePlaying();
     const api = useApi();
-    const { artists } = useArtists();
     const insets = useSafeAreaInsets();
     const [lyrics, setLyrics] = useState<LyricsResult | null>(null);
     const [lyricsAvailable, setLyricsAvailable] = useState(false);
@@ -149,19 +147,12 @@ const PlayingScreen: React.FC<PlayingScreenProps> = ({
     }
 
     const navigateToArtist = () => {
-        onClose();
-
-        if (currentSong.artist) {
-            const artist = artists.find(
-                a => a.name === currentSong.artist
-            );
-
-            if (artist?.id) {
-                navigation.navigate("(home)", {
-                    screen: "artistView",
-                    params: { id: artist.id },
-                });
-            }
+        if (currentSong.artistId) {
+            onClose();
+            router.push({
+                pathname: '/(home)/artistView',
+                params: { id: currentSong.artistId },
+            });
         }
     };
 
@@ -193,7 +184,6 @@ const PlayingScreen: React.FC<PlayingScreenProps> = ({
                             <Lyrics
                                 lyrics={lyrics}
                                 width={layoutWidth}
-                                onBack={() => setMode("player")}
                             />
                         )}
                     </Animated.View>
@@ -220,20 +210,20 @@ const PlayingScreen: React.FC<PlayingScreenProps> = ({
 
                         <View style={styles.centerContent}>
                             <PlayingMain
-                                width={isTablet ? 500 : 330}
+                                width={isTablet ? 500 : width - 48}
                                 onPressArtist={navigateToArtist}
                                 onPressOptions={() => songOptionsRef.current?.present()}
                                 onPressAdd={() => playlistRef.current?.present()}
                             />
 
-                            <View style={{ width: isTablet ? 500 : 330 }}>
+                            <View style={{ width: isTablet ? 500 : width - 48 }}>
                                 <Controls />
                             </View>
                         </View>
                     </Animated.View>
 
                 </View>
-                <View style={{ width: isTablet ? 500 : 330, marginTop: 24, bottom: insets.bottom + (Platform.OS === "ios" ? 12 : 12) }}>
+                <View style={{ width: isTablet ? 500 : width - 48, marginTop: 24, bottom: insets.bottom + (Platform.OS === "ios" ? 12 : 12) }}>
                     <BottomControls
                         lyricsAvailable={lyricsAvailable}
                         mode={mode}
