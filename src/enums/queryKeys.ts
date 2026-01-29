@@ -12,6 +12,7 @@ export enum QueryKeys {
 	Genres = 'genres',
 	ExternalAlbum = 'external-album',
 	ExternalArtist = 'external-artist',
-	ExploreArtists = 'explore-artists',
-	ExploreMeta = 'explore-meta',
+	ExploreSimilarArtists = 'explore-similar-artists',
+	ExploreSimilarArtistAlbums = 'explore-similar-artist-albums',
+	ExploreGenreRow = 'explore-genre-row',
 }

@@ -8,7 +8,6 @@ import {
 } from 'react-native'
 import { useSelector } from 'react-redux'
 import { selectThemeColor } from '@/utils/redux/selectors/settingsSelectors'
-import { useExploreMeta } from '@/features/explore/hooks/useExploreMeta'
 import { FilterPill } from './FilterPill'
 import { useTheme } from '@/hooks/useTheme'
 import { Earth } from 'lucide-react-native'
@@ -44,7 +43,6 @@ export default function LibraryFilterBar<T extends string>({
 }: Props<T>) {
   const { isDarkMode } = useTheme()
   const themeColor = useSelector(selectThemeColor)
-  const { hasNewData: hasNewExploreData } = useExploreMeta()
 
   const inactiveTextColor = isDarkMode ? '#aaa' : '#666'
   const activeIconColor = isColorLight(themeColor)
@@ -109,10 +107,6 @@ export default function LibraryFilterBar<T extends string>({
                 : inactiveTextColor
             }
           />
-
-          {hasNewExploreData && !exploreActive && (
-            <View style={styles.badge} />
-          )}
         </TouchableOpacity>
 
         <View style={styles.separator} />
@@ -178,14 +172,5 @@ const styles = StyleSheet.create({
     backgroundColor: '#888',
     opacity: 0.35,
     marginRight: 8,
-  },
-  badge: {
-    position: 'absolute',
-    top: 4,
-    right: 4,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#ff3b30',
   },
 })
