@@ -169,34 +169,40 @@ const SlskdView: React.FC = () => {
   };
 
   const renderDownloadItem = ({ item }: { item: SlskdQueueRecord }) => {
-    const percent = Math.round(item.percentComplete ?? 0);
-    const title = item.title ?? item.filename ?? 'Unknown file';
-    const subtitle = item.artistName ?? item.username ?? '';
+    const percent = Math.min(100, item.percentComplete ?? 0);
+    const meta = item.fileCount > 0 ? `${item.fileCount} file${item.fileCount === 1 ? '' : 's'}` : '';
 
     return (
-      <View style={styles.itemContainer}>
-        <Text style={[styles.albumTitle, isDarkMode && styles.albumTitleDark]}>
-          {title}
-        </Text>
-
-        <Text style={[styles.artistName, isDarkMode && styles.artistNameDark]}>
-          {subtitle}
-        </Text>
-
-        <Text style={[styles.status, isDarkMode && styles.statusDark]}>
-          {item.state} ({percent}%)
-        </Text>
-
+      <View style={styles.itemRow}>
+        <View style={styles.itemHeader}>
+          <View style={styles.itemMain}>
+            <Text
+              style={[styles.itemTitle, isDarkMode && styles.itemTitleDark]}
+              numberOfLines={1}
+            >
+              {item.title || 'Unknown'}
+            </Text>
+            <Text
+              style={[styles.itemSub, isDarkMode && styles.itemSubDark]}
+              numberOfLines={1}
+            >
+              {[item.artistName, meta].filter(Boolean).join(' · ')}
+            </Text>
+          </View>
+          <Text style={[styles.itemPct, isDarkMode && styles.itemPctDark]}>
+            {percent}%
+          </Text>
+        </View>
         <View
           style={[
-            styles.progressBarBackground,
-            isDarkMode && styles.progressBarBackgroundDark,
+            styles.progressTrack,
+            isDarkMode && styles.progressTrackDark,
           ]}
         >
           <View
             style={[
-              styles.progressBarFill,
-              { backgroundColor: themeColor, width: `${Math.min(100, percent)}%` },
+              styles.progressFill,
+              { backgroundColor: themeColor, width: `${percent}%` },
             ]}
           />
         </View>
@@ -335,28 +341,39 @@ const styles = StyleSheet.create({
   rowTextDark: { color: '#fff' },
   emptyText: {
     textAlign: 'center',
-    marginVertical: 16,
-    fontSize: 16,
+    marginVertical: 12,
+    fontSize: 14,
     color: '#666',
   },
   emptyTextDark: { color: '#aaa' },
-  itemContainer: { padding: 16, borderRadius: 10, marginBottom: 12 },
-  albumTitle: { fontSize: 16, fontWeight: '600', color: '#000' },
-  albumTitleDark: { color: '#fff' },
-  artistName: { fontSize: 14, color: '#666', marginTop: 4 },
-  artistNameDark: { color: '#aaa' },
-  status: { fontSize: 12, color: '#888', marginTop: 6 },
-  statusDark: { color: '#888' },
-  progressBarBackground: {
-    height: 6,
+  itemRow: {
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    marginBottom: 8,
+    borderRadius: 8,
+  },
+  itemHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    marginBottom: 6,
+  },
+  itemMain: { flex: 1, minWidth: 0, marginRight: 8 },
+  itemTitle: { fontSize: 14, fontWeight: '600', color: '#000' },
+  itemTitleDark: { color: '#fff' },
+  itemSub: { fontSize: 12, color: '#666', marginTop: 2 },
+  itemSubDark: { color: '#aaa' },
+  itemPct: { fontSize: 12, color: '#888' },
+  itemPctDark: { color: '#888' },
+  progressTrack: {
+    height: 4,
     width: '100%',
-    backgroundColor: '#ddd',
-    borderRadius: 3,
-    marginTop: 8,
+    backgroundColor: '#e0e0e0',
+    borderRadius: 2,
     overflow: 'hidden',
   },
-  progressBarBackgroundDark: { backgroundColor: '#333' },
-  progressBarFill: { height: '100%', borderRadius: 3 },
+  progressTrackDark: { backgroundColor: '#333' },
+  progressFill: { height: '100%', borderRadius: 2 },
   disconnectButton: {
     flexDirection: 'row',
     alignItems: 'center',

@@ -1,18 +1,18 @@
 import { createSlskdClient, SlskdConfig } from '../client';
 
-/** Flattened download item for UI, compatible with queue diff logic. */
+/** One queue entry per album (directory). Keeps queue minimal. */
 export interface SlskdQueueRecord {
   id: string;
   username: string;
-  filename: string;
+  /** Album name from directory basename */
+  title: string;
+  /** Username or peer label */
+  artistName: string;
   state: string;
   size: number;
   sizeleft: number;
   percentComplete: number;
-  /** For UI: display as "title" */
-  title?: string;
-  /** For UI: display as "artist" */
-  artistName?: string;
+  fileCount: number;
 }
 
 type Transfer = {
@@ -30,28 +30,43 @@ type Transfer = {
   }>;
 };
 
-function flattenDownloads(transfers: Transfer[]): SlskdQueueRecord[] {
+function basename(path: string): string {
+  const n = path.replace(/[/\\]+$/, '');
+  const i = Math.max(n.lastIndexOf('/'), n.lastIndexOf('\\'));
+  return i < 0 ? n : n.slice(i + 1) || n;
+}
+
+function groupDownloadsByDirectory(transfers: Transfer[]): SlskdQueueRecord[] {
   const out: SlskdQueueRecord[] = [];
   for (const t of transfers) {
     const dirs = t.directories ?? [];
     for (const d of dirs) {
       const files = d.files ?? [];
+      if (files.length === 0) continue;
+      const dir = (d.directory ?? '').trim() || 'Unknown';
+      const id = `${t.username}::${dir}`;
+      let size = 0;
+      let sizeleft = 0;
+      let hasActive = false;
       for (const f of files) {
-        const size = f.size ?? 0;
-        const transferred = f.bytesTransferred ?? 0;
-        const sizeleft = Math.max(0, size - transferred);
-        out.push({
-          id: `${t.username}:${f.id}`,
-          username: t.username,
-          filename: f.filename ?? '',
-          state: f.state ?? 'unknown',
-          size,
-          sizeleft,
-          percentComplete: f.percentComplete ?? (size ? (transferred / size) * 100 : 0),
-          title: f.filename,
-          artistName: t.username,
-        });
+        const s = f.size ?? 0;
+        const x = f.bytesTransferred ?? 0;
+        size += s;
+        sizeleft += Math.max(0, s - x);
+        if ((f.state ?? '').toLowerCase() !== 'completed') hasActive = true;
       }
+      const percent = size > 0 ? Math.round(((size - sizeleft) / size) * 100) : 0;
+      out.push({
+        id,
+        username: t.username,
+        title: basename(dir),
+        artistName: t.username,
+        state: hasActive ? 'Downloading' : 'Completed',
+        size,
+        sizeleft,
+        percentComplete: percent,
+        fileCount: files.length,
+      });
     }
   }
   return out;
@@ -60,7 +75,7 @@ function flattenDownloads(transfers: Transfer[]): SlskdQueueRecord[] {
 export async function fetchQueue(config: SlskdConfig): Promise<SlskdQueueRecord[]> {
   const { request } = createSlskdClient(config);
   const data = await request<Transfer[]>('/transfers/downloads/');
-  return flattenDownloads(Array.isArray(data) ? data : []);
+  return groupDownloadsByDirectory(Array.isArray(data) ? data : []);
 }
 
 export function detectFinishedQueueItems(
