@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import {
-    Image,
     View,
     Text,
     TextInput,
@@ -8,6 +7,7 @@ import {
     StyleSheet,
     ActivityIndicator,
 } from 'react-native';
+import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { toast } from '@backpackapp-io/react-native-toast';
@@ -15,8 +15,6 @@ import { nanoid } from '@reduxjs/toolkit';
 import { addServer, setActiveServer } from '@/utils/redux/slices/serversSlice';
 import { track } from '@/utils/analytics/amplitude';
 import { useDispatch } from 'react-redux';
-import { useQueryClient } from '@tanstack/react-query';
-import { clearExploreQueries } from '@/features/explore/exploreCache';
 import { ServerType } from '@/types';
 import { SERVER_PROVIDERS } from '@/utils/servers/registry';
 
@@ -28,7 +26,6 @@ export default function Connect() {
 
     const router = useRouter();
     const dispatch = useDispatch();
-    const queryClient = useQueryClient();
 
     useEffect(() => {
         const t = setTimeout(() => setIsLayoutMounted(true), 0);
@@ -83,7 +80,6 @@ export default function Connect() {
 
             track('connected new server', { type: selectedType, demo: true });
             dispatch(setActiveServer(id));
-            clearExploreQueries(queryClient);
             router.replace('/(home)');
         } catch {
             toast.error('An error occurred while connecting.');
@@ -137,7 +133,8 @@ export default function Connect() {
                                     <Image
                                         source={provider.icon}
                                         style={{ width: 36, height: 36, marginBottom: 6 }}
-                                        resizeMode="contain"
+                                        contentFit="contain"
+                                        cachePolicy="memory-disk"
                                     />
                                     <Text
                                         style={[

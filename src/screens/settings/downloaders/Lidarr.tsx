@@ -17,21 +17,23 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { Loader2 } from 'lucide-react-native';
 import { toast } from '@backpackapp-io/react-native-toast';
 
-import Header from '../../components/Header';
+import Header from '../components/Header';
 import * as lidarr from '@/api/lidarr';
+import type { LidarrQueueRecord } from '@/api/lidarr';
 
 import {
   selectLidarrServerUrl,
   selectLidarrApiKey,
   selectLidarrAuthenticated,
   selectLidarrConfig,
-} from '@/utils/redux/selectors/lidarrSelectors';
+} from '@/utils/redux/selectors/downloadersSelectors';
 import {
-  setServerUrl,
-  setApiKey,
-  setAuthenticated,
-  disconnect,
-} from '@/utils/redux/slices/lidarrSlice';
+  setLidarrServerUrl,
+  setLidarrApiKey,
+  setLidarrAuthenticated,
+  connectLidarr,
+  disconnectLidarr,
+} from '@/utils/redux/slices/downloadersSlice';
 
 import { selectThemeColor } from '@/utils/redux/selectors/settingsSelectors';
 import { useTheme } from '@/hooks/useTheme';
@@ -47,12 +49,12 @@ const LidarrView: React.FC = () => {
   const config = useSelector(selectLidarrConfig);
 
   const [isLoading, setIsLoading] = useState(false);
-  const [queue, setQueue] = useState<any[]>([]);
+  const [queue, setQueue] = useState<LidarrQueueRecord[]>([]);
   const [loadingQueue, setLoadingQueue] = useState(false);
-  const [expandedItemId, setExpandedItemId] = useState<number | null>(null);
+  const [expandedItemId, setExpandedItemId] = useState<string | null>(null);
 
-  const previousQueueRef = useRef<any[]>([]);
-  const pollingRef = useRef<NodeJS.Timeout | null>(null);
+  const previousQueueRef = useRef<LidarrQueueRecord[]>([]);
+  const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const spinAnim = useRef(new Animated.Value(0)).current;
 
@@ -74,7 +76,7 @@ const LidarrView: React.FC = () => {
 
   useEffect(() => {
     if (!serverUrl || !apiKey) {
-      dispatch(setAuthenticated(false));
+      dispatch(setLidarrAuthenticated(false));
       return;
     }
 
@@ -85,16 +87,16 @@ const LidarrView: React.FC = () => {
       setIsLoading(true);
 
       try {
-        if (config) {
+        if (config.serverUrl && config.apiKey) {
           await lidarr.testConnection(config);
 
           if (!cancelled) {
-            dispatch(setAuthenticated(true));
+            dispatch(connectLidarr());
           }
         }
       } catch {
         if (!cancelled) {
-          dispatch(setAuthenticated(false));
+          dispatch(setLidarrAuthenticated(false));
           toast.error('Lidarr connection failed');
         }
       } finally {
@@ -102,7 +104,7 @@ const LidarrView: React.FC = () => {
           setIsLoading(false);
         }
       }
-    }, 500); // debounce
+    }, 500);
 
     return () => {
       cancelled = true;
@@ -122,10 +124,7 @@ const LidarrView: React.FC = () => {
 
     try {
       const { currentQueue, finishedItems } =
-        await lidarr.fetchQueueWithDiff(
-          config,
-          previousQueueRef.current
-        );
+        await lidarr.fetchQueueWithDiff(config, previousQueueRef.current);
 
       previousQueueRef.current = currentQueue;
       setQueue(currentQueue);
@@ -165,61 +164,64 @@ const LidarrView: React.FC = () => {
   }, [config.serverUrl, config.apiKey, isAuthenticated]);
 
   const handleDisconnect = () => {
-    dispatch(disconnect());
+    dispatch(disconnectLidarr());
     setQueue([]);
     previousQueueRef.current = [];
     toast('Disconnected from Lidarr.');
   };
 
-  /* ─────────────────── queue UI ─────────────────── */
-
-  const toggleExpand = (id: number) => {
+  const toggleExpand = (id: string) => {
     setExpandedItemId(expandedItemId === id ? null : id);
   };
 
-  const renderDownloadItem = ({ item }) => {
-    const totalSize = item.size || 1;
-    const sizeLeft = item.sizeleft || 0;
-    const progress = Math.min(1, (totalSize - sizeLeft) / totalSize);
-    const percent = Math.round(progress * 100);
-
+  const renderDownloadItem = ({ item }: { item: LidarrQueueRecord }) => {
+    const percent = Math.min(100, item.percentComplete ?? 0);
+    const meta = item.trackCount > 0 ? `${item.trackCount} track${item.trackCount === 1 ? '' : 's'}` : '';
     const hasWarnings = item.statusMessages?.length > 0;
     const isExpanded = expandedItemId === item.id;
-    const downloadState =
-      item.trackedDownloadState || item.status || 'unknown';
 
     return (
-      <View style={styles.itemContainer}>
+      <View style={styles.itemRow}>
         <Pressable onPress={() => hasWarnings && toggleExpand(item.id)}>
-          <Text style={[styles.albumTitle, isDarkMode && styles.albumTitleDark]}>
-            {item.album?.title || item.title || 'Unknown Album'}
-          </Text>
-
-          <Text style={[styles.artistName, isDarkMode && styles.artistNameDark]}>
-            {item.artist?.artistName || item.artistName || 'Unknown Artist'}
-          </Text>
-
-          <Text style={[styles.status, isDarkMode && styles.statusDark]}>
-            {downloadState} ({percent}%)
-          </Text>
-
-          <View style={[
-            styles.progressBarBackground,
-            isDarkMode && styles.progressBarBackgroundDark,
-          ]}>
+          <View style={styles.itemHeader}>
+            <View style={styles.itemMain}>
+              <Text
+                style={[styles.itemTitle, isDarkMode && styles.itemTitleDark]}
+                numberOfLines={1}
+              >
+                {item.albumTitle || 'Unknown Album'}
+              </Text>
+              <Text
+                style={[styles.itemSub, isDarkMode && styles.itemSubDark]}
+                numberOfLines={1}
+              >
+                {[item.artistName, meta].filter(Boolean).join(' · ')}
+              </Text>
+            </View>
+            <Text style={[styles.itemPct, isDarkMode && styles.itemPctDark]}>
+              {percent}%
+            </Text>
+          </View>
+          <View
+            style={[
+              styles.progressTrack,
+              isDarkMode && styles.progressTrackDark,
+            ]}
+          >
             <View
               style={[
-                styles.progressBarFill,
+                styles.progressFill,
                 { backgroundColor: themeColor, width: `${percent}%` },
               ]}
             />
           </View>
-
           {hasWarnings && isExpanded && (
-            <View style={[
-              styles.warningContainer,
-              isDarkMode && styles.warningContainerDark,
-            ]}>
+            <View
+              style={[
+                styles.warningContainer,
+                isDarkMode && styles.warningContainerDark,
+              ]}
+            >
               {item.statusMessages.map((msg, idx) => (
                 <Text
                   key={idx}
@@ -249,7 +251,7 @@ const LidarrView: React.FC = () => {
           </Text>
           <TextInput
             value={serverUrl}
-            onChangeText={(v) => dispatch(setServerUrl(v))}
+            onChangeText={(v) => dispatch(setLidarrServerUrl(v))}
             placeholder="http://node:8686"
             placeholderTextColor={isDarkMode ? '#666' : '#999'}
             style={[styles.input, isDarkMode && styles.inputDark]}
@@ -260,7 +262,7 @@ const LidarrView: React.FC = () => {
           </Text>
           <TextInput
             value={apiKey}
-            onChangeText={(v) => dispatch(setApiKey(v))}
+            onChangeText={(v) => dispatch(setLidarrApiKey(v))}
             placeholder="API key"
             placeholderTextColor={isDarkMode ? '#666' : '#999'}
             secureTextEntry
@@ -293,7 +295,11 @@ const LidarrView: React.FC = () => {
 
           {loadingQueue ? (
             <Animated.View
-              style={{ alignItems: 'center', marginTop: 20, transform: [{ rotate: spin }] }}
+              style={{
+                alignItems: 'center',
+                marginTop: 20,
+                transform: [{ rotate: spin }],
+              }}
             >
               <Loader2 size={32} color={isDarkMode ? '#fff' : '#000'} />
             </Animated.View>
@@ -304,7 +310,7 @@ const LidarrView: React.FC = () => {
           ) : (
             <FlatList
               data={queue}
-              keyExtractor={(i) => i.id.toString()}
+              keyExtractor={(i) => i.id}
               renderItem={renderDownloadItem}
               scrollEnabled={false}
             />
@@ -363,26 +369,47 @@ const styles = StyleSheet.create({
   },
   rowText: { fontSize: 16, color: '#000' },
   rowTextDark: { color: '#fff' },
-  emptyText: { textAlign: 'center', marginVertical: 16, fontSize: 16, color: '#666' },
+  emptyText: {
+    textAlign: 'center',
+    marginVertical: 12,
+    fontSize: 14,
+    color: '#666',
+  },
   emptyTextDark: { color: '#aaa' },
-  itemContainer: { padding: 16, borderRadius: 10, marginBottom: 12 },
-  albumTitle: { fontSize: 16, fontWeight: '600', color: '#000' },
-  albumTitleDark: { color: '#fff' },
-  artistName: { fontSize: 14, color: '#666', marginTop: 4 },
-  artistNameDark: { color: '#aaa' },
-  status: { fontSize: 12, color: '#888', marginTop: 6 },
-  statusDark: { color: '#888' },
-  progressBarBackground: {
-    height: 6,
+  itemRow: {
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    marginBottom: 8,
+    borderRadius: 8,
+  },
+  itemHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    marginBottom: 6,
+  },
+  itemMain: { flex: 1, minWidth: 0, marginRight: 8 },
+  itemTitle: { fontSize: 14, fontWeight: '600', color: '#000' },
+  itemTitleDark: { color: '#fff' },
+  itemSub: { fontSize: 12, color: '#666', marginTop: 2 },
+  itemSubDark: { color: '#aaa' },
+  itemPct: { fontSize: 12, color: '#888' },
+  itemPctDark: { color: '#888' },
+  progressTrack: {
+    height: 4,
     width: '100%',
-    backgroundColor: '#ddd',
-    borderRadius: 3,
-    marginTop: 8,
+    backgroundColor: '#e0e0e0',
+    borderRadius: 2,
     overflow: 'hidden',
   },
-  progressBarBackgroundDark: { backgroundColor: '#333' },
-  progressBarFill: { height: '100%', borderRadius: 3 },
-  warningContainer: { marginTop: 8, padding: 8, backgroundColor: '#f0f0f0', borderRadius: 6 },
+  progressTrackDark: { backgroundColor: '#333' },
+  progressFill: { height: '100%', borderRadius: 2 },
+  warningContainer: {
+    marginTop: 8,
+    padding: 8,
+    backgroundColor: '#f0f0f0',
+    borderRadius: 6,
+  },
   warningContainerDark: { backgroundColor: '#1a1a1a' },
   warningMessage: { fontSize: 12, color: '#777', marginLeft: 8, marginTop: 2 },
   warningMessageDark: { color: '#aaa' },
@@ -396,5 +423,10 @@ const styles = StyleSheet.create({
     marginTop: 16,
   },
   disconnectButtonDark: { backgroundColor: '#FF453A' },
-  disconnectButtonText: { color: '#fff', fontSize: 16, fontWeight: '600' },
+  disconnectButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+    marginLeft: 8,
+  },
 });

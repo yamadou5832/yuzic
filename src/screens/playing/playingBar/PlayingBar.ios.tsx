@@ -215,6 +215,9 @@ const PlayingBar: React.FC = () => {
                 animationConfigs={animationConfigs}
                 enablePanDownToClose
                 backgroundStyle={{ backgroundColor: 'transparent' }}
+                handleIndicatorStyle={{
+                    backgroundColor: isDarkMode ? '#555' : '#ccc',
+                }}
                 backgroundComponent={props => (
                     <PlayingBackground
                         {...props}

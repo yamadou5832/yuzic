@@ -20,3 +20,4 @@ export {
   fetchQueueWithDiff,
   detectFinishedQueueItems,
 } from './queue';
+export type { LidarrQueueRecord } from './queue';
