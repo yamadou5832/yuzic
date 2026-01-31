@@ -62,7 +62,7 @@ export default function LibraryContent<T>({
       key={isGridView ? `grid-${gridColumns}` : 'list'}
       numColumns={isGridView ? gridColumns : 1}
       keyExtractor={(item: any) => item.id}
-      contentContainerStyle={{ paddingBottom: 150 }}
+      contentContainerStyle={{ paddingBottom: 150, paddingHorizontal: 8 }}
       ListHeaderComponent={ListHeaderComponent}
       renderItem={renderItem}
       showsVerticalScrollIndicator={false}

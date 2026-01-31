@@ -24,6 +24,7 @@ import {
     selectArtistLastPlayedAt,
 } from '@/utils/redux/selectors/statsSelectors';
 import HomeHeader from './components/Header';
+import RecentlyPlayed from './components/RecentlyPlayed';
 import LibraryFilterBar from './components/Filters';
 import LibraryListHeader from './components/Content/Header';
 import LibraryContent from './components/Content';
@@ -295,11 +296,14 @@ export default function HomeScreen() {
                             estimatedItemSize={302}
                             renderItem={renderItem}
                             ListHeaderComponent={
-                                <LibraryListHeader
-                                    sortLabel={currentSortLabel}
-                                    onSortPress={() => sortSheetRef.current?.present()}
-                                    onToggleView={() => dispatch(setIsGridView(!isGridView))}
-                                />
+                                <>
+                                    <RecentlyPlayed activeFilter={activeFilter} />
+                                    <LibraryListHeader
+                                        sortLabel={currentSortLabel}
+                                        onSortPress={() => sortSheetRef.current?.present()}
+                                        onToggleView={() => dispatch(setIsGridView(!isGridView))}
+                                    />
+                                </>
                             }
                         />
 
