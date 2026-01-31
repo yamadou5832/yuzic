@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useMemo } from 'react';
+import React, { useCallback, useEffect, useState, useRef, useMemo } from 'react';
 import {
     StyleSheet,
     Dimensions,
@@ -37,6 +37,7 @@ import { useArtists } from '@/hooks/artists';
 import { usePlaylists } from '@/hooks/playlists';
 import { QueryKeys } from '@/enums/queryKeys';
 import { useQueryClient } from '@tanstack/react-query';
+import { LIBRARY_INITIAL_PAGE_SIZE, LIBRARY_PAGE_SIZE } from '@/constants/library';
 
 export default function HomeScreen() {
     const navigation = useNavigation();
@@ -65,6 +66,7 @@ export default function HomeScreen() {
 
     const [activeFilter, setActiveFilter] =
         useState<'all' | 'albums' | 'artists' | 'playlists'>('all');
+    const [displayedCount, setDisplayedCount] = useState(LIBRARY_INITIAL_PAGE_SIZE);
 
     const [screenWidth, setScreenWidth] = useState(Dimensions.get('window').width);
     const [isMounted, setIsMounted] = useState(false);
@@ -184,6 +186,23 @@ export default function HomeScreen() {
         return data;
     }, [filteredData, sortOrder, albumPlays, artistPlays, albumLastPlayedAt, artistLastPlayedAt]);
 
+    // Reset displayed count when filter or sort changes
+    useEffect(() => {
+        setDisplayedCount(LIBRARY_INITIAL_PAGE_SIZE);
+    }, [activeFilter, sortOrder]);
+
+    const displayedData = useMemo(
+        () => sortedFilteredData.slice(0, displayedCount),
+        [sortedFilteredData, displayedCount]
+    );
+
+    const hasMore = displayedCount < sortedFilteredData.length;
+    const loadMore = useCallback(() => {
+        if (hasMore) {
+            setDisplayedCount((prev) => Math.min(prev + LIBRARY_PAGE_SIZE, sortedFilteredData.length));
+        }
+    }, [hasMore, sortedFilteredData.length]);
+
     const filters = [
         { label: 'All', value: 'all' },
         { label: 'Albums', value: 'albums' },
@@ -266,8 +285,10 @@ export default function HomeScreen() {
                 {mode === 'home' ? (
                     <>
                         <LibraryContent
-                            data={sortedFilteredData}
+                            data={displayedData}
                             isLoading={isLoading}
+                            onEndReached={loadMore}
+                            hasMore={hasMore}
                             isGridView={isGridView}
                             gridColumns={gridColumns}
                             gridItemWidth={gridItemWidth}
