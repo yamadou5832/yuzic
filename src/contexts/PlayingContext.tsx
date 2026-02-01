@@ -26,6 +26,7 @@ import { incrementPlay } from '@/utils/redux/slices/statsSlice';
 import * as listenbrainz from '@/api/listenbrainz'
 import { selectActiveServer } from '@/utils/redux/selectors/serversSelectors';
 import { selectListenBrainzConfig } from '@/utils/redux/selectors/listenbrainzSelectors';
+import { toast } from '@backpackapp-io/react-native-toast';
 
 TrackPlayer.registerPlaybackService(() => PlaybackService);
 
@@ -78,6 +79,8 @@ export interface PlayingContextType {
   addToQueue(song: Song): void;
   playNext(song: Song): void;
 
+  playSimilar(song: Song): Promise<void>;
+
   toggleShuffle(): Promise<void>;
 
   repeatOn: boolean;
@@ -111,6 +114,7 @@ export const PlayingProvider: React.FC<{ children: ReactNode }> = ({ children })
   const rawProgress = useProgress(250);
   const progress = normalizeProgress(rawProgress);
 
+  const api = useApi();
   const { getSongLocalUri } = useDownload();
   const dispatch = useDispatch();
   const activeServer = useSelector(selectActiveServer);
@@ -415,6 +419,27 @@ export const PlayingProvider: React.FC<{ children: ReactNode }> = ({ children })
     bumpQueue();
   };
 
+  const playSimilar = async (song: Song) => {
+    try {
+      const similarSongs = await api.similar.getSimilarSongs(song.id);
+      const others = similarSongs.filter(s => s.id !== song.id);
+      const songs = [song, ...shuffleArray(others)];
+      const collection: Playlist = {
+        id: 'similar',
+        title: 'Similar',
+        subtext: '',
+        cover: { kind: 'none' },
+        changed: new Date(),
+        created: new Date(),
+        songs,
+      };
+      await playSongInCollection(song, collection, false);
+      if (others.length > 0) toast.success('Playing similar music');
+    } catch {
+      await playSong(song);
+    }
+  };
+
   const toggleShuffle = async () => {
     if (!shuffleOn) {
       originalQueueRef.current = queueRef.current;
@@ -478,6 +503,7 @@ export const PlayingProvider: React.FC<{ children: ReactNode }> = ({ children })
         moveTrack,
         addToQueue,
         playNext,
+        playSimilar,
       }}
     >
       {children}

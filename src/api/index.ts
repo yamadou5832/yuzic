@@ -47,6 +47,9 @@ export const useApi = (): ApiAdapter => {
       songs: {
         get: async () => null,
       },
+      similar: {
+        getSimilarSongs: async () => [],
+      },
       lyrics: {
         getBySongId: empty,
       },
@@ -98,6 +101,9 @@ export const useApi = (): ApiAdapter => {
     },
     songs: {
       get: async () => null,
+    },
+    similar: {
+      getSimilarSongs: async () => [],
     },
     lyrics: {
       getBySongId: empty

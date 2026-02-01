@@ -22,7 +22,7 @@ export default function RecentSongsSpeedDial() {
   const { isDarkMode } = useTheme();
   const { width } = useWindowDimensions();
   const { songs, isLoading } = useRecentSongs();
-  const { playSong } = usePlaying();
+  const { playSimilar } = usePlaying();
 
   const contentWidth = width - H_PADDING * 2;
   const totalItemMargins = COLS * (ITEM_MARGIN * 2);
@@ -50,7 +50,7 @@ export default function RecentSongsSpeedDial() {
               >
                 <TouchableOpacity
                   style={[styles.item, { width: itemSize, height: itemSize }]}
-                  onPress={() => playSong(song)}
+                  onPress={() => playSimilar(song)}
                   activeOpacity={0.7}
                 >
                   <MediaImage

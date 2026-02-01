@@ -7,7 +7,9 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useQueryClient } from '@tanstack/react-query';
+import { useSelector } from 'react-redux';
 import { useApi } from '@/api';
+import { selectActiveServer } from '@/utils/redux/selectors/serversSelectors';
 import { CoverSource, Artist } from '@/types';
 import { QueryKeys } from '@/enums/queryKeys';
 import { MediaImage } from '@/components/MediaImage';
@@ -37,6 +39,7 @@ const ArtistItem: React.FC<ItemProps> = ({
   const navigation = useNavigation<any>();
   const queryClient = useQueryClient();
   const api = useApi();
+  const activeServer = useSelector(selectActiveServer);
 
   const sheetRef = useRef<BottomSheetModal>(null);
   const [artistForSheet, setArtistForSheet] = useState<Artist | null>(null);
@@ -47,11 +50,11 @@ const ArtistItem: React.FC<ItemProps> = ({
 
   const fetchArtist = useCallback(async () => {
     return queryClient.fetchQuery({
-      queryKey: [QueryKeys.Artist, id],
+      queryKey: [QueryKeys.Artist, activeServer?.id, id],
       queryFn: () => api.artists.get(id),
       staleTime: staleTime.artists,
     });
-  }, [api, queryClient, id]);
+  }, [api, queryClient, activeServer?.id, id]);
 
   const handleLongPress = useCallback(async () => {
     const artist = await fetchArtist();

@@ -18,6 +18,7 @@ import ArtistOptions from '@/components/options/ArtistOptions';
 import { Artist, Song, Album } from '@/types';
 import { usePlaying } from '@/contexts/PlayingContext';
 import { toast } from '@backpackapp-io/react-native-toast';
+import { selectActiveServer } from '@/utils/redux/selectors/serversSelectors';
 import { selectThemeColor } from '@/utils/redux/selectors/settingsSelectors';
 import { useApi } from '@/api';
 import { QueryKeys } from '@/enums/queryKeys';
@@ -33,6 +34,7 @@ const ArtistHeader: React.FC<Props> = ({ artist }) => {
   const navigation = useNavigation();
   const { isDarkMode } = useTheme();
   const themeColor = useSelector(selectThemeColor);
+  const activeServer = useSelector(selectActiveServer);
 
   const queryClient = useQueryClient();
   const api = useApi();
@@ -58,7 +60,7 @@ const ArtistHeader: React.FC<Props> = ({ artist }) => {
         const albums: Album[] = await Promise.all(
           artist.ownedAlbums.map(a =>
             queryClient.fetchQuery({
-              queryKey: [QueryKeys.Album, a.id],
+              queryKey: [QueryKeys.Album, activeServer?.id, a.id],
               queryFn: () => api.albums.get(a.id),
               staleTime: staleTime.albums,
             })
@@ -81,7 +83,7 @@ const ArtistHeader: React.FC<Props> = ({ artist }) => {
     return () => {
       cancelled = true;
     };
-  }, [artist.id]);
+  }, [artist.id, activeServer?.id]);
 
   const playArtist = (shuffle = false) => {
     if (!artistSongs.length) {

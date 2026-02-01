@@ -1,15 +1,10 @@
 import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, useWindowDimensions } from 'react-native';
 import { useSelector } from 'react-redux';
-import {
-  selectAlbumLastPlayedAt,
-  selectArtistLastPlayedAt,
-} from '@/utils/redux/selectors/statsSelectors';
+import { selectAlbumLastPlayedAt } from '@/utils/redux/selectors/statsSelectors';
 import { useAlbums } from '@/hooks/albums';
-import { useArtists } from '@/hooks/artists';
 import { useTheme } from '@/hooks/useTheme';
 import AlbumItem from '@/screens/home/components/Items/AlbumItem';
-import ArtistItem from '@/screens/home/components/Items/ArtistItem';
 import SectionEmptyState from '../SectionEmptyState';
 
 const H_PADDING = 12;
@@ -29,51 +24,18 @@ export default function RecentlyPlayed() {
   const gridItemWidth = getItemWidth(width);
   const slotWidth = gridItemWidth + ITEM_MARGIN * 2;
   const albumLastPlayedAt = useSelector(selectAlbumLastPlayedAt);
-  const artistLastPlayedAt = useSelector(selectArtistLastPlayedAt);
   const { albums } = useAlbums();
-  const { artists } = useArtists();
-
-  const recentlyPlayed = useMemo(() => {
-    const entries: { id: string; timestamp: number; type: 'Album' | 'Artist' }[] = [];
-
-    Object.entries(albumLastPlayedAt).forEach(([id, timestamp]) => {
-      if (timestamp > 0) entries.push({ id, timestamp, type: 'Album' });
-    });
-    Object.entries(artistLastPlayedAt).forEach(([id, timestamp]) => {
-      if (timestamp > 0) entries.push({ id, timestamp, type: 'Artist' });
-    });
-
-    entries.sort((a, b) => b.timestamp - a.timestamp);
-    return entries;
-  }, [albumLastPlayedAt, artistLastPlayedAt]);
 
   const itemsToRender = useMemo(() => {
-    return recentlyPlayed
-      .map((entry) => {
-        if (entry.type === 'Album') {
-          const album = albums.find((a) => a.id === entry.id);
-          if (!album) return null;
-          return {
-            type: 'Album' as const,
-            id: album.id,
-            title: album.title,
-            subtext: album.subtext,
-            cover: album.cover,
-          };
-        }
-        const artist = artists.find((a) => a.id === entry.id);
-        if (!artist) return null;
-        return {
-          type: 'Artist' as const,
-          id: artist.id,
-          name: artist.name,
-          subtext: artist.subtext,
-          cover: artist.cover,
-        };
-      })
-      .filter(Boolean)
+    const entries = Object.entries(albumLastPlayedAt)
+      .filter(([, timestamp]) => timestamp > 0)
+      .sort(([, a], [, b]) => b - a)
       .slice(0, 12);
-  }, [recentlyPlayed, albums, artists]);
+
+    return entries
+      .map(([id]) => albums.find((a) => a.id === id))
+      .filter(Boolean) as { id: string; title: string; subtext: string; cover: any }[];
+  }, [albumLastPlayedAt, albums]);
 
   return (
     <View style={[styles.container, isDarkMode && styles.containerDark]}>
@@ -81,38 +43,25 @@ export default function RecentlyPlayed() {
         Recently played
       </Text>
       {itemsToRender.length === 0 ? (
-        <SectionEmptyState message="Play albums or artists to see them here" />
+        <SectionEmptyState message="Play albums to see them here" />
       ) : (
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        {itemsToRender.map((item) =>
-          item.type === 'Album' ? (
-            <View key={`album-${item.id}`} style={[styles.item, { width: slotWidth }]}>
-              <AlbumItem
-                id={item.id}
-                title={item.title}
-                subtext={item.subtext}
-                cover={item.cover}
-                isGridView
-                gridWidth={gridItemWidth}
-              />
-            </View>
-          ) : (
-            <View key={`artist-${item.id}`} style={[styles.item, { width: slotWidth }]}>
-              <ArtistItem
-                id={item.id}
-                name={item.name}
-                subtext={item.subtext}
-                cover={item.cover}
-                isGridView
-                gridWidth={gridItemWidth}
-              />
-            </View>
-          )
-        )}
+        {itemsToRender.map((album) => (
+          <View key={album.id} style={[styles.item, { width: slotWidth }]}>
+            <AlbumItem
+              id={album.id}
+              title={album.title}
+              subtext={album.subtext}
+              cover={album.cover}
+              isGridView
+              gridWidth={gridItemWidth}
+            />
+          </View>
+        ))}
       </ScrollView>
       )}
     </View>

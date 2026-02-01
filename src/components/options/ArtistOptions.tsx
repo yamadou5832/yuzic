@@ -18,7 +18,9 @@ import { MediaImage } from '@/components/MediaImage';
 import { usePlaying } from '@/contexts/PlayingContext';
 import { useNavigation } from '@react-navigation/native';
 import { useQueryClient } from '@tanstack/react-query';
+import { useSelector } from 'react-redux';
 import { useApi } from '@/api';
+import { selectActiveServer } from '@/utils/redux/selectors/serversSelectors';
 import { QueryKeys } from '@/enums/queryKeys';
 import { useTheme } from '@/hooks/useTheme';
 import { useArtistMbid } from '@/hooks/artists';
@@ -39,6 +41,7 @@ const ArtistOptions = forwardRef<
   const navigation = useNavigation<any>();
   const queryClient = useQueryClient();
   const api = useApi();
+  const activeServer = useSelector(selectActiveServer);
 
   const {
     playSongInCollection,
@@ -62,14 +65,14 @@ const ArtistOptions = forwardRef<
     const albums = await Promise.all(
       artist.ownedAlbums.map((a) =>
         queryClient.fetchQuery({
-          queryKey: [QueryKeys.Album, a.id],
+          queryKey: [QueryKeys.Album, activeServer?.id, a.id],
           queryFn: () => api.albums.get(a.id),
           staleTime: staleTime.albums,
         })
       )
     );
     return albums.flatMap((a) => a?.songs ?? []);
-  }, [artist, queryClient, api]);
+  }, [artist, queryClient, api, activeServer?.id]);
 
   const buildCollection = useCallback(
     (songs: Song[]) => ({

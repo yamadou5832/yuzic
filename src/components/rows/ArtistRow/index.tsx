@@ -8,6 +8,8 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useQueryClient } from '@tanstack/react-query';
+import { useSelector } from 'react-redux';
+import { selectActiveServer } from '@/utils/redux/selectors/serversSelectors';
 import { useApi } from '@/api';
 import { Song, ArtistBase, Artist } from '@/types';
 import { QueryKeys } from '@/enums/queryKeys';
@@ -40,13 +42,15 @@ const ArtistRow: React.FC<Props> = ({ artist, onPress }) => {
     navigation.navigate('artistView', { id: artist.id });
   }, [navigation, artist.id]);
 
+  const activeServer = useSelector(selectActiveServer);
+
   const fetchArtist = useCallback(async () => {
     return queryClient.fetchQuery({
-      queryKey: [QueryKeys.Artist, artist.id],
+      queryKey: [QueryKeys.Artist, activeServer?.id, artist.id],
       queryFn: () => api.artists.get(artist.id),
       staleTime: staleTime.artists,
     });
-  }, [api, queryClient, artist.id]);
+  }, [api, queryClient, activeServer?.id, artist.id]);
 
   const handlePlay = useCallback(
     async (shuffle: boolean) => {
@@ -59,7 +63,7 @@ const ArtistRow: React.FC<Props> = ({ artist, onPress }) => {
       const albums = await Promise.all(
         albumIds.map(albumId =>
           queryClient.fetchQuery({
-            queryKey: [QueryKeys.Album, albumId],
+            queryKey: [QueryKeys.Album, activeServer?.id, albumId],
             queryFn: () => api.albums.get(albumId),
             staleTime: staleTime.albums,
           })
@@ -84,7 +88,7 @@ const ArtistRow: React.FC<Props> = ({ artist, onPress }) => {
         shuffle
       );
     },
-    [fetchArtist, queryClient, api, playSongInCollection]
+    [fetchArtist, queryClient, api, playSongInCollection, activeServer?.id]
   );
 
   const handleShowInfo = useCallback(async () => {

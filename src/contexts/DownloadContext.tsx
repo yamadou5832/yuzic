@@ -15,6 +15,7 @@ import {
     markPlaylist,
     clearAllMarked,
 } from '@/utils/redux/slices/downloadsSlice';
+import { selectActiveServer } from '@/utils/redux/selectors/serversSelectors';
 import { selectAudioQuality } from '@/utils/redux/selectors/settingsSelectors';
 import { useQueryClient } from '@tanstack/react-query';
 import { useApi } from '@/api';
@@ -69,6 +70,7 @@ export const DownloadProvider: React.FC<{ children: ReactNode }> = ({ children }
     const dispatch = useDispatch();
 
     const audioQuality = useSelector(selectAudioQuality);
+    const activeServer = useSelector(selectActiveServer);
 
     const markedAlbums = useSelector(
         (state: RootState) => state.downloads.markedAlbums
@@ -163,12 +165,16 @@ export const DownloadProvider: React.FC<{ children: ReactNode }> = ({ children }
         if (cancelledIds.current.has(albumId)) return;
 
         // Try to get cached data first (offline-first approach)
-        let album = queryClient.getQueryData<Album>([QueryKeys.Album, albumId]);
-        
+        let album = queryClient.getQueryData<Album>([
+            QueryKeys.Album,
+            activeServer?.id,
+            albumId,
+        ]);
+
         // If not in cache, fetch from server with offline-first mode
         if (!album) {
             album = await queryClient.fetchQuery({
-                queryKey: [QueryKeys.Album, albumId],
+                queryKey: [QueryKeys.Album, activeServer?.id, albumId],
                 queryFn: () => api.albums.get(albumId),
                 staleTime: staleTime.albums,
                 networkMode: 'offlineFirst', // Use cached data if offline
@@ -195,12 +201,16 @@ export const DownloadProvider: React.FC<{ children: ReactNode }> = ({ children }
         if (cancelledIds.current.has(playlistId)) return;
 
         // Try to get cached data first (offline-first approach)
-        let playlist = queryClient.getQueryData<Playlist>([QueryKeys.Playlist, playlistId]);
-        
+        let playlist = queryClient.getQueryData<Playlist>([
+            QueryKeys.Playlist,
+            activeServer?.id,
+            playlistId,
+        ]);
+
         // If not in cache, fetch from server with offline-first mode
         if (!playlist) {
             playlist = await queryClient.fetchQuery({
-                queryKey: [QueryKeys.Playlist, playlistId],
+                queryKey: [QueryKeys.Playlist, activeServer?.id, playlistId],
                 queryFn: () => api.playlists.get(playlistId),
                 staleTime: staleTime.playlists,
                 networkMode: 'offlineFirst', // Use cached data if offline

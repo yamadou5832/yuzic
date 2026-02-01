@@ -1,8 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
+import { useSelector } from 'react-redux';
 import { QueryKeys } from '@/enums/queryKeys';
 import { Artist } from '@/types';
 import { useApi } from '@/api';
 import { staleTime } from '@/constants/staleTime';
+import { selectActiveServer } from '@/utils/redux/selectors/serversSelectors';
 
 type UseArtistResult = {
   artist: Artist | null;
@@ -12,11 +14,12 @@ type UseArtistResult = {
 
 export function useArtist(id: string): UseArtistResult {
   const api = useApi();
+  const activeServer = useSelector(selectActiveServer);
 
   const query = useQuery<Artist, Error>({
-    queryKey: [QueryKeys.Artist, id],
+    queryKey: [QueryKeys.Artist, activeServer?.id, id],
     queryFn: () => api.artists.get(id),
-    enabled: !!id,
+    enabled: !!activeServer?.id && !!id,
     staleTime: staleTime.artists,
   });
 

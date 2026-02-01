@@ -22,6 +22,11 @@ export const selectSongLastPlayedAt = createSelector(
   (map, serverId) => filterByServer(map, serverId)
 );
 
+export const selectSongPlayCounts = createSelector(
+  [(s: RootState) => s.stats.songPlays, (s: RootState) => s.servers.activeServerId],
+  (map, serverId) => filterByServer(map, serverId)
+);
+
 export const selectAlbumLastPlayedAt = createSelector(
   [(s: RootState) => s.stats.albumLastPlayedAt, (s: RootState) => s.servers.activeServerId],
   (map, serverId) => filterByServer(map, serverId)
