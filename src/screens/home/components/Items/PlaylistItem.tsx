@@ -107,8 +107,8 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   gridItemContainer: {
-    marginVertical: 4,
-    marginHorizontal: 4,
+    marginVertical: 8,
+    marginHorizontal: 8,
     alignItems: 'flex-start',
     borderRadius: 14,
   },

@@ -101,7 +101,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
   },
   gridItem: {
-    marginHorizontal: 4,
-    marginBottom: 12,
+    marginHorizontal: 8,
+    marginBottom: 16,
   },
 });

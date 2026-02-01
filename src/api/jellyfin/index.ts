@@ -21,7 +21,7 @@ import { getAlbum } from "./albums/getAlbum";
 import { getAlbums } from "./albums/getAlbums";
 import { getArtists } from "./artists/getArtists";
 import { getPlaylists } from "./playlists/getPlaylists";
-import { getPlaylistItems } from "./playlists/getPlaylistItems";
+import { getPlaylistItems, getPlaylistEntryIdForSong } from "./playlists/getPlaylistItems";
 import { createPlaylist } from "./playlists/createPlaylist";
 import { deletePlaylist } from "./playlists/deletePlaylist";
 import { addPlaylistItems } from "./playlists/addPlaylistItems";
@@ -142,7 +142,17 @@ export const createJellyfinAdapter = (adapter: Server): ApiAdapter => {
         return { success: true };
       }
 
-      await removePlaylistItems(serverUrl, playlistId, token, [songId]);
+      const entryId = await getPlaylistEntryIdForSong(
+        serverUrl,
+        playlistId,
+        userId,
+        token,
+        songId
+      );
+      if (!entryId) {
+        throw new Error("Song not found in playlist");
+      }
+      await removePlaylistItems(serverUrl, playlistId, token, [entryId]);
       return { success: true };
     },
 

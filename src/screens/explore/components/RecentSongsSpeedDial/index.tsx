@@ -16,7 +16,7 @@ const H_PADDING = 12;
 const ITEM_MARGIN = 4;
 const ROW_GAP = 8;
 const COLS = 3;
-const MAX_SONGS = 12;
+const MAX_SONGS = 6;
 
 export default function RecentSongsSpeedDial() {
   const { isDarkMode } = useTheme();
@@ -33,7 +33,7 @@ export default function RecentSongsSpeedDial() {
   return (
     <View style={[styles.container, isDarkMode && styles.containerDark]}>
       <Text style={[styles.title, isDarkMode && styles.titleDark]}>
-        Recent songs
+        Dial
       </Text>
       {isLoading ? null : displaySongs.length === 0 ? (
         <SectionEmptyState message="Play something to see it here" />

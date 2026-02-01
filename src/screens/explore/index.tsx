@@ -22,6 +22,7 @@ export default function Explore() {
       contentContainerStyle={[styles.content, { paddingBottom: 150 }]}
       showsVerticalScrollIndicator={false}
     >
+      <RecentSongsSpeedDial/>
       <RecentlyPlayed />
       <RecentlyAdded />
       <FavoriteAlbums />

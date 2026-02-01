@@ -121,8 +121,8 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   gridItemContainer: {
-    marginVertical: 4,
-    marginHorizontal: 4,
+    marginVertical: 8,
+    marginHorizontal: 8,
     borderRadius: 14,
   },
   gridTextContainer: {

@@ -4,7 +4,7 @@ import { selectGridColumns } from '@/utils/redux/selectors/settingsSelectors';
 
 const GRID_HORIZONTAL_PADDING = 8;
 const GRID_GAP = 8;
-const ITEM_MARGIN_H = 4; // AlbumItem/ArtistItem/PlaylistItem have marginHorizontal: 4
+const ITEM_MARGIN_H = 8; // AlbumItem/ArtistItem/PlaylistItem have marginHorizontal: 8
 
 export function useGridLayout() {
   const { width } = useWindowDimensions();
