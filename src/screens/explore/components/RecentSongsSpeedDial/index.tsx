@@ -25,8 +25,8 @@ export default function RecentSongsSpeedDial() {
   const { playSimilar } = usePlaying();
 
   const contentWidth = width - H_PADDING * 2;
-  const totalItemMargins = COLS * (ITEM_MARGIN * 2);
-  const itemSize = (contentWidth - totalItemMargins) / COLS;
+  const totalSlotMargins = COLS * ITEM_MARGIN;
+  const itemSize = (contentWidth - totalSlotMargins) / COLS;
 
   const displaySongs = songs.slice(0, MAX_SONGS);
 
@@ -38,16 +38,17 @@ export default function RecentSongsSpeedDial() {
       {isLoading ? null : displaySongs.length === 0 ? (
         <SectionEmptyState message="Play something to see it here" />
       ) : (
-      <View style={styles.grid}>
-        {Array.from(
-          { length: Math.ceil(displaySongs.length / COLS) },
-          (_, row) => (
-          <View key={row} style={[styles.row, row > 0 && { marginTop: ROW_GAP }]}>
-            {displaySongs.slice(row * COLS, (row + 1) * COLS).map((song) => (
-              <View
-                key={song.id}
-                style={[styles.slot, { width: itemSize }]}
-              >
+      <View style={styles.gridWrapper}>
+        <View style={styles.grid}>
+          {Array.from(
+            { length: Math.ceil(displaySongs.length / COLS) },
+            (_, row) => (
+            <View key={row} style={[styles.row, row > 0 && { marginTop: ROW_GAP }]}>
+              {displaySongs.slice(row * COLS, (row + 1) * COLS).map((song) => (
+                <View
+                  key={song.id}
+                  style={[styles.slot, { width: itemSize }]}
+                >
                 <TouchableOpacity
                   style={[styles.item, { width: itemSize, height: itemSize }]}
                   onPress={() => playSimilar(song)}
@@ -66,9 +67,10 @@ export default function RecentSongsSpeedDial() {
                   </Text>
                 </TouchableOpacity>
               </View>
-            ))}
-          </View>
-        ))}
+              ))}
+            </View>
+          ))}
+        </View>
       </View>
       )}
     </View>
@@ -79,7 +81,6 @@ const styles = StyleSheet.create({
   container: {
     paddingTop: 12,
     paddingBottom: 8,
-    paddingHorizontal: H_PADDING,
   },
   containerDark: {},
   title: {
@@ -87,11 +88,15 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#666',
     marginBottom: 8,
+    marginLeft: H_PADDING,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
   titleDark: {
     color: '#888',
+  },
+  gridWrapper: {
+    paddingHorizontal: H_PADDING,
   },
   grid: {},
   row: {
@@ -99,8 +104,8 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
   },
   slot: {
-    marginVertical: ITEM_MARGIN,
-    marginHorizontal: ITEM_MARGIN,
+    marginRight: ITEM_MARGIN,
+    marginBottom: ITEM_MARGIN,
   },
   item: {
     borderRadius: 8,

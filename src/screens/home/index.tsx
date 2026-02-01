@@ -83,12 +83,13 @@ export default function HomeScreen() {
     const queryClient = useQueryClient();
 
     useEffect(() => {
-        if (!activeServer?.isAuthenticated) return;
+        if (!activeServer?.isAuthenticated || !activeServer?.id) return;
 
-        queryClient.refetchQueries({ queryKey: [QueryKeys.Albums] });
-        queryClient.refetchQueries({ queryKey: [QueryKeys.Artists] });
-        queryClient.refetchQueries({ queryKey: [QueryKeys.Playlists] });
-    }, [activeServer?.id, activeServer?.isAuthenticated]);
+        const serverId = activeServer.id;
+        queryClient.refetchQueries({ queryKey: [QueryKeys.Albums, serverId] });
+        queryClient.refetchQueries({ queryKey: [QueryKeys.Artists, serverId] });
+        queryClient.refetchQueries({ queryKey: [QueryKeys.Playlists, serverId] });
+    }, [activeServer?.id, activeServer?.isAuthenticated, queryClient]);
 
     useEffect(() => {
         setIsMounted(true);

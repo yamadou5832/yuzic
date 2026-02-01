@@ -172,26 +172,11 @@ export const PlayingProvider: React.FC<{ children: ReactNode }> = ({ children })
   ) => {
     if (!song) return;
     if (lastScrobbledIdRef.current === song.id) return;
-    if (!listenBrainzConfig?.token) return;
 
     const duration = Number(song.duration) || 0;
     if (!passesScrobbleThreshold(opts.listenedSeconds, duration)) return;
 
-    const listenedAt = Math.floor(opts.startTime / 1000);
-
-    try {
-      await listenbrainz.submitScrobble(listenBrainzConfig, {
-        artist: song.artist,
-        track: song.title,
-        listenedAt,
-        durationSeconds: duration > 0 ? duration : undefined,
-        durationPlayedSeconds: opts.listenedSeconds,
-      });
-      lastScrobbledIdRef.current = song.id;
-    } catch (err) {
-      console.warn('ListenBrainz scrobble failed', err);
-      return;
-    }
+    lastScrobbledIdRef.current = song.id;
 
     if (activeServer?.id) {
       dispatch(
@@ -202,6 +187,21 @@ export const PlayingProvider: React.FC<{ children: ReactNode }> = ({ children })
           artistId: song.artistId,
         })
       );
+    }
+
+    if (!listenBrainzConfig?.token) return;
+
+    const listenedAt = Math.floor(opts.startTime / 1000);
+    try {
+      await listenbrainz.submitScrobble(listenBrainzConfig, {
+        artist: song.artist,
+        track: song.title,
+        listenedAt,
+        durationSeconds: duration > 0 ? duration : undefined,
+        durationPlayedSeconds: opts.listenedSeconds,
+      });
+    } catch (err) {
+      console.warn('ListenBrainz scrobble failed', err);
     }
   };
 
