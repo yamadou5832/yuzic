@@ -13,7 +13,7 @@ import { MediaImage } from '@/components/MediaImage';
 import SectionEmptyState from '../SectionEmptyState';
 
 const H_PADDING = 12;
-const ITEM_MARGIN = 4;
+const GAP = 8; // match home grid (useGridLayout GRID_GAP / AlbumItem marginHorizontal)
 const ROW_GAP = 8;
 const COLS = 3;
 const MAX_SONGS = 6;
@@ -25,25 +25,25 @@ export default function RecentSongsSpeedDial() {
   const { playSimilar } = usePlaying();
 
   const contentWidth = width - H_PADDING * 2;
-  const totalSlotMargins = COLS * ITEM_MARGIN;
-  const itemSize = (contentWidth - totalSlotMargins) / COLS;
+  const totalGaps = (COLS - 1) * GAP;
+  const itemSize = (contentWidth - totalGaps) / COLS;
 
   const displaySongs = songs.slice(0, MAX_SONGS);
 
   return (
     <View style={[styles.container, isDarkMode && styles.containerDark]}>
-      <Text style={[styles.title, isDarkMode && styles.titleDark]}>
-        Dial
-      </Text>
-      {isLoading ? null : displaySongs.length === 0 ? (
-        <SectionEmptyState message="Play something to see it here" />
-      ) : (
-      <View style={styles.gridWrapper}>
+      <View style={styles.padded}>
+        <Text style={[styles.title, isDarkMode && styles.titleDark]}>
+          Dial
+        </Text>
+        {isLoading ? null : displaySongs.length === 0 ? (
+          <SectionEmptyState message="Play something to see it here" />
+        ) : (
         <View style={styles.grid}>
           {Array.from(
             { length: Math.ceil(displaySongs.length / COLS) },
             (_, row) => (
-            <View key={row} style={[styles.row, row > 0 && { marginTop: ROW_GAP }]}>
+            <View key={row} style={styles.row}>
               {displaySongs.slice(row * COLS, (row + 1) * COLS).map((song) => (
                 <View
                   key={song.id}
@@ -71,8 +71,8 @@ export default function RecentSongsSpeedDial() {
             </View>
           ))}
         </View>
+        )}
       </View>
-      )}
     </View>
   );
 }
@@ -83,30 +83,31 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
   },
   containerDark: {},
+  padded: {
+    paddingHorizontal: H_PADDING,
+  },
   title: {
     fontSize: 13,
     fontWeight: '600',
     color: '#666',
     marginBottom: 8,
-    marginLeft: H_PADDING,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
   titleDark: {
     color: '#888',
   },
-  gridWrapper: {
-    paddingHorizontal: H_PADDING,
+  grid: {
+    width: '100%',
+    rowGap: ROW_GAP,
   },
-  grid: {},
   row: {
     flexDirection: 'row',
     flexWrap: 'wrap',
+    width: '100%',
+    gap: GAP,
   },
-  slot: {
-    marginRight: ITEM_MARGIN,
-    marginBottom: ITEM_MARGIN,
-  },
+  slot: {},
   item: {
     borderRadius: 8,
     overflow: 'hidden',
