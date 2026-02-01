@@ -26,6 +26,7 @@ import {
 } from '@/utils/redux/selectors/settingsSelectors';
 import { usePlayingBarAction } from './actions/usePlayingBarAction';
 import { Toasts } from '@backpackapp-io/react-native-toast';
+import PlaylistList from '@/components/PlaylistList';
 
 const PlayingBar: React.FC = () => {
     const { isDarkMode } = useTheme();
@@ -40,12 +41,17 @@ const PlayingBar: React.FC = () => {
         resumeSong,
     } = usePlaying();
 
-    const primaryAction = usePlayingBarAction(actionMode);
+    const primaryAction = usePlayingBarAction(actionMode, {
+        presentAddToPlaylist: () => {
+            if (currentSong) playlistSheetRef.current?.present();
+        },
+    });
 
     const [currentGradient, setCurrentGradient] = useState<string[]>(['#000', '#000']);
     const [nextGradient, setNextGradient] = useState<string[]>(['#000', '#000']);
 
     const bottomSheetModalRef = useRef<BottomSheetModal>(null);
+    const playlistSheetRef = useRef<BottomSheetModal>(null);
 
     const darkenHexColor = (hex: string, amount = 0.3) => {
         let col = hex.replace('#', '');
@@ -243,6 +249,12 @@ const PlayingBar: React.FC = () => {
                     }}
                 />
             </BottomSheetModal>
+
+            <PlaylistList
+                ref={playlistSheetRef}
+                selectedSong={currentSong}
+                onClose={() => playlistSheetRef.current?.dismiss()}
+            />
         </>
     );
 };

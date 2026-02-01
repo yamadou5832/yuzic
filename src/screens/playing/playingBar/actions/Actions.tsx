@@ -1,5 +1,6 @@
 import React from 'react';
 import { Ionicons } from '@expo/vector-icons';
+import { PlusCircle } from 'lucide-react-native';
 import { PlayingBarAction } from '@/utils/redux/slices/settingsSlice';
 
 export type PlayingBarActionMeta = {
@@ -23,5 +24,9 @@ export const PLAYING_BAR_ACTIONS: PlayingBarActionMeta[] = [
   {
     id: 'randomAlbum',
     icon: <Ionicons name="dice-outline" size={20} />,
+  },
+  {
+    id: 'addToPlaylist',
+    icon: <PlusCircle size={20} />,
   },
 ];
