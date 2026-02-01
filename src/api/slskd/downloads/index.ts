@@ -1,8 +1,15 @@
 import { createSlskdClient, SlskdConfig } from '../client';
 
 const ALLOWED_EXTENSIONS = ['flac', 'mp3'];
-const SEARCH_RETRY = 5;
+const SEARCH_TIMEOUT_MS = 15000;
 const POLL_MS = 2000;
+// Max poll iterations as safety fallback if isComplete never becomes true (~45s)
+const MAX_POLL_ITERATIONS = Math.ceil(45000 / POLL_MS);
+
+type SearchStateResponse = {
+  id: string;
+  isComplete?: boolean;
+};
 
 type SearchFile = {
   filename: string;
@@ -65,7 +72,7 @@ export async function downloadAlbum(
       minimumPeerUploadSpeed: 0,
       minimumResponseFileCount: 1,
       responseLimit: 100,
-      searchTimeout: 15000,
+      searchTimeout: SEARCH_TIMEOUT_MS,
     };
 
     const searchState = await request<{ id: string }>('/searches', {
@@ -78,15 +85,30 @@ export async function downloadAlbum(
       return { success: false, message: 'Search failed' };
     }
 
-    let responses: SearchResponseItem[] = [];
-    for (let i = 0; i < SEARCH_RETRY; i++) {
+    // Poll search state until complete (slskd API reports isComplete when done)
+    let isComplete = false;
+    for (let i = 0; i < MAX_POLL_ITERATIONS; i++) {
       await delay(POLL_MS);
-      const list = await request<SearchResponseItem[]>(
-        `/searches/${searchId}/responses`
+      const state = await request<SearchStateResponse>(
+        `/searches/${searchId}`
       );
-      responses = Array.isArray(list) ? list : [];
-      if (responses.length > 0) break;
+      if (state.isComplete === true) {
+        isComplete = true;
+        break;
+      }
     }
+
+    if (!isComplete) {
+      return {
+        success: false,
+        message: 'Search timed out before completing',
+      };
+    }
+
+    const list = await request<SearchResponseItem[]>(
+      `/searches/${searchId}/responses`
+    );
+    const responses: SearchResponseItem[] = Array.isArray(list) ? list : [];
 
     type DirGroup = { dir: string; files: SearchFile[] };
     type Candidate = {

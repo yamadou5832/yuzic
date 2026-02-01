@@ -62,3 +62,17 @@ export async function getPlaylistItems(
   const items = raw?.Items ?? [];
   return items.map((s: any) => normalizePlaylistSongEntry(s, serverUrl, token));
 }
+
+/** Resolve song ID to Jellyfin PlaylistItemId (required for remove). */
+export async function getPlaylistEntryIdForSong(
+  serverUrl: string,
+  playlistId: string,
+  userId: string,
+  token: string,
+  songId: string
+): Promise<string | null> {
+  const raw = await fetchGetPlaylistItems(serverUrl, playlistId, userId, token);
+  const items = raw?.Items ?? [];
+  const item = items.find((s: any) => s.Id === songId);
+  return item?.PlaylistItemId ?? null;
+}

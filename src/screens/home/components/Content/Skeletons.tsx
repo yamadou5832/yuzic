@@ -82,7 +82,7 @@ export function LibraryGridSkeleton({
 
 const styles = StyleSheet.create({
   listContainer: {
-    paddingHorizontal: 16,
+    paddingHorizontal: 8,
     paddingTop: 12,
   },
   listRow: {
@@ -98,6 +98,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     paddingTop: 12,
+    paddingHorizontal: 8,
   },
   gridItem: {
     marginHorizontal: 8,

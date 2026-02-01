@@ -10,6 +10,7 @@ import TrackPlayer, {
   Capability,
   State,
   usePlaybackState,
+  useProgress,
   RepeatMode,
   Event,
   useTrackPlayerEvents,
@@ -23,7 +24,9 @@ import { buildCover } from '@/utils/builders/buildCover';
 import { useDispatch, useSelector } from 'react-redux';
 import { incrementPlay } from '@/utils/redux/slices/statsSlice';
 import * as listenbrainz from '@/api/listenbrainz'
+import { selectActiveServer } from '@/utils/redux/selectors/serversSelectors';
 import { selectListenBrainzConfig } from '@/utils/redux/selectors/listenbrainzSelectors';
+import { toast } from '@backpackapp-io/react-native-toast';
 
 TrackPlayer.registerPlaybackService(() => PlaybackService);
 
@@ -40,9 +43,16 @@ function passesScrobbleThreshold(
   return listenedSeconds >= threshold;
 }
 
+export interface PlaybackProgress {
+  position: number;
+  duration: number;
+  buffered: number;
+}
+
 export interface PlayingContextType {
   currentSong: Song | null;
   isPlaying: boolean;
+  progress: PlaybackProgress;
 
   pauseSong(): Promise<void>;
   resumeSong(): Promise<void>;
@@ -69,6 +79,8 @@ export interface PlayingContextType {
   addToQueue(song: Song): void;
   playNext(song: Song): void;
 
+  playSimilar(song: Song): Promise<void>;
+
   toggleShuffle(): Promise<void>;
 
   repeatOn: boolean;
@@ -82,6 +94,14 @@ export interface PlayingContextType {
 
 const PlayingContext = createContext<PlayingContextType | undefined>(undefined);
 
+function normalizeProgress(raw: ReturnType<typeof useProgress>): PlaybackProgress {
+  return {
+    position: typeof raw?.position === 'number' && !Number.isNaN(raw.position) ? raw.position : 0,
+    duration: typeof raw?.duration === 'number' && !Number.isNaN(raw.duration) ? raw.duration : 0,
+    buffered: typeof raw?.buffered === 'number' && !Number.isNaN(raw.buffered) ? raw.buffered : 0,
+  };
+}
+
 export const usePlaying = () => {
   const ctx = useContext(PlayingContext);
   if (!ctx) throw new Error('usePlaying must be used within PlayingProvider');
@@ -91,9 +111,13 @@ export const usePlaying = () => {
 export const PlayingProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const playbackState = usePlaybackState();
   const isPlaying = playbackState.state === State.Playing;
+  const rawProgress = useProgress(250);
+  const progress = normalizeProgress(rawProgress);
 
+  const api = useApi();
   const { getSongLocalUri } = useDownload();
   const dispatch = useDispatch();
+  const activeServer = useSelector(selectActiveServer);
   const listenBrainzConfig = useSelector(selectListenBrainzConfig);
 
   const [currentSong, setCurrentSong] = useState<Song | null>(null);
@@ -111,7 +135,9 @@ export const PlayingProvider: React.FC<{ children: ReactNode }> = ({ children })
   const bumpQueue = () => setQueueVersion(v => v + 1);
 
   useEffect(() => {
-    TrackPlayer.setupPlayer().then(() =>
+    TrackPlayer.setupPlayer({
+      autoHandleInterruptions: true
+    }).then(() =>
       TrackPlayer.updateOptions({
         capabilities: [
           Capability.Play,
@@ -146,13 +172,26 @@ export const PlayingProvider: React.FC<{ children: ReactNode }> = ({ children })
   ) => {
     if (!song) return;
     if (lastScrobbledIdRef.current === song.id) return;
-    if (!listenBrainzConfig?.token) return;
 
     const duration = Number(song.duration) || 0;
     if (!passesScrobbleThreshold(opts.listenedSeconds, duration)) return;
 
-    const listenedAt = Math.floor(opts.startTime / 1000);
+    lastScrobbledIdRef.current = song.id;
 
+    if (activeServer?.id) {
+      dispatch(
+        incrementPlay({
+          serverId: activeServer.id,
+          songId: song.id,
+          albumId: song.albumId,
+          artistId: song.artistId,
+        })
+      );
+    }
+
+    if (!listenBrainzConfig?.token) return;
+
+    const listenedAt = Math.floor(opts.startTime / 1000);
     try {
       await listenbrainz.submitScrobble(listenBrainzConfig, {
         artist: song.artist,
@@ -161,19 +200,9 @@ export const PlayingProvider: React.FC<{ children: ReactNode }> = ({ children })
         durationSeconds: duration > 0 ? duration : undefined,
         durationPlayedSeconds: opts.listenedSeconds,
       });
-      lastScrobbledIdRef.current = song.id;
     } catch (err) {
       console.warn('ListenBrainz scrobble failed', err);
-      return;
     }
-
-    dispatch(
-      incrementPlay({
-        songId: song.id,
-        albumId: song.albumId,
-        artistId: song.artistId,
-      })
-    );
   };
 
   const loadAndPlay = async (
@@ -390,6 +419,27 @@ export const PlayingProvider: React.FC<{ children: ReactNode }> = ({ children })
     bumpQueue();
   };
 
+  const playSimilar = async (song: Song) => {
+    try {
+      const similarSongs = await api.similar.getSimilarSongs(song.id);
+      const others = similarSongs.filter(s => s.id !== song.id);
+      const songs = [song, ...shuffleArray(others)];
+      const collection: Playlist = {
+        id: 'similar',
+        title: 'Similar',
+        subtext: '',
+        cover: { kind: 'none' },
+        changed: new Date(),
+        created: new Date(),
+        songs,
+      };
+      await playSongInCollection(song, collection, false);
+      if (others.length > 0) toast.success('Playing similar music');
+    } catch {
+      await playSong(song);
+    }
+  };
+
   const toggleShuffle = async () => {
     if (!shuffleOn) {
       originalQueueRef.current = queueRef.current;
@@ -431,6 +481,7 @@ export const PlayingProvider: React.FC<{ children: ReactNode }> = ({ children })
       value={{
         currentSong,
         isPlaying,
+        progress,
         pauseSong,
         resumeSong,
         currentIndex,
@@ -452,6 +503,7 @@ export const PlayingProvider: React.FC<{ children: ReactNode }> = ({ children })
         moveTrack,
         addToQueue,
         playNext,
+        playSimilar,
       }}
     >
       {children}

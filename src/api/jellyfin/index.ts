@@ -5,6 +5,8 @@ import {
   GenresApi,
   PlaylistsApi,
   StarredApi,
+  SimilarApi,
+  SongsApi,
   AuthApi,
   LyricsApi,
   SearchApi
@@ -20,7 +22,7 @@ import { getAlbum } from "./albums/getAlbum";
 import { getAlbums } from "./albums/getAlbums";
 import { getArtists } from "./artists/getArtists";
 import { getPlaylists } from "./playlists/getPlaylists";
-import { getPlaylistItems } from "./playlists/getPlaylistItems";
+import { getPlaylistItems, getPlaylistEntryIdForSong } from "./playlists/getPlaylistItems";
 import { createPlaylist } from "./playlists/createPlaylist";
 import { deletePlaylist } from "./playlists/deletePlaylist";
 import { addPlaylistItems } from "./playlists/addPlaylistItems";
@@ -33,6 +35,8 @@ import { getGenres } from "./genres/getGenres";
 import { buildFavoritesPlaylist } from "@/utils/builders/buildFavoritesPlaylist";
 import { FAVORITES_ID } from "@/constants/favorites";
 import { getLyricsBySongId } from "./lyrics/getLyricsBySongId";
+import { getSong } from "./songs/getSong";
+import { getInstantMix } from "./instantMix/getInstantMix";
 import { search as searchJellyfin } from './search/search'
 
 export const createJellyfinAdapter = (adapter: Server): ApiAdapter => {
@@ -140,7 +144,17 @@ export const createJellyfinAdapter = (adapter: Server): ApiAdapter => {
         return { success: true };
       }
 
-      await removePlaylistItems(serverUrl, playlistId, token, [songId]);
+      const entryId = await getPlaylistEntryIdForSong(
+        serverUrl,
+        playlistId,
+        userId,
+        token,
+        songId
+      );
+      if (!entryId) {
+        throw new Error("Song not found in playlist");
+      }
+      await removePlaylistItems(serverUrl, playlistId, token, [entryId]);
       return { success: true };
     },
 
@@ -164,6 +178,15 @@ export const createJellyfinAdapter = (adapter: Server): ApiAdapter => {
     },
   };
 
+  const songs: SongsApi = {
+    get: async (id: string) => getSong(serverUrl, userId, token, id),
+  };
+
+  const similar: SimilarApi = {
+    getSimilarSongs: async (songId: string) =>
+      getInstantMix(serverUrl, songId, userId, token),
+  };
+
   const lyrics: LyricsApi = {
     getBySongId: async (songId) => {
       return getLyricsBySongId(serverUrl, token, songId);
@@ -183,6 +206,8 @@ export const createJellyfinAdapter = (adapter: Server): ApiAdapter => {
     genres,
     playlists,
     starred,
+    songs,
+    similar,
     lyrics,
     search
   };

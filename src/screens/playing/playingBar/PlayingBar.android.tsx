@@ -28,6 +28,7 @@ import {
 } from '@/utils/redux/selectors/settingsSelectors';
 import { usePlayingBarAction } from './actions/usePlayingBarAction';
 import { Toasts } from '@backpackapp-io/react-native-toast';
+import PlaylistList from '@/components/PlaylistList';
 
 const PlayingBar: React.FC = () => {
   const { isDarkMode } = useTheme();
@@ -47,17 +48,13 @@ const PlayingBar: React.FC = () => {
   const [nextGradient, setNextGradient] = useState<string[]>(['#000', '#000']);
 
   const bottomSheetRef = useRef<BottomSheetModal>(null);
+  const playlistSheetRef = useRef<BottomSheetModal>(null);
 
-  const animationConfigs = useBottomSheetTimingConfigs({
-    duration: 280,
-    easing: Easing.out(Easing.cubic),
+  const primaryAction = usePlayingBarAction(actionMode, {
+    presentAddToPlaylist: () => {
+      if (currentSong) playlistSheetRef.current?.present();
+    },
   });
-  const containerLayoutState = useSharedValue({
-    height: Dimensions.get('window').height,
-    offset: { top: 0, bottom: 0, left: 0, right: 0 },
-  });
-
-  const primaryAction = usePlayingBarAction(actionMode);
 
   const darkenHexColor = (hex: string, amount = 0.3) => {
     let col = hex.replace('#', '');
@@ -207,13 +204,8 @@ const PlayingBar: React.FC = () => {
         ref={bottomSheetRef}
         snapPoints={['100%']}
         enableDynamicSizing={false}
-        containerLayoutState={containerLayoutState}
-        animationConfigs={animationConfigs}
         enablePanDownToClose
         backgroundStyle={{ backgroundColor: 'transparent' }}
-        handleIndicatorStyle={{
-          backgroundColor: isDarkMode ? '#555' : '#ccc',
-        }}
         backgroundComponent={props => (
           <PlayingBackground
             {...props}
@@ -251,6 +243,12 @@ const PlayingBar: React.FC = () => {
           }}
         />
       </BottomSheetModal>
+
+      <PlaylistList
+        ref={playlistSheetRef}
+        selectedSong={currentSong}
+        onClose={() => playlistSheetRef.current?.dismiss()}
+      />
     </>
   );
 };

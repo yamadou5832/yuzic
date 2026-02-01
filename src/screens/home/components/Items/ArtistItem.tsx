@@ -1,22 +1,20 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
-  Appearance,
   Pressable,
 } from 'react-native';
-import { usePlaying } from '@/contexts/PlayingContext';
 import { useNavigation } from '@react-navigation/native';
 import { useQueryClient } from '@tanstack/react-query';
+import { useSelector } from 'react-redux';
 import { useApi } from '@/api';
-import { Song, CoverSource, Artist } from '@/types';
+import { selectActiveServer } from '@/utils/redux/selectors/serversSelectors';
+import { CoverSource, Artist } from '@/types';
 import { QueryKeys } from '@/enums/queryKeys';
 import { MediaImage } from '@/components/MediaImage';
-import ContextMenuModal, {
-  ContextMenuAction,
-} from '@/components/ContextMenuModal';
-import InfoModal, { InfoRow } from '@/components/InfoModal';
+import { BottomSheetModal } from '@gorhom/bottom-sheet';
+import ArtistOptions from '@/components/options/ArtistOptions';
 import { useTheme } from '@/hooks/useTheme';
 import { staleTime } from '@/constants/staleTime';
 
@@ -41,11 +39,10 @@ const ArtistItem: React.FC<ItemProps> = ({
   const navigation = useNavigation<any>();
   const queryClient = useQueryClient();
   const api = useApi();
-  const { playSongInCollection } = usePlaying();
+  const activeServer = useSelector(selectActiveServer);
 
-  const [menuVisible, setMenuVisible] = useState(false);
-  const [infoVisible, setInfoVisible] = useState(false);
-  const [artistInfo, setArtistInfo] = useState<Artist | null>(null);
+  const sheetRef = useRef<BottomSheetModal>(null);
+  const [artistForSheet, setArtistForSheet] = useState<Artist | null>(null);
 
   const handleNavigation = useCallback(() => {
     navigation.navigate('artistView', { id });
@@ -53,106 +50,24 @@ const ArtistItem: React.FC<ItemProps> = ({
 
   const fetchArtist = useCallback(async () => {
     return queryClient.fetchQuery({
-      queryKey: [QueryKeys.Artist, id],
+      queryKey: [QueryKeys.Artist, activeServer?.id, id],
       queryFn: () => api.artists.get(id),
       staleTime: staleTime.artists,
     });
-  }, [api, queryClient, id]);
+  }, [api, queryClient, activeServer?.id, id]);
 
-  const handlePlay = useCallback(
-    async (shuffle: boolean) => {
-      const artist = await fetchArtist();
-      if (!artist) return;
-
-      const albumIds = artist.ownedAlbums.map(a => a.id);
-      if (!albumIds.length) return;
-
-      const albums = await Promise.all(
-        albumIds.map(albumId =>
-          queryClient.fetchQuery({
-            queryKey: [QueryKeys.Album, albumId],
-            queryFn: () => api.albums.get(albumId),
-            staleTime: staleTime.albums,
-          })
-        )
-      );
-
-      const songs: Song[] = albums.flatMap(a => a?.songs ?? []);
-      if (!songs.length) return;
-
-      playSongInCollection(
-        songs[0],
-        {
-          id: artist.id,
-          title: artist.name,
-          artist,
-          cover: artist.cover,
-          subtext: 'Artist',
-          changed: new Date("1995-12-17T03:24:00"),
-          created: new Date("1995-12-17T03:24:00"),
-          songs,
-        },
-        shuffle
-      );
-    },
-    [fetchArtist, queryClient, api, playSongInCollection]
-  );
-
-  const handleShowInfo = useCallback(async () => {
+  const handleLongPress = useCallback(async () => {
     const artist = await fetchArtist();
     if (!artist) return;
-    setArtistInfo(artist);
-    setInfoVisible(true);
+    setArtistForSheet(artist);
+    sheetRef.current?.present();
   }, [fetchArtist]);
-
-  const infoRows: InfoRow[] = useMemo(() => {
-    if (!artistInfo) return [];
-    return [
-      {
-        id: 'albums',
-        label: 'Albums',
-        value: artistInfo.ownedAlbums.length,
-      }
-    ];
-  }, [artistInfo]);
-
-  const menuActions: ContextMenuAction[] = [
-    {
-      id: 'play',
-      label: 'Play',
-      icon: 'play',
-      primary: true,
-      onPress: () => handlePlay(false),
-    },
-    {
-      id: 'shuffle',
-      label: 'Shuffle',
-      icon: 'shuffle',
-      onPress: () => handlePlay(true),
-    },
-    {
-      id: 'info',
-      label: 'Artist Info',
-      icon: 'information-circle',
-      onPress: () => {
-        setMenuVisible(false);
-        handleShowInfo();
-      },
-    },
-    {
-      id: 'navigate',
-      label: 'Go to Artist',
-      icon: 'person',
-      dividerBefore: true,
-      onPress: handleNavigation,
-    },
-  ];
 
   return (
     <>
       <Pressable
         onPress={handleNavigation}
-        onLongPress={() => setMenuVisible(true)}
+        onLongPress={handleLongPress}
         delayLongPress={300}
         style={({ pressed }) => [
           isGridView
@@ -187,25 +102,11 @@ const ArtistItem: React.FC<ItemProps> = ({
         </View>
       </Pressable>
 
-      <ContextMenuModal
-        visible={menuVisible}
-        onClose={() => setMenuVisible(false)}
-        actions={menuActions}
+      <ArtistOptions
+        ref={sheetRef}
+        artist={artistForSheet}
+        hideGoToArtist={false}
       />
-
-      {artistInfo && (
-        <InfoModal
-          visible={infoVisible}
-          onClose={() => {
-            setInfoVisible(false);
-            setArtistInfo(null);
-          }}
-          title={artistInfo.name}
-          subtitle="Artist"
-          cover={artistInfo.cover}
-          rows={infoRows}
-        />
-      )}
     </>
   );
 };

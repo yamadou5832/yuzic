@@ -14,6 +14,8 @@ type Props<T> = {
   estimatedItemSize: number;
   renderItem: ListRenderItem<T>;
   ListHeaderComponent?: React.ReactElement | null;
+  onEndReached?: () => void;
+  hasMore?: boolean;
 };
 
 export default function LibraryContent<T>({
@@ -25,6 +27,8 @@ export default function LibraryContent<T>({
   estimatedItemSize,
   renderItem,
   ListHeaderComponent,
+  onEndReached,
+  hasMore,
 }: Props<T>) {
   const { isDarkMode } = useTheme();
 
@@ -58,10 +62,12 @@ export default function LibraryContent<T>({
       key={isGridView ? `grid-${gridColumns}` : 'list'}
       numColumns={isGridView ? gridColumns : 1}
       keyExtractor={(item: any) => item.id}
-      contentContainerStyle={{ paddingBottom: 150 }}
+      contentContainerStyle={{ paddingBottom: 150, paddingHorizontal: 8 }}
       ListHeaderComponent={ListHeaderComponent}
       renderItem={renderItem}
       showsVerticalScrollIndicator={false}
+      onEndReached={hasMore ? onEndReached : undefined}
+      onEndReachedThreshold={0.5}
     />
   );
 }

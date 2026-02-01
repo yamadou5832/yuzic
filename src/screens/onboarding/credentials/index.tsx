@@ -64,7 +64,6 @@ export default function Credentials() {
                 return;
             }
 
-            console.log(result.auth)
             const pingOk = await provider.ping(serverUrl, localUsername, result.auth);
 
             if (!pingOk) {

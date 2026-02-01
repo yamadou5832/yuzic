@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useMemo } from 'react';
+import React, { useCallback, useEffect, useState, useRef, useMemo } from 'react';
 import {
     StyleSheet,
     Dimensions,
@@ -19,7 +19,9 @@ import { setIsGridView, setLibrarySortOrder } from '@/utils/redux/slices/setting
 import { selectGridColumns, selectIsGridView, selectLibrarySortOrder } from '@/utils/redux/selectors/settingsSelectors';
 import {
     selectAlbumPlays,
+    selectAlbumLastPlayedAt,
     selectArtistPlays,
+    selectArtistLastPlayedAt,
 } from '@/utils/redux/selectors/statsSelectors';
 import HomeHeader from './components/Header';
 import LibraryFilterBar from './components/Filters';
@@ -35,6 +37,7 @@ import { useArtists } from '@/hooks/artists';
 import { usePlaylists } from '@/hooks/playlists';
 import { QueryKeys } from '@/enums/queryKeys';
 import { useQueryClient } from '@tanstack/react-query';
+import { LIBRARY_INITIAL_PAGE_SIZE, LIBRARY_PAGE_SIZE } from '@/constants/library';
 
 export default function HomeScreen() {
     const navigation = useNavigation();
@@ -58,9 +61,12 @@ export default function HomeScreen() {
 
     const albumPlays = useSelector(selectAlbumPlays);
     const artistPlays = useSelector(selectArtistPlays);
+    const albumLastPlayedAt = useSelector(selectAlbumLastPlayedAt);
+    const artistLastPlayedAt = useSelector(selectArtistLastPlayedAt);
 
     const [activeFilter, setActiveFilter] =
         useState<'all' | 'albums' | 'artists' | 'playlists'>('all');
+    const [displayedCount, setDisplayedCount] = useState(LIBRARY_INITIAL_PAGE_SIZE);
 
     const [screenWidth, setScreenWidth] = useState(Dimensions.get('window').width);
     const [isMounted, setIsMounted] = useState(false);
@@ -77,12 +83,13 @@ export default function HomeScreen() {
     const queryClient = useQueryClient();
 
     useEffect(() => {
-        if (!activeServer?.isAuthenticated) return;
+        if (!activeServer?.isAuthenticated || !activeServer?.id) return;
 
-        queryClient.refetchQueries({ queryKey: [QueryKeys.Albums] });
-        queryClient.refetchQueries({ queryKey: [QueryKeys.Artists] });
-        queryClient.refetchQueries({ queryKey: [QueryKeys.Playlists] });
-    }, [activeServer?.id, activeServer?.isAuthenticated]);
+        const serverId = activeServer.id;
+        queryClient.refetchQueries({ queryKey: [QueryKeys.Albums, serverId] });
+        queryClient.refetchQueries({ queryKey: [QueryKeys.Artists, serverId] });
+        queryClient.refetchQueries({ queryKey: [QueryKeys.Playlists, serverId] });
+    }, [activeServer?.id, activeServer?.isAuthenticated, queryClient]);
 
     useEffect(() => {
         setIsMounted(true);
@@ -135,7 +142,21 @@ export default function HomeScreen() {
                 });
                 break;
             case 'recent':
-                data.reverse();
+                data.sort((a, b) => {
+                    const aTime =
+                        a.type === 'Album'
+                            ? albumLastPlayedAt[a.id] ?? 0
+                            : a.type === 'Artist'
+                                ? artistLastPlayedAt[a.id] ?? 0
+                                : 0;
+                    const bTime =
+                        b.type === 'Album'
+                            ? albumLastPlayedAt[b.id] ?? 0
+                            : b.type === 'Artist'
+                                ? artistLastPlayedAt[b.id] ?? 0
+                                : 0;
+                    return bTime - aTime;
+                });
                 break;
             case 'userplays':
                 data.sort((a, b) => {
@@ -164,7 +185,23 @@ export default function HomeScreen() {
                 break;
         }
         return data;
-    }, [filteredData, sortOrder]);
+    }, [filteredData, sortOrder, albumPlays, artistPlays, albumLastPlayedAt, artistLastPlayedAt]);
+
+    useEffect(() => {
+        setDisplayedCount(LIBRARY_INITIAL_PAGE_SIZE);
+    }, [activeFilter, sortOrder]);
+
+    const displayedData = useMemo(
+        () => sortedFilteredData.slice(0, displayedCount),
+        [sortedFilteredData, displayedCount]
+    );
+
+    const hasMore = displayedCount < sortedFilteredData.length;
+    const loadMore = useCallback(() => {
+        if (hasMore) {
+            setDisplayedCount((prev) => Math.min(prev + LIBRARY_PAGE_SIZE, sortedFilteredData.length));
+        }
+    }, [hasMore, sortedFilteredData.length]);
 
     const filters = [
         { label: 'All', value: 'all' },
@@ -235,11 +272,6 @@ export default function HomeScreen() {
                 filters={filters}
                 onChange={setActiveFilter}
                 onExplorePress={() => {
-                    
-                    if (!listenbrainzConfig?.token) {
-                        toast.error('Connect ListenBrainz to use Discovery');
-                        return;
-                    }
                     fadeTo(mode === 'explore' ? 'home' : 'explore');
                 }}
             />
@@ -248,8 +280,10 @@ export default function HomeScreen() {
                 {mode === 'home' ? (
                     <>
                         <LibraryContent
-                            data={sortedFilteredData}
+                            data={displayedData}
                             isLoading={isLoading}
+                            onEndReached={loadMore}
+                            hasMore={hasMore}
                             isGridView={isGridView}
                             gridColumns={gridColumns}
                             gridItemWidth={gridItemWidth}

@@ -1,22 +1,24 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   Platform,
-  Linking,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { useSelector } from 'react-redux';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
+import { BottomSheetModal } from '@gorhom/bottom-sheet';
 import { MediaImage } from '@/components/MediaImage';
+import ArtistOptions from '@/components/options/ArtistOptions';
 import { Artist, Song, Album } from '@/types';
 import { usePlaying } from '@/contexts/PlayingContext';
 import { toast } from '@backpackapp-io/react-native-toast';
+import { selectActiveServer } from '@/utils/redux/selectors/serversSelectors';
 import { selectThemeColor } from '@/utils/redux/selectors/settingsSelectors';
 import { useApi } from '@/api';
 import { QueryKeys } from '@/enums/queryKeys';
@@ -26,17 +28,18 @@ import { staleTime } from '@/constants/staleTime';
 
 type Props = {
   artist: Artist;
-  mbid?: string | null;
 };
 
-const ArtistHeader: React.FC<Props> = ({ artist, mbid }) => {
+const ArtistHeader: React.FC<Props> = ({ artist }) => {
   const navigation = useNavigation();
   const { isDarkMode } = useTheme();
   const themeColor = useSelector(selectThemeColor);
+  const activeServer = useSelector(selectActiveServer);
 
   const queryClient = useQueryClient();
   const api = useApi();
   const { playSongInCollection } = usePlaying();
+  const optionsSheetRef = useRef<BottomSheetModal>(null);
 
   const [artistSongs, setArtistSongs] = useState<Song[]>([]);
   const [loadingSongs, setLoadingSongs] = useState(true);
@@ -57,7 +60,7 @@ const ArtistHeader: React.FC<Props> = ({ artist, mbid }) => {
         const albums: Album[] = await Promise.all(
           artist.ownedAlbums.map(a =>
             queryClient.fetchQuery({
-              queryKey: [QueryKeys.Album, a.id],
+              queryKey: [QueryKeys.Album, activeServer?.id, a.id],
               queryFn: () => api.albums.get(a.id),
               staleTime: staleTime.albums,
             })
@@ -80,7 +83,7 @@ const ArtistHeader: React.FC<Props> = ({ artist, mbid }) => {
     return () => {
       cancelled = true;
     };
-  }, [artist.id]);
+  }, [artist.id, activeServer?.id]);
 
   const playArtist = (shuffle = false) => {
     if (!artistSongs.length) {
@@ -148,21 +151,20 @@ const ArtistHeader: React.FC<Props> = ({ artist, mbid }) => {
           >
             <Ionicons name="arrow-back" size={24} color="#fff" />
           </TouchableOpacity>
-          {mbid ? (
-            <TouchableOpacity
-              style={styles.backButton}
-              onPress={() =>
-                navigation.navigate('externalArtistView', {
-                  mbid,
-                  name: artist.name,
-                })
-              }
-            >
-              <Ionicons name="open-outline" size={24} color="#fff" />
-            </TouchableOpacity>
-          ) : null}
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => optionsSheetRef.current?.present()}
+          >
+            <Ionicons name="ellipsis-horizontal" size={24} color="#fff" />
+          </TouchableOpacity>
         </View>
       </View>
+
+      <ArtistOptions
+        ref={optionsSheetRef}
+        artist={artist}
+        hideGoToArtist
+      />
 
       <View style={{ paddingHorizontal: 16 }}>
         <View style={styles.content}>

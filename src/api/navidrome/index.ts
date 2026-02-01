@@ -5,6 +5,8 @@ import {
   GenresApi,
   PlaylistsApi,
   StarredApi,
+  SimilarApi,
+  SongsApi,
   AuthApi,
   LyricsApi,
   SearchApi
@@ -39,6 +41,8 @@ import { unstar } from "./starred/unstar";
 import { getGenres } from "./genres/getGenres";
 
 import { getLyricsBySongId } from "./lyrics/getLyricsBySongId";
+import { getSong } from "./songs/getSong";
+import { getSimilarSongs } from "./similar/getSimilarSongs";
 
 import { search as searchNavidrome } from './search/search';
 
@@ -57,14 +61,30 @@ export const createNavidromeAdapter = (server: Server): ApiAdapter => {
 
   const albums: AlbumsApi = {
     list: async () => {
-      
-      return getAlbumList(serverUrl, username, password);
+      const [baseAlbums, starred] = await Promise.all([
+        getAlbumList(serverUrl, username, password),
+        getStarredItems(serverUrl, username, password),
+      ]);
+      const baseIds = new Set(baseAlbums.map((a) => a.id));
+      const albumIdsFromStarred = [
+        ...new Set(
+          (starred.songs ?? [])
+            .map((s) => s.albumId)
+            .filter((id): id is string => !!id)
+        ),
+      ].filter((id) => !baseIds.has(id));
+      const extraAlbums = await Promise.all(
+        albumIdsFromStarred.map((id) => getAlbum(serverUrl, username, password, id))
+      );
+      const added = extraAlbums.filter(
+        (a): a is NonNullable<typeof a> => a !== null
+      );
+      return [...baseAlbums, ...added];
     },
 
     get: async (id: string) => {
       const full = await getAlbum(serverUrl, username, password, id);
       if (!full) throw new Error("Album not found");
-      console.log(full.cover)
       return full;
     }
   };
@@ -163,6 +183,15 @@ export const createNavidromeAdapter = (server: Server): ApiAdapter => {
     },
   };
 
+  const songs: SongsApi = {
+    get: async (id: string) => getSong(serverUrl, username, password, id),
+  };
+
+  const similar: SimilarApi = {
+    getSimilarSongs: async (songId: string) =>
+      getSimilarSongs(serverUrl, username, password, songId),
+  };
+
   const lyrics: LyricsApi = {
     getBySongId: async (songId) => {
       return getLyricsBySongId(serverUrl, username, password, songId);
@@ -187,6 +216,8 @@ export const createNavidromeAdapter = (server: Server): ApiAdapter => {
     genres,
     playlists,
     starred,
+    songs,
+    similar,
     lyrics,
     search
   };

@@ -8,7 +8,9 @@ import {
 import { usePlaying } from '@/contexts/PlayingContext';
 import { useNavigation } from '@react-navigation/native';
 import { useQueryClient } from '@tanstack/react-query';
+import { useSelector } from 'react-redux';
 import { useApi } from '@/api';
+import { selectActiveServer } from '@/utils/redux/selectors/serversSelectors';
 import { QueryKeys } from '@/enums/queryKeys';
 import { MediaImage } from '@/components/MediaImage';
 import { Album, CoverSource } from '@/types';
@@ -38,17 +40,18 @@ const AlbumItem: React.FC<ItemProps> = ({
   const navigation = useNavigation<any>();
   const api = useApi();
   const queryClient = useQueryClient();
+  const activeServer = useSelector(selectActiveServer);
 
   const sheetRef = useRef<BottomSheetModal>(null);
   const [albumForSheet, setAlbumForSheet] = useState<Album | null>(null);
 
   const fetchAlbum = useCallback(async () => {
     return queryClient.fetchQuery({
-      queryKey: [QueryKeys.Album, id],
+      queryKey: [QueryKeys.Album, activeServer?.id, id],
       queryFn: () => api.albums.get(id),
       staleTime: staleTime.albums,
     });
-  }, [api, queryClient, id]);
+  }, [api, queryClient, activeServer?.id, id]);
 
   const handleNavigation = useCallback(() => {
     navigation.navigate('albumView', { id });

@@ -1,5 +1,6 @@
 import React from 'react';
 import { Ionicons } from '@expo/vector-icons';
+import { PlusCircle } from 'lucide-react-native';
 import { usePlaying } from '@/contexts/PlayingContext';
 import { useStarSong, useUnstarSong, useStarredSongs } from '@/hooks/starred';
 import { PlayingBarAction } from '@/utils/redux/slices/settingsSlice';
@@ -13,8 +14,13 @@ export type PlayingBarActionConfig = {
   onPress: () => void;
 };
 
+type UsePlayingBarActionOptions = {
+  presentAddToPlaylist?: () => void;
+};
+
 export function usePlayingBarAction(
-  id: PlayingBarAction
+  id: PlayingBarAction,
+  options?: UsePlayingBarActionOptions
 ): PlayingBarActionConfig | null {
   const { skipToNext, currentSong, playSongInCollection } = usePlaying();
   const { albums } = useAlbums();
@@ -100,6 +106,13 @@ export function usePlayingBarAction(
             toast.error('Failed to load album.');
           }
         },
+      };
+
+    case 'addToPlaylist':
+      return {
+        id,
+        icon: <PlusCircle size={20} color="#fff" />,
+        onPress: options?.presentAddToPlaylist ?? (() => {}),
       };
 
     case 'none':

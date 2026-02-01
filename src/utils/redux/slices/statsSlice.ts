@@ -1,22 +1,26 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 type PlayMap = Record<string, number>;
+type LastPlayedMap = Record<string, number>; // "serverId:entityId" -> timestamp (ms)
+
+const key = (serverId: string, id: string) => `${serverId}:${id}`;
 
 interface StatsState {
   songPlays: PlayMap;
   albumPlays: PlayMap;
   artistPlays: PlayMap;
+  songLastPlayedAt: LastPlayedMap;
+  albumLastPlayedAt: LastPlayedMap;
+  artistLastPlayedAt: LastPlayedMap;
 }
 
 const initialState: StatsState = {
   songPlays: {},
   albumPlays: {},
   artistPlays: {},
-};
-
-const increment = (map: PlayMap, id?: string) => {
-  if (!id) return;
-  map[id] = (map[id] ?? 0) + 1;
+  songLastPlayedAt: {},
+  albumLastPlayedAt: {},
+  artistLastPlayedAt: {},
 };
 
 const statsSlice = createSlice({
@@ -26,16 +30,30 @@ const statsSlice = createSlice({
     incrementPlay(
       state,
       action: PayloadAction<{
+        serverId: string;
         songId: string;
         albumId?: string;
         artistId?: string;
       }>
     ) {
-      const { songId, albumId, artistId } = action.payload;
+      const { serverId, songId, albumId, artistId } = action.payload;
+      const now = Date.now();
 
-      increment(state.songPlays, songId);
-      increment(state.albumPlays, albumId);
-      increment(state.artistPlays, artistId);
+      if (songId) {
+        const k = key(serverId, songId);
+        state.songPlays[k] = (state.songPlays[k] ?? 0) + 1;
+        state.songLastPlayedAt[k] = now;
+      }
+      if (albumId) {
+        const k = key(serverId, albumId);
+        state.albumPlays[k] = (state.albumPlays[k] ?? 0) + 1;
+        state.albumLastPlayedAt[k] = now;
+      }
+      if (artistId) {
+        const k = key(serverId, artistId);
+        state.artistPlays[k] = (state.artistPlays[k] ?? 0) + 1;
+        state.artistLastPlayedAt[k] = now;
+      }
     },
   },
 });

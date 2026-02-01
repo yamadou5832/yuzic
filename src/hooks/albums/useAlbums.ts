@@ -1,8 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
+import { useSelector } from 'react-redux';
 import { QueryKeys } from '@/enums/queryKeys';
 import { AlbumBase } from '@/types';
 import { useApi } from '@/api';
 import { staleTime } from '@/constants/staleTime';
+import { selectActiveServer } from '@/utils/redux/selectors/serversSelectors';
 
 type UseAlbumsResult = {
   albums: AlbumBase[];
@@ -12,10 +14,12 @@ type UseAlbumsResult = {
 
 export function useAlbums(): UseAlbumsResult {
   const api = useApi();
+  const activeServer = useSelector(selectActiveServer);
 
   const query = useQuery<AlbumBase[], Error>({
-    queryKey: [QueryKeys.Albums],
+    queryKey: [QueryKeys.Albums, activeServer?.id],
     queryFn: api.albums.list,
+    enabled: !!activeServer?.id,
     staleTime: staleTime.albums,
   });
 
