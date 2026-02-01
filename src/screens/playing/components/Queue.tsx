@@ -5,11 +5,7 @@ import {
   StyleSheet,
   TouchableOpacity,
 } from 'react-native';
-import ReorderableList, {
-  reorderItems,
-  useReorderableDrag,
-} from 'react-native-reorderable-list';
-import { Gesture } from 'react-native-gesture-handler';
+import DraggableFlatList from 'react-native-draggable-flatlist';
 import { GripVertical } from 'lucide-react-native';
 import { usePlaying } from '@/contexts/PlayingContext';
 import { MediaImage } from '@/components/MediaImage';
@@ -17,52 +13,59 @@ import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAlbums } from '@/hooks/albums';
+import { Song } from '@/types';
 
 type QueueItemProps = {
-  item: any;
+  item: Song;
   index: number;
   isCurrent: boolean;
   onPress: (index: number) => void;
+  onLongPress: () => void;
 };
 
+function queueItemPropsAreEqual(prev: QueueItemProps, next: QueueItemProps) {
+  return (
+    prev.item.id === next.item.id &&
+    prev.item.title === next.item.title &&
+    prev.item.artist === next.item.artist &&
+    prev.index === next.index &&
+    prev.isCurrent === next.isCurrent &&
+    prev.onPress === next.onPress
+  );
+}
+
 const QueueItem = memo(
-  ({ item, index, isCurrent, onPress }: QueueItemProps) => {
-    const drag = useReorderableDrag();
+  ({ item, index, isCurrent, onPress, onLongPress }: QueueItemProps) => (
+    <TouchableOpacity
+      onPress={() => onPress(index)}
+      onLongPress={onLongPress}
+      style={[
+        styles.queueItem,
+        isCurrent && styles.activeQueueItem,
+      ]}
+    >
+      <MediaImage
+        cover={item.cover}
+        size="thumb"
+        style={styles.artwork}
+      />
 
-    return (
-      <TouchableOpacity
-        onPress={() => onPress(index)}
-        onLongPress={drag}
-        style={[
-          styles.queueItem,
-          isCurrent && styles.activeQueueItem,
-        ]}
-      >
-        <MediaImage
-          cover={item.cover}
-          size="thumb"
-          style={styles.artwork}
-        />
+      <View style={styles.metadata}>
+        <Text
+          style={[styles.title, isCurrent && styles.titleActive]}
+          numberOfLines={1}
+        >
+          {item.title}
+        </Text>
+        <Text style={styles.artist} numberOfLines={1}>
+          {item.artist}
+        </Text>
+      </View>
 
-        <View style={styles.metadata}>
-          <Text
-            style={[
-              styles.title,
-              isCurrent && { fontWeight: '700' },
-            ]}
-            numberOfLines={1}
-          >
-            {item.title}
-          </Text>
-          <Text style={styles.artist} numberOfLines={1}>
-            {item.artist}
-          </Text>
-        </View>
-
-        <GripVertical color="#888" />
-      </TouchableOpacity>
-    );
-  }
+      <GripVertical color="#888" />
+    </TouchableOpacity>
+  ),
+  queueItemPropsAreEqual
 );
 
 const Queue: React.FC<{ onBack: () => void; width: number }> = ({
@@ -84,7 +87,7 @@ const Queue: React.FC<{ onBack: () => void; width: number }> = ({
   const { albums } = useAlbums();
   const insets = useSafeAreaInsets();
 
-  const [queue, setQueue] = useState<any[]>([]);
+  const [queue, setQueue] = useState<Song[]>([]);
 
   useFocusEffect(
     useCallback(() => {
@@ -107,17 +110,38 @@ const Queue: React.FC<{ onBack: () => void; width: number }> = ({
     [skipTo]
   );
 
-  const handleReorder = useCallback(
-    ({ from, to }: { from: number; to: number }) => {
-      setQueue(prev => reorderItems(prev, from, to));
+  const handleDragEnd = useCallback(
+    ({ data, from, to }: { data: Song[]; from: number; to: number }) => {
+      setQueue(data);
       moveTrack(from, to);
     },
     [moveTrack]
   );
 
-  const panGesture = useMemo(
-    () => Gesture.Pan().activateAfterLongPress(520),
-    []
+  const renderItem = useCallback(
+    ({
+      item,
+      getIndex,
+      drag,
+      isActive,
+    }: {
+      item: Song;
+      getIndex: () => number | undefined;
+      drag: () => void;
+      isActive: boolean;
+    }) => {
+      const index = getIndex() ?? 0;
+      return (
+        <QueueItem
+          item={item}
+          index={index}
+          isCurrent={item.id === currentSong?.id}
+          onPress={handleSongClick}
+          onLongPress={drag}
+        />
+      );
+    },
+    [currentSong?.id, handleSongClick]
   );
 
   return (
@@ -187,23 +211,18 @@ const Queue: React.FC<{ onBack: () => void; width: number }> = ({
       </Text>
 
       {/* List */}
-      <ReorderableList
+      <DraggableFlatList
         data={queue}
         keyExtractor={item => item.id}
-        onReorder={handleReorder}
-        panGesture={panGesture}
+        onDragEnd={handleDragEnd}
+        renderItem={renderItem}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
-          paddingBottom: insets.bottom + 32,
+          paddingBottom: insets.bottom + 160,
         }}
-        renderItem={({ item, index }) => (
-          <QueueItem
-            item={item}
-            index={index}
-            isCurrent={item.id === currentSong?.id}
-            onPress={handleSongClick}
-          />
-        )}
+        initialNumToRender={12}
+        maxToRenderPerBatch={10}
+        windowSize={7}
       />
     </View>
   );
@@ -302,6 +321,10 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 16,
     color: '#fff',
+  },
+
+  titleActive: {
+    fontWeight: '700',
   },
 
   artist: {
