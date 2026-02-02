@@ -5,6 +5,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
+  Linking,
 } from 'react-native';
 import {
   BottomSheetModal,
@@ -51,7 +52,7 @@ const ArtistOptions = forwardRef<
   } = usePlaying();
 
   const { data: mbid } = useArtistMbid(
-    artist ? { id: artist.id, name: artist.name } : null
+    artist ? { id: artist.id, name: artist.name, mbid: artist.mbid } : null
   );
 
   const snapPoints = useMemo(() => ['55%', '90%'], []);
@@ -139,13 +140,19 @@ const ArtistOptions = forwardRef<
     });
   };
 
-  const handleViewExternal = () => {
+  const handleGoToExternalArtist = () => {
     if (!artist || !mbid) return;
     close();
     navigation.navigate('externalArtistView', {
       mbid,
       name: artist.name,
     });
+  };
+
+  const handleViewExternal = () => {
+    if (!mbid) return;
+    close();
+    Linking.openURL(`https://musicbrainz.org/artist/${mbid}`);
   };
 
   if (!artist) {
@@ -221,10 +228,16 @@ const ArtistOptions = forwardRef<
         )}
 
         {mbid && (
-          <TouchableOpacity style={styles.option} onPress={handleViewExternal}>
-            <Ionicons name="open-outline" size={26} color={themeStyles.icon.color} />
-            <Text style={[styles.optionText, themeStyles.optionText]}>View External</Text>
-          </TouchableOpacity>
+          <>
+            <TouchableOpacity style={styles.option} onPress={handleGoToExternalArtist}>
+              <Ionicons name="person-outline" size={26} color={themeStyles.icon.color} />
+              <Text style={[styles.optionText, themeStyles.optionText]}>Go to External Artist</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.option} onPress={handleViewExternal}>
+              <Ionicons name="open-outline" size={26} color={themeStyles.icon.color} />
+              <Text style={[styles.optionText, themeStyles.optionText]}>View External</Text>
+            </TouchableOpacity>
+          </>
         )}
 
         <View style={styles.divider} />

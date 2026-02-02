@@ -12,7 +12,7 @@ async function fetchGetAlbum(
     `${serverUrl}/Items` +
     `?Ids=${encodeURIComponent(albumId)}` +
     `&IncludeItemTypes=MusicAlbum` +
-    `&Fields=Genres,ArtistItems,PrimaryImageTag,DateCreated`;
+    `&Fields=Genres,ArtistItems,PrimaryImageTag,DateCreated,ProviderIds`;
 
   const res = await fetch(url, {
     headers: {
@@ -43,8 +43,11 @@ function normalizeAlbum(raw: any): Album | null {
     cover: artistItem.Id
       ? { kind: "jellyfin", itemId: artistItem.Id }
       : { kind: "none" },
-    subtext: "Artist"
+    subtext: "Artist",
+    mbid: artistItem.ProviderIds?.MusicBrainz ?? null,
   };
+
+  const albumMbid = a.ProviderIds?.MusicBrainzAlbum ?? a.ProviderIds?.MusicBrainz ?? null;
 
   return {
     id: a.Id,
@@ -59,6 +62,7 @@ function normalizeAlbum(raw: any): Album | null {
       .map((g: string) => g.trim())
       .filter(Boolean),
     created: a.DateCreated ? new Date(a.DateCreated) : new Date(0),
+    mbid: albumMbid,
   };
 }
 

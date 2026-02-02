@@ -20,14 +20,15 @@ export async function search(
         `?SearchTerm=${encodeURIComponent(query)}` +
         `&IncludeItemTypes=MusicAlbum` +
         `&Recursive=true` +
-        `&Fields=DateCreated`,
+        `&Fields=DateCreated,ProviderIds,ArtistItems`,
       { headers: headers(token) }
     ),
     fetch(
       `${serverUrl}/Items` +
         `?SearchTerm=${encodeURIComponent(query)}` +
         `&IncludeItemTypes=MusicArtist` +
-        `&Recursive=true`,
+        `&Recursive=true` +
+        `&Fields=ProviderIds`,
       { headers: headers(token) }
     ),
   ]);
@@ -52,6 +53,7 @@ export async function search(
         kind: 'jellyfin',
         itemId: item.Id,
       },
+      mbid: item.ArtistItems?.[0]?.ProviderIds?.MusicBrainz ?? null,
     },
     cover: {
       kind: 'jellyfin',
@@ -60,6 +62,7 @@ export async function search(
     year: item.ProductionYear ?? 0,
     genres: item.Genres ?? [],
     created: item.DateCreated ? new Date(item.DateCreated) : new Date(0),
+    mbid: item.ProviderIds?.MusicBrainzAlbum ?? item.ProviderIds?.MusicBrainz ?? null,
   }));
 
   const artists: ArtistBase[] = artistItems.map((item: any) => ({
@@ -69,6 +72,7 @@ export async function search(
     cover: item.Id
       ? { kind: 'jellyfin' as const, itemId: item.Id }
       : { kind: 'none' as const },
+    mbid: item.ProviderIds?.MusicBrainz ?? null,
   }));
 
   return { albums, artists };

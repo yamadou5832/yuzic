@@ -5,6 +5,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
+  Linking,
 } from 'react-native';
 import {
   BottomSheetModal,
@@ -88,6 +89,33 @@ const AlbumOptions = forwardRef<
     navigation.navigate('(home)', { screen: 'albumView', params: { id: album.id } });
   };
 
+  const handleGoToExternalAlbum = () => {
+    if (!album?.mbid) return;
+    close();
+    navigation.navigate('externalAlbumView', { albumId: album.mbid });
+  };
+
+  const handleGoToExternalArtist = () => {
+    if (!album?.artist?.mbid) return;
+    close();
+    navigation.navigate('externalArtistView', {
+      mbid: album.artist.mbid,
+      name: album.artist.name,
+    });
+  };
+
+  const handleViewExternal = () => {
+    const mbid = album?.mbid ?? album?.artist?.mbid;
+    if (!mbid) return;
+    close();
+    const url = album?.mbid
+      ? `https://musicbrainz.org/release-group/${mbid}`
+      : `https://musicbrainz.org/artist/${mbid}`;
+    Linking.openURL(url);
+  };
+
+  const hasExternalOptions = album?.mbid ?? album?.artist?.mbid;
+
   const handleDownload = async () => {
     if (!album || isDownloaded || isDownloading) return;
     await downloadAlbumById(album.id);
@@ -169,6 +197,27 @@ const AlbumOptions = forwardRef<
             <Ionicons name="albums" size={26} color={themeStyles.icon.color} />
             <Text style={[styles.optionText, themeStyles.optionText]}>Go to Album</Text>
           </TouchableOpacity>
+        )}
+
+        {hasExternalOptions && (
+          <>
+            {album?.mbid && (
+              <TouchableOpacity style={styles.option} onPress={handleGoToExternalAlbum}>
+                <Ionicons name="albums-outline" size={26} color={themeStyles.icon.color} />
+                <Text style={[styles.optionText, themeStyles.optionText]}>Go to External Album</Text>
+              </TouchableOpacity>
+            )}
+            {album?.artist?.mbid && (
+              <TouchableOpacity style={styles.option} onPress={handleGoToExternalArtist}>
+                <Ionicons name="person-outline" size={26} color={themeStyles.icon.color} />
+                <Text style={[styles.optionText, themeStyles.optionText]}>Go to External Artist</Text>
+              </TouchableOpacity>
+            )}
+            <TouchableOpacity style={styles.option} onPress={handleViewExternal}>
+              <Ionicons name="open-outline" size={26} color={themeStyles.icon.color} />
+              <Text style={[styles.optionText, themeStyles.optionText]}>View External</Text>
+            </TouchableOpacity>
+          </>
         )}
 
         <TouchableOpacity

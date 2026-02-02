@@ -22,7 +22,10 @@ async function normalizeAlbum(
       name: artistItem?.Name ?? "Unknown Artist",
       cover: { kind: "none" },
       subtext: "Artist",
+      mbid: artistItem?.ProviderIds?.MusicBrainz ?? null,
     };
+
+    const albumMbid = a.ProviderIds?.MusicBrainzAlbum ?? a.ProviderIds?.MusicBrainz ?? null;
 
     return {
       id: albumId,
@@ -36,6 +39,7 @@ async function normalizeAlbum(
         .map((g: string) => g.trim())
         .filter(Boolean),
       created: a.DateCreated ? new Date(a.DateCreated) : new Date(0),
+      mbid: albumMbid,
     };
   } catch (error) {
     console.error(`Failed to normalize album:`, error);
@@ -53,7 +57,7 @@ export async function getAlbums(
       `IncludeItemTypes=MusicAlbum` +
       `&Recursive=true` +
       `&SortBy=SortName` +
-      `&Fields=PrimaryImageTag,Genres,AlbumArtist,ArtistItems,Artists,DateCreated`;
+      `&Fields=PrimaryImageTag,Genres,AlbumArtist,ArtistItems,Artists,DateCreated,ProviderIds`;
 
     const url =
       `${serverUrl}/Items?${baseParams}` +

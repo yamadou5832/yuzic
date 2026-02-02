@@ -1,5 +1,6 @@
 import { Album, ArtistBase, CoverSource, Song } from "@/types";
 import { getArtist } from "../artists/getArtist";
+import { getAlbumInfo } from "./getAlbumInfo";
 
 const API_VERSION = "1.16.0";
 const CLIENT_NAME = "Yuzic";
@@ -28,7 +29,10 @@ export async function getAlbum(
   const album = raw?.["subsonic-response"]?.album;
   if (!album) return null;
 
-  const artist: ArtistBase | null = await getArtist(serverUrl, username, password, album.artistId);
+  const [artist, albumInfo] = await Promise.all([
+    getArtist(serverUrl, username, password, album.artistId),
+    getAlbumInfo(serverUrl, username, password, albumId),
+  ]);
   if (!artist) return null;
 
   const cover: CoverSource = album.coverArt
@@ -61,6 +65,7 @@ export async function getAlbum(
     year: album.year,
     genres: album.genre ? [album.genre] : [],
     created: album.created ? new Date(album.created) : new Date(0),
+    mbid: albumInfo.musicBrainzId,
     songs,
   };
 }

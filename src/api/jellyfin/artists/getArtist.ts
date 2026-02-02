@@ -16,7 +16,7 @@ export async function getArtist(
     `${serverUrl}/Items` +
     `?Ids=${encodeURIComponent(artistId)}` +
     `&IncludeItemTypes=MusicArtist` +
-    `&Fields=PrimaryImageTag,Overview,Genres,DateCreated`;
+    `&Fields=PrimaryImageTag,Overview,Genres,DateCreated,ProviderIds`;
 
   const res = await fetch(url, {
     headers: {
@@ -41,6 +41,8 @@ export async function getArtist(
     ? { kind: "jellyfin", itemId: artistRaw.Id }
     : { kind: "none" };
 
+  const mbid = artistRaw.ProviderIds?.MusicBrainz ?? null;
+
   const ownedAlbums: AlbumBase[] = await getAlbums(serverUrl, token, artistId);
 
   return {
@@ -48,6 +50,7 @@ export async function getArtist(
     name: artistRaw.Name ?? "Unknown Artist",
     cover,
     subtext: "Artist",
+    mbid,
     ownedAlbums
   };
 }

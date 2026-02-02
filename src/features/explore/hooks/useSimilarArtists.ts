@@ -19,7 +19,7 @@ function shuffle<T>(arr: T[]): T[] {
 }
 
 export async function fetchSimilarArtists(
-  seeds: { id?: string; name: string }[],
+  seeds: { id?: string; name: string; mbid?: string | null }[],
   target: number
 ): Promise<ExternalArtistBase[]> {
   const seen = new Set<string>()
@@ -30,7 +30,7 @@ export async function fetchSimilarArtists(
     if (result.length >= target) break
     if (seed.name.toLowerCase() === 'various artists') continue
 
-    const mbid = await sharedMusicBrainzQueue.run(() =>
+    const mbid = seed.mbid ?? await sharedMusicBrainzQueue.run(() =>
       resolveArtistMbid(seed.id, seed.name)
     )
     if (!mbid) continue
@@ -60,7 +60,7 @@ export function useSimilarArtists(shuffleKey: number) {
   const { artists } = useArtists()
   const seeds = artists
     .slice(0, 5)
-    .map((a) => ({ id: a.id, name: a.name }))
+    .map((a) => ({ id: a.id, name: a.name, mbid: a.mbid }))
     .filter((a) => a.name.trim())
 
   const query = useQuery({
