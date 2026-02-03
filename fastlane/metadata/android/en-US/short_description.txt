@@ -1,0 +1,1 @@
+Yuzic is a cross platform opensource music player for Navidrome and Jellyfin.
