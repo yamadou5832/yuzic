@@ -12,7 +12,7 @@ export async function getArtists(
       `?IncludeItemTypes=MusicArtist` +
       `&Recursive=true` +
       `&SortBy=SortName` +
-      `&Fields=PrimaryImageTag,Overview,Genres,DateCreated`;
+      `&Fields=PrimaryImageTag,Overview,Genres,DateCreated,ProviderIds`;
 
     const res = await fetch(url, {
       headers: {
@@ -32,11 +32,14 @@ export async function getArtists(
             ? { kind: "jellyfin", itemId: a.Id }
             : { kind: "none" };
 
+      const mbid = a.ProviderIds?.MusicBrainz ?? null;
+
       return {
         id: a.Id,
         name: a.Name ?? "Unknown Artist",
         cover,
-        subtext: "Artist"
+        subtext: "Artist",
+        mbid
       };
     });
   } catch (error) {

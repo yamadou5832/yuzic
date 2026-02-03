@@ -33,15 +33,29 @@ export async function getStarredItems(
       id: s.id,
       title: s.title,
       artist: s.artist,
-      albumId: s.albumId,
+      artistId: s.artistId ?? "",
+      albumId: s.albumId ?? "",
       cover: s.coverArt
             ? { kind: "navidrome", coverArtId: s.coverArt }
             : { kind: "none" },
-      duration: s.duration,
+      duration: String(s.duration ?? 0),
       streamUrl:
         `${serverUrl}/rest/stream.view?id=${s.id}&u=${encodeURIComponent(
           username
         )}&p=${encodeURIComponent(password)}&v=${API_VERSION}&c=${CLIENT_NAME}`,
+      filePath: s.path ?? undefined,
+      bitrate: s.bitRate ?? undefined,
+      sampleRate: s.samplingRate ?? undefined,
+      bitsPerSample: s.bitDepth ?? undefined,
+      mimeType: s.contentType ?? undefined,
+      dateReleased: s.year != null ? String(s.year) : undefined,
+      disc: s.discNumber ?? undefined,
+      trackNumber: s.track ?? undefined,
+      dateAdded: s.created ?? undefined,
+      bpm: s.bpm ?? undefined,
+      genres: Array.isArray(s.genres) && s.genres.length > 0
+        ? s.genres.map((g: any) => g?.name ?? g).filter(Boolean)
+        : undefined,
     })),
   };
 }

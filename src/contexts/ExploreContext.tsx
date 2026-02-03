@@ -28,6 +28,7 @@ const MAX_ALBUM_ARTISTS = 8;
 export type ExploreSeedArtist = {
   id?: string;
   name: string;
+  mbid?: string | null;
 };
 
 export type ExploreContextType = {
@@ -75,7 +76,7 @@ export const ExploreProvider: React.FC<Props> = ({ children }) => {
       const seedMbids = (
         await Promise.all(
           seedArtists.map(a =>
-            resolveArtistMbid(a.id, a.name)
+            a.mbid ? Promise.resolve(a.mbid) : resolveArtistMbid(a.id, a.name)
           )
         )
       )
@@ -147,6 +148,7 @@ export const ExploreProvider: React.FC<Props> = ({ children }) => {
       .map(a => ({
         id: a.id,
         name: a.name,
+        mbid: a.mbid,
       }));
 
     refreshInternal(seeds);

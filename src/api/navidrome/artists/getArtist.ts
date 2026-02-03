@@ -1,4 +1,5 @@
 import { AlbumBase, Artist, ArtistBase, CoverSource } from "@/types";
+import { getAlbumInfo } from "../albums/getAlbumInfo";
 
 const API_VERSION = "1.16.0";
 const CLIENT_NAME = "Yuzic";
@@ -27,25 +28,29 @@ export async function getArtist(
   const artist = raw?.["subsonic-response"]?.artist;
   if (!artist) return null;
 
-  const albums: AlbumBase[] = []
-
   const artistCover: CoverSource = artist.coverArt
     ? { kind: "navidrome", coverArtId: artist.coverArt }
     : { kind: "none" };
 
-  for (const album of artist.album) {
+  const artistBase: ArtistBase = {
+    id: artist.id,
+    cover: artistCover,
+    name: artist.name,
+    subtext: "Artist"
+  };
+
+  const albumInfos = await Promise.all(
+    artist.album.map((a: { id: string }) =>
+      getAlbumInfo(serverUrl, username, password, a.id)
+    )
+  );
+
+  const albums: AlbumBase[] = artist.album.map((album: any, i: number) => {
     const cover: CoverSource = album.coverArt
       ? { kind: "navidrome", coverArtId: album.coverArt }
       : { kind: "none" };
 
-    const artistBase: ArtistBase = {
-      id: artist.id,
-      cover: artistCover,
-      name: artist.name,
-      subtext: "Artist"
-    }
-
-    const a: AlbumBase = {
+    return {
       id: album.id,
       title: album.name,
       cover,
@@ -54,10 +59,9 @@ export async function getArtist(
       artist: artistBase,
       genres: album.genre ? [album.genre] : [],
       created: album.created ? new Date(album.created) : new Date(0),
-    }
-
-    albums.push(a);
-  }
+      mbid: albumInfos[i]?.musicBrainzId ?? null,
+    };
+  });
 
   return {
     id: artist.id,

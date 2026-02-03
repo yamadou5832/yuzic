@@ -1,7 +1,20 @@
 import { CoverSource, Song } from "@/types";
 import { buildJellyfinStreamUrl } from "@/utils/builders/buildStreamUrls";
+import { normalizeGenres } from "../utils/normalizeGenres";
 
 export type GetInstantMixResult = Song[];
+
+function parseInstantMixResponse(text: string): { Items?: any[] } {
+  const trimmed = text.trim();
+  if (trimmed.startsWith("data:")) {
+    const commaIdx = trimmed.indexOf(",");
+    if (commaIdx >= 0) {
+      const decoded = decodeURIComponent(trimmed.slice(commaIdx + 1).trim());
+      return JSON.parse(decoded);
+    }
+  }
+  return JSON.parse(trimmed);
+}
 
 async function fetchInstantMix(
   serverUrl: string,
@@ -27,7 +40,8 @@ async function fetchInstantMix(
   if (!res.ok) {
     throw new Error(`Jellyfin getInstantMix failed: ${res.status}`);
   }
-  return res.json();
+  const text = await res.text();
+  return parseInstantMixResponse(text);
 }
 
 function normalizeItem(s: any, serverUrl: string, token: string): Song | null {
@@ -35,6 +49,8 @@ function normalizeItem(s: any, serverUrl: string, token: string): Song | null {
 
   const ticks = s.RunTimeTicks ?? s.MediaSources?.[0]?.RunTimeTicks ?? 0;
   const artistItem = s.ArtistItems?.[0];
+  const ms = s.MediaSources?.[0];
+  const audioStream = ms?.MediaStreams?.find((m: any) => m.Type === "Audio");
 
   const cover: CoverSource = s.AlbumId
     ? { kind: "jellyfin", itemId: s.AlbumId }
@@ -49,6 +65,15 @@ function normalizeItem(s: any, serverUrl: string, token: string): Song | null {
     duration: String(Math.round(Number(ticks) / 10_000_000)),
     streamUrl: buildJellyfinStreamUrl(serverUrl, token, s.Id),
     albumId: s.AlbumId ?? "",
+    bitrate: (audioStream?.BitRate ?? ms?.Bitrate) ?? undefined,
+    sampleRate: audioStream?.SampleRate ?? undefined,
+    bitsPerSample: audioStream?.BitDepth ?? undefined,
+    mimeType: ms?.Container ? `audio/${ms.Container}` : undefined,
+    dateReleased: s.PremiereDate ?? undefined,
+    disc: s.ParentIndexNumber ?? undefined,
+    trackNumber: s.IndexNumber ?? undefined,
+    dateAdded: s.DateCreated ?? undefined,
+    genres: normalizeGenres(s.Genres),
   };
 }
 

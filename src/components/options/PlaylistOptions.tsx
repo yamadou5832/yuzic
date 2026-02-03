@@ -30,6 +30,16 @@ export type PlaylistOptionsProps = {
   hideGoToPlaylist?: boolean;
 };
 
+function formatDate(value: string | Date): string {
+  if (!value) return '—';
+  const d = value instanceof Date ? value : new Date(value);
+  if (isNaN(d.getTime())) return '—';
+  const year = d.getFullYear();
+  const month = d.toLocaleString('default', { month: 'short' });
+  const day = d.getDate();
+  return `${month} ${day}, ${year}`;
+}
+
 const PlaylistOptions = forwardRef<
   React.ElementRef<typeof BottomSheetModal>,
   PlaylistOptionsProps
@@ -253,13 +263,13 @@ const PlaylistOptions = forwardRef<
         <View style={styles.infoRow}>
           <Text style={[styles.infoLabel, themeStyles.artist]}>Last changed</Text>
           <Text style={[styles.infoValue, themeStyles.title]}>
-            {playlist.changed ? new Date(playlist.changed).toDateString() : '—'}
+            {formatDate(playlist.changed)}
           </Text>
         </View>
         <View style={styles.infoRow}>
           <Text style={[styles.infoLabel, themeStyles.artist]}>Created</Text>
           <Text style={[styles.infoValue, themeStyles.title]}>
-            {playlist.created ? new Date(playlist.created).toDateString() : '—'}
+            {formatDate(playlist.created)}
           </Text>
         </View>
         <View style={styles.infoRow}>

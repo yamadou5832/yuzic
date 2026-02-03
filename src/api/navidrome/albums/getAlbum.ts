@@ -1,5 +1,6 @@
 import { Album, ArtistBase, CoverSource, Song } from "@/types";
 import { getArtist } from "../artists/getArtist";
+import { getAlbumInfo } from "./getAlbumInfo";
 
 const API_VERSION = "1.16.0";
 const CLIENT_NAME = "Yuzic";
@@ -28,7 +29,10 @@ export async function getAlbum(
   const album = raw?.["subsonic-response"]?.album;
   if (!album) return null;
 
-  const artist: ArtistBase | null = await getArtist(serverUrl, username, password, album.artistId);
+  const [artist, albumInfo] = await Promise.all([
+    getArtist(serverUrl, username, password, album.artistId),
+    getAlbumInfo(serverUrl, username, password, albumId),
+  ]);
   if (!artist) return null;
 
   const cover: CoverSource = album.coverArt
@@ -47,6 +51,19 @@ export async function getAlbum(
       `${serverUrl}/rest/stream.view?id=${s.id}&u=${encodeURIComponent(
         username
       )}&p=${encodeURIComponent(password)}&v=${API_VERSION}&c=${CLIENT_NAME}`,
+    filePath: s.path ?? undefined,
+    bitrate: s.bitRate ?? undefined,
+    sampleRate: s.samplingRate ?? undefined,
+    bitsPerSample: s.bitDepth ?? undefined,
+    mimeType: s.contentType ?? undefined,
+    dateReleased: s.year != null ? String(s.year) : undefined,
+    disc: s.discNumber ?? undefined,
+    trackNumber: s.track ?? undefined,
+    dateAdded: s.created ?? undefined,
+    bpm: s.bpm ?? undefined,
+    genres: Array.isArray(s.genres) && s.genres.length > 0
+      ? s.genres.map((g: any) => g?.name ?? g).filter(Boolean)
+      : undefined,
   }));
 
   return {
@@ -61,6 +78,7 @@ export async function getAlbum(
     year: album.year,
     genres: album.genre ? [album.genre] : [],
     created: album.created ? new Date(album.created) : new Date(0),
+    mbid: albumInfo.musicBrainzId,
     songs,
   };
 }

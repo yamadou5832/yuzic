@@ -6,6 +6,8 @@ export interface ArtistBase {
     cover: CoverSource;
     name: string;
     subtext: string;
+    /** MusicBrainz ID when available from server (Navidrome, Jellyfin) */
+    mbid?: string | null;
 }
 
 export interface Artist extends ArtistBase {
