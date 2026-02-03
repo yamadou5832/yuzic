@@ -1,5 +1,6 @@
 import { Song } from "@/types";
 import { buildJellyfinStreamUrl } from "@/utils/builders/buildStreamUrls";
+import { normalizeGenres } from "../utils/normalizeGenres";
 
 export interface GetStarredItemsResult {
   songs: Song[];
@@ -15,7 +16,7 @@ async function fetchGetStarredSongs(
     `?Recursive=true` +
     `&Filters=IsFavorite` +
     `&IncludeItemTypes=Audio` +
-    `&Fields=Id,Name,Artists,AlbumId,RunTimeTicks,ImageTags`;
+    `&Fields=Id,Name,Artists,AlbumId,RunTimeTicks,ImageTags,MediaSources,Genres,PremiereDate,DateCreated`;
 
   const res = await fetch(url, {
     headers: {
@@ -39,17 +40,31 @@ function normalizeStarred(
 ): GetStarredItemsResult {
   const items = raw?.Items ?? [];
 
-  const songs: Song[] = items.map((i: any) => ({
-    id: i.Id,
-    title: i.Name,
-    artist: i.ArtistItems?.[0].Name ?? "Unknown Artist",
-    albumId: i.AlbumId,
-    cover: i.Id
-          ? { kind: "jellyfin", itemId: i.Id }
-          : { kind: "none" },
-    duration: Math.floor((i.RunTimeTicks ?? 0) / 10_000_000),
-    streamUrl: buildJellyfinStreamUrl(serverUrl, token, i.Id)
-  }));
+  const songs: Song[] = items.map((i: any) => {
+    const ms = i.MediaSources?.[0];
+    const audioStream = ms?.MediaStreams?.find((m: any) => m.Type === "Audio");
+    return {
+      id: i.Id,
+      title: i.Name,
+      artist: i.ArtistItems?.[0]?.Name ?? "Unknown Artist",
+      artistId: i.ArtistItems?.[0]?.Id ?? "",
+      albumId: i.AlbumId ?? "",
+      cover: i.Id
+        ? { kind: "jellyfin", itemId: i.Id }
+        : { kind: "none" },
+      duration: String(Math.floor((i.RunTimeTicks ?? 0) / 10_000_000)),
+      streamUrl: buildJellyfinStreamUrl(serverUrl, token, i.Id),
+      bitrate: (audioStream?.BitRate ?? ms?.Bitrate) ?? undefined,
+      sampleRate: audioStream?.SampleRate ?? undefined,
+      bitsPerSample: audioStream?.BitDepth ?? undefined,
+      mimeType: ms?.Container ? `audio/${ms.Container}` : undefined,
+      dateReleased: i.PremiereDate ?? undefined,
+      disc: i.ParentIndexNumber ?? undefined,
+      trackNumber: i.IndexNumber ?? undefined,
+      dateAdded: i.DateCreated ?? undefined,
+      genres: normalizeGenres(i.Genres),
+    };
+  });
 
   return { songs };
 }

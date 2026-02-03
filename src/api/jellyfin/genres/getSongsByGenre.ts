@@ -73,11 +73,14 @@ function normalizeGenreSongEntry(
     ? { kind: 'jellyfin', itemId: s.Id }
     : { kind: 'none' }
 
+  const ms = s.MediaSources?.[0]
+  const audioStream = ms?.MediaStreams?.find((m: any) => m.Type === 'Audio')
+
   return {
     id: s.Id,
     title: s.Name,
     artist: s.ArtistItems?.[0]?.Name ?? 'Unknown Artist',
-    artistId: s.ArtistItems?.[0]?.Id,
+    artistId: s.ArtistItems?.[0]?.Id ?? '',
     cover,
     duration: String(
       Math.round(Number(ticks) / 10_000_000)
@@ -87,7 +90,16 @@ function normalizeGenreSongEntry(
       token,
       s.Id
     ),
-    albumId: s.AlbumId,
+    albumId: s.AlbumId ?? '',
+    bitrate: (audioStream?.BitRate ?? ms?.Bitrate) ?? undefined,
+    sampleRate: audioStream?.SampleRate ?? undefined,
+    bitsPerSample: audioStream?.BitDepth ?? undefined,
+    mimeType: ms?.Container ? `audio/${ms.Container}` : undefined,
+    dateReleased: s.PremiereDate ?? undefined,
+    disc: s.ParentIndexNumber ?? undefined,
+    trackNumber: s.IndexNumber ?? undefined,
+    dateAdded: s.DateCreated ?? undefined,
+    genres: normalizeGenres(s.Genres),
   }
 }
 

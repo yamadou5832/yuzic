@@ -49,7 +49,20 @@ export async function getSimilarSongs(
         cover,
         duration: String(s.duration ?? 0),
         streamUrl,
-      } as Song;
+        filePath: s.path ?? undefined,
+        bitrate: s.bitRate ?? undefined,
+        sampleRate: s.samplingRate ?? undefined,
+        bitsPerSample: s.bitDepth ?? undefined,
+        mimeType: s.contentType ?? undefined,
+        dateReleased: s.year != null ? String(s.year) : undefined,
+        disc: s.discNumber ?? undefined,
+        trackNumber: s.track ?? undefined,
+        dateAdded: s.created ?? undefined,
+        bpm: s.bpm ?? undefined,
+        genres: Array.isArray(s.genres) && s.genres.length > 0
+          ? s.genres.map((g: any) => g?.name ?? g).filter(Boolean)
+          : undefined,
+      };
     });
   } catch (error) {
     console.error("Navidrome getSimilarSongs failed:", error);

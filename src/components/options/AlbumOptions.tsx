@@ -259,12 +259,23 @@ const AlbumOptions = forwardRef<
           <Text style={[styles.infoLabel, themeStyles.artist]}>Year</Text>
           <Text style={[styles.infoValue, themeStyles.title]}>{album.year ?? '—'}</Text>
         </View>
-        <View style={styles.infoRow}>
-          <Text style={[styles.infoLabel, themeStyles.artist]}>Genres</Text>
-          <Text style={[styles.infoValue, themeStyles.title]} numberOfLines={1}>
-            {album.genres?.length ? album.genres.join(', ') : '—'}
-          </Text>
-        </View>
+        {album.genres?.length ? (
+          <View style={styles.genreRow}>
+            <Text style={[styles.infoLabel, themeStyles.artist]}>Genres</Text>
+            <View style={styles.genreList}>
+              {album.genres.map((g, i) => (
+                <View key={`${g}-${i}`} style={[styles.genreChip, themeStyles.genreChip]}>
+                  <Text style={[styles.genreChipText, themeStyles.title]}>{g}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        ) : (
+          <View style={styles.infoRow}>
+            <Text style={[styles.infoLabel, themeStyles.artist]}>Genres</Text>
+            <Text style={[styles.infoValue, themeStyles.title]}>—</Text>
+          </View>
+        )}
         <View style={styles.infoRow}>
           <Text style={[styles.infoLabel, themeStyles.artist]}>Songs</Text>
           <Text style={[styles.infoValue, themeStyles.title]}>{songs.length}</Text>
@@ -332,6 +343,29 @@ const styles = StyleSheet.create({
   },
   infoLabel: { fontSize: 14 },
   infoValue: { fontSize: 14, fontWeight: '500', marginLeft: 12, flex: 1, textAlign: 'right' },
+  genreRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    paddingVertical: 8,
+  },
+  genreList: {
+    flex: 1,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginLeft: 12,
+    justifyContent: 'flex-end',
+    alignContent: 'flex-end',
+  },
+  genreChip: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  genreChipText: {
+    fontSize: 13,
+    fontWeight: '500',
+  },
 });
 
 const stylesLight = StyleSheet.create({
@@ -340,6 +374,7 @@ const stylesLight = StyleSheet.create({
   artist: { color: '#666' },
   optionText: { color: '#000' },
   icon: { color: '#000' },
+  genreChip: { backgroundColor: 'rgba(0,0,0,0.08)' },
 });
 
 const stylesDark = StyleSheet.create({
@@ -348,4 +383,5 @@ const stylesDark = StyleSheet.create({
   artist: { color: '#aaa' },
   optionText: { color: '#fff' },
   icon: { color: '#999' },
+  genreChip: { backgroundColor: 'rgba(255,255,255,0.12)' },
 });
