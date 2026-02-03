@@ -20,6 +20,7 @@ import { usePlaying } from '@/contexts/PlayingContext';
 import { useDownload } from '@/contexts/DownloadContext';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '@/hooks/useTheme';
+import { getAlbumMbidUrl } from '@/utils/musicbrainz/getAlbumMbidUrl';
 
 export type AlbumOptionsProps = {
   album: Album | null;
@@ -104,12 +105,12 @@ const AlbumOptions = forwardRef<
     });
   };
 
-  const handleViewExternal = () => {
+  const handleViewExternal = async () => {
     const mbid = album?.mbid ?? album?.artist?.mbid;
     if (!mbid) return;
     close();
     const url = album?.mbid
-      ? `https://musicbrainz.org/release-group/${mbid}`
+      ? await getAlbumMbidUrl(mbid)
       : `https://musicbrainz.org/artist/${mbid}`;
     Linking.openURL(url);
   };

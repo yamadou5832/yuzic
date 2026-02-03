@@ -11,7 +11,7 @@ export interface AlbumBase {
     year: number;
     genres: string[];
     created: Date;
-    /** MusicBrainz release group ID when available from server */
+    /** MusicBrainz ID (release or release-group) when available from server */
     mbid?: string | null;
 }
 

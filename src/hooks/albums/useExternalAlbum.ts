@@ -18,25 +18,19 @@ type ResolveResult = {
   releaseId?: string;
 };
 
-/** Resolve albumId to release group ID (and release ID when available). Servers typically provide release IDs. */
-async function resolveAlbumId(albumId: string): Promise<ResolveResult | null> {
-  // Try release first - Navidrome/Jellyfin usually provide release IDs
-  const release = await sharedMusicBrainzQueue.run(() =>
-    musicbrainz.getRelease(albumId)
-  );
-  if (release) {
-    return { releaseGroupId: release.releaseGroupId, releaseId: release.id };
-  }
-
-  // Fall back to release-group (e.g. from MusicBrainz search)
+/** Resolve release-group ID to metadata. Used when albumId is a release-group (e.g. from MusicBrainz search). */
+async function resolveReleaseGroup(albumId: string): Promise<ResolveResult | null> {
   const group = await sharedMusicBrainzQueue.run(() =>
     musicbrainz.getReleaseGroup(albumId)
   );
   if (group) return { releaseGroupId: albumId };
-
   return null;
 }
 
+/**
+ * Fetches external album data from MusicBrainz.
+ * @param albumId - MusicBrainz release ID or release-group ID (servers may provide either)
+ */
 export function useExternalAlbum(
   albumId: string
 ): UseExternalAlbumResult {
@@ -53,7 +47,7 @@ export function useExternalAlbum(
       if (fromRelease) return fromRelease;
 
       // Fall back to release-group path (e.g. from MusicBrainz search)
-      const resolved = await resolveAlbumId(albumId);
+      const resolved = await resolveReleaseGroup(albumId);
       if (!resolved) return null;
 
       const { releaseGroupId, releaseId } = resolved;

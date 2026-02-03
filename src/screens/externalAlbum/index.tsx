@@ -15,7 +15,6 @@ type RouteParams = {
 const ExternalAlbumScreen: React.FC = () => {
   const route = useRoute<any>();
   const { albumId } = route.params as RouteParams;
-  console.log(albumId)
 
   const { isDarkMode } = useTheme();
 
