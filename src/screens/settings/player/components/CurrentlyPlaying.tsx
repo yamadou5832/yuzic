@@ -11,10 +11,12 @@ import { usePlaying } from '@/contexts/PlayingContext';
 import { useSelector } from 'react-redux';
 import { selectThemeColor } from '@/utils/redux/selectors/settingsSelectors';
 import { useTheme } from '@/hooks/useTheme';
+import { useTranslation } from 'react-i18next';
 
 const CurrentlyPlaying: React.FC = () => {
   const { isDarkMode } = useTheme();
   const themeColor = useSelector(selectThemeColor);
+  const { t } = useTranslation();
 
   const {
     currentSong,
@@ -45,14 +47,14 @@ const CurrentlyPlaying: React.FC = () => {
             style={[styles.title, isDarkMode && styles.titleDark]}
             numberOfLines={1}
           >
-            {currentSong?.title ?? 'Nothing playing'}
+            {currentSong?.title ?? t('settings.player.nothingPlaying')}
           </Text>
 
           <Text
             style={[styles.subtitle, isDarkMode && styles.subtitleDark]}
             numberOfLines={1}
           >
-            {currentSong?.artist ?? '—'}
+            {currentSong?.artist ?? t('settings.player.unknownArtist')}
           </Text>
         </View>
       </View>

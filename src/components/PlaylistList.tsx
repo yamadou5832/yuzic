@@ -30,6 +30,7 @@ import {
   useRemoveSongFromPlaylist,
   useFullPlaylists,
 } from '@/hooks/playlists';
+import { useTranslation } from 'react-i18next';
 
 type PlaylistListProps = {
   selectedSong: Song | null;
@@ -41,6 +42,7 @@ const PlaylistList = forwardRef<BottomSheetModal, PlaylistListProps>(
     const { isDarkMode } = useTheme();
     const themeColor = useSelector(selectThemeColor);
     const insets = useSafeAreaInsets();
+    const { t } = useTranslation();
 
     const { playlists: basePlaylists } = usePlaylists();
     const { playlists: fullPlaylists } = useFullPlaylists(basePlaylists);
@@ -112,7 +114,7 @@ const PlaylistList = forwardRef<BottomSheetModal, PlaylistListProps>(
         }
       }
 
-      toast.success('Playlists updated');
+      toast.success(t('playlistList.updated'));
       onClose();
     };
 
@@ -143,7 +145,7 @@ const PlaylistList = forwardRef<BottomSheetModal, PlaylistListProps>(
                 isDarkMode && styles.textDark,
               ]}
             >
-              Cancel
+              {t('common.cancel')}
             </Text>
           </TouchableOpacity>
 
@@ -153,7 +155,7 @@ const PlaylistList = forwardRef<BottomSheetModal, PlaylistListProps>(
               isDarkMode && styles.textDark,
             ]}
           >
-            Add to Playlist
+            {t('playlistList.title')}
           </Text>
         </View>
 
@@ -170,7 +172,7 @@ const PlaylistList = forwardRef<BottomSheetModal, PlaylistListProps>(
                 styles.searchInput,
                 isDarkMode && styles.textDark,
               ]}
-              placeholder="Search playlists"
+              placeholder={t('playlistList.searchPlaceholder')}
               placeholderTextColor="#aaa"
               value={searchQuery}
               onChangeText={setSearchQuery}
@@ -184,7 +186,7 @@ const PlaylistList = forwardRef<BottomSheetModal, PlaylistListProps>(
                 isDarkMode && styles.inputDark,
                 isDarkMode && styles.textDark,
               ]}
-              placeholder="New playlist name"
+              placeholder={t('playlistList.newPlaceholder')}
               placeholderTextColor="#aaa"
               value={newPlaylistName}
               onChangeText={setNewPlaylistName}
@@ -249,7 +251,9 @@ const PlaylistList = forwardRef<BottomSheetModal, PlaylistListProps>(
             ]}
             onPress={handleDone}
           >
-            <Text style={styles.doneButtonText}>Done</Text>
+            <Text style={styles.doneButtonText}>
+              {t('common.done')}
+            </Text>
           </TouchableOpacity>
         </View>
       </BottomSheetModal>

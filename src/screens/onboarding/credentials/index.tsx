@@ -17,10 +17,12 @@ import { nanoid } from '@reduxjs/toolkit';
 import { ServerType } from '@/types';
 import { track } from '@/utils/analytics/amplitude';
 import { SERVER_PROVIDERS } from '@/utils/servers/registry';
+import { useTranslation } from 'react-i18next';
 
 export default function Credentials() {
     const dispatch = useDispatch();
     const router = useRouter();
+    const { t } = useTranslation();
 
     const params = useLocalSearchParams<{
         type: ServerType;
@@ -45,7 +47,7 @@ export default function Credentials() {
         if (!type || !serverUrl) return;
 
         if (!localUsername || !localPassword) {
-            toast.error('Please enter both username and password.');
+            toast.error(t('onboarding.credentials.missingCredentials'));
             return;
         }
 
@@ -60,14 +62,14 @@ export default function Credentials() {
             );
 
             if (!result.success || !result.auth) {
-                toast.error(result.message || 'Authentication failed.');
+                toast.error(result.message || t('onboarding.credentials.authFailed'));
                 return;
             }
 
             const pingOk = await provider.ping(serverUrl, localUsername, result.auth);
 
             if (!pingOk) {
-                toast.error('Server connected, but API is not responding.');
+                toast.error(t('onboarding.credentials.apiNotResponding'));
                 return;
             }
 
@@ -88,7 +90,7 @@ export default function Credentials() {
             dispatch(setActiveServer(id));
             router.replace('/(home)');
         } catch (err) {
-            toast.error('An error occurred while connecting.');
+            toast.error(t('onboarding.credentials.connectError'));
         } finally {
             setIsTesting(false);
         }
@@ -102,17 +104,19 @@ export default function Credentials() {
         <SafeAreaView style={styles.container}>
             <View style={{ flex: 1 }}>
                 <View style={styles.mainContent}>
-                    <Text style={styles.title}>Enter Your Credentials</Text>
+                    <Text style={styles.title}>
+                        {t('onboarding.credentials.title')}
+                    </Text>
 
                     <Text style={styles.subtitle}>
-                        Enter your username and password to continue.
+                        {t('onboarding.credentials.subtitle')}
                     </Text>
 
                     <View style={styles.inputWrapper}>
                         <AntDesign name="user" size={20} color="#888" style={styles.inputIcon} />
                         <TextInput
                             style={styles.input}
-                            placeholder="Username"
+                            placeholder={t('onboarding.credentials.usernamePlaceholder')}
                             placeholderTextColor="#888"
                             value={localUsername}
                             onChangeText={setLocalUsername}
@@ -127,7 +131,7 @@ export default function Credentials() {
                         <TextInput
                             ref={passwordRef}
                             style={styles.input}
-                            placeholder="Password"
+                            placeholder={t('onboarding.credentials.passwordPlaceholder')}
                             placeholderTextColor="#888"
                             secureTextEntry
                             value={localPassword}
@@ -148,7 +152,9 @@ export default function Credentials() {
                         {isTesting ? (
                             <ActivityIndicator size="small" color="#000" />
                         ) : (
-                            <Text style={styles.nextButtonText}>Done</Text>
+                            <Text style={styles.nextButtonText}>
+                                {t('common.done')}
+                            </Text>
                         )}
                     </TouchableOpacity>
 
@@ -156,7 +162,9 @@ export default function Credentials() {
                         style={styles.backButton}
                         onPress={handleBack}
                     >
-                        <Text style={styles.backButtonText}>Back</Text>
+                        <Text style={styles.backButtonText}>
+                            {t('common.back')}
+                        </Text>
                     </TouchableOpacity>
                 </View>
             </View>

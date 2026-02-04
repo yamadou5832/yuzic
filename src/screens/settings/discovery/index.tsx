@@ -9,9 +9,11 @@ import {
 } from 'react-native'
 import Header from '../components/Header'
 import { useTheme } from '@/hooks/useTheme'
+import { useTranslation } from 'react-i18next'
 
 const DiscoverySettings: React.FC = () => {
   const { isDarkMode } = useTheme()
+  const { t } = useTranslation()
 
   return (
     <SafeAreaView
@@ -21,21 +23,19 @@ const DiscoverySettings: React.FC = () => {
         Platform.OS === 'android' && { paddingTop: 24 },
       ]}
     >
-      <Header title="Discovery" />
+      <Header title={t('settings.discovery.title')} />
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={[styles.section, isDarkMode && styles.sectionDark]}>
           <Text
             style={[styles.sectionTitle, isDarkMode && styles.sectionTitleDark]}
           >
-            Discovery
+            {t('settings.discovery.sections.about.title')}
           </Text>
           <Text
             style={[styles.infoText, isDarkMode && styles.infoTextDark]}
           >
-            The Discovery tab suggests artists and albums based on your library.
-            You see similar artists, albums you might like, and new releases
-            from those artists.
+            {t('settings.discovery.sections.about.body')}
           </Text>
         </View>
 
@@ -43,14 +43,12 @@ const DiscoverySettings: React.FC = () => {
           <Text
             style={[styles.sectionTitle, isDarkMode && styles.sectionTitleDark]}
           >
-            How it works
+            {t('settings.discovery.sections.how.title')}
           </Text>
           <Text
             style={[styles.infoText, isDarkMode && styles.infoTextDark]}
           >
-            We use your library artists to find similar artists via MusicBrainz
-            and ListenBrainz. From those we pull albums and new releases, then
-            show a shuffled mix in Explore.
+            {t('settings.discovery.sections.how.body')}
           </Text>
         </View>
 
@@ -58,15 +56,12 @@ const DiscoverySettings: React.FC = () => {
           <Text
             style={[styles.sectionTitle, isDarkMode && styles.sectionTitleDark]}
           >
-            Sync & refresh
+            {t('settings.discovery.sections.sync.title')}
           </Text>
           <Text
             style={[styles.infoText, isDarkMode && styles.infoTextDark]}
           >
-            Discovery syncs when you connect to a server. Pull to refresh on
-            Discovery only shuffles what’s already loaded; it doesn’t re-fetch. If
-            something fails, you’ll see a message and can tap “Try again” to
-            retry.
+            {t('settings.discovery.sections.sync.body')}
           </Text>
         </View>
       </ScrollView>

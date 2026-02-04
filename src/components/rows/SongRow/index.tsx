@@ -7,6 +7,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { BottomSheetModal } from '@gorhom/bottom-sheet';
+import { useTranslation } from 'react-i18next';
 
 import { Song } from '@/types';
 import SongOptions from '@/components/options/SongOptions';
@@ -24,6 +25,7 @@ type Props = {
 const SongRow: React.FC<Props> = ({ song, collection, onPress }) => {
   const { isDarkMode } = useTheme();
   const { playSongInCollection } = usePlaying();
+  const { t } = useTranslation();
 
   const optionsRef = useRef<BottomSheetModal>(null);
   const playlistRef = useRef<BottomSheetModal>(null);
@@ -93,7 +95,7 @@ const SongRow: React.FC<Props> = ({ song, collection, onPress }) => {
               style={[styles.subtitle, themeStyles.subtitle]}
               numberOfLines={1}
             >
-              {song.artist || 'Unknown'} •{' '}
+              {(song.artist || t('songOptions.unknownArtist'))} •{' '}
               {formatDuration(Number(song.duration))}
             </Text>
           </View>

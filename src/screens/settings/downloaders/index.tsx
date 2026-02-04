@@ -21,6 +21,7 @@ import {
 } from '@/utils/redux/selectors/downloadersSelectors';
 import { setActiveDownloader } from '@/utils/redux/slices/downloadersSlice';
 import type { DownloaderType } from '@/utils/redux/slices/downloadersSlice';
+import { useTranslation } from 'react-i18next';
 
 const LIDARR_ICON = require('@assets/images/lidarr.png');
 const SLSKD_ICON = require('@assets/images/slskd.png');
@@ -39,6 +40,7 @@ const DownloadersView: React.FC = () => {
   const router = useRouter();
   const dispatch = useDispatch();
   const { isDarkMode } = useTheme();
+  const { t } = useTranslation();
   const activeDownloader = useSelector(selectActiveDownloader);
   const isLidarrConnected = useSelector(selectLidarrAuthenticated);
   const isSlskdConnected = useSelector(selectSlskdAuthenticated);
@@ -56,7 +58,7 @@ const DownloadersView: React.FC = () => {
 
   return (
     <SafeAreaView style={[styles.container, isDarkMode && styles.containerDark]}>
-      <Header title="Downloaders" />
+      <Header title={t('settings.downloaders.title')} />
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {DOWNLOADERS.map((d) => {
@@ -86,7 +88,9 @@ const DownloadersView: React.FC = () => {
                   {d.label}
                 </Text>
                 <Text style={[styles.subtitle, isDarkMode && styles.subtitleDark]}>
-                  {isConnected ? 'Connected' : 'Not connected'}
+                  {isConnected
+                    ? t('settings.downloaders.connected')
+                    : t('settings.downloaders.notConnected')}
                 </Text>
               </View>
               {isActive ? (

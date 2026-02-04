@@ -11,6 +11,7 @@ import { useRecentSongs } from '@/hooks/songs';
 import { usePlaying } from '@/contexts/PlayingContext';
 import { MediaImage } from '@/components/MediaImage';
 import SectionEmptyState from '../SectionEmptyState';
+import { useTranslation } from 'react-i18next';
 
 const H_PADDING = 12;
 const GAP = 8; // match home grid (useGridLayout GRID_GAP / AlbumItem marginHorizontal)
@@ -23,6 +24,7 @@ export default function RecentSongsSpeedDial() {
   const { width } = useWindowDimensions();
   const { songs, isLoading } = useRecentSongs();
   const { playSimilar } = usePlaying();
+  const { t } = useTranslation();
 
   const contentWidth = width - H_PADDING * 2;
   const totalGaps = (COLS - 1) * GAP;
@@ -34,10 +36,10 @@ export default function RecentSongsSpeedDial() {
     <View style={[styles.container, isDarkMode && styles.containerDark]}>
       <View style={styles.padded}>
         <Text style={[styles.title, isDarkMode && styles.titleDark]}>
-          Dial
+          {t('explore.sections.dial')}
         </Text>
         {isLoading ? null : displaySongs.length === 0 ? (
-          <SectionEmptyState message="Play something to see it here" />
+          <SectionEmptyState message={t('explore.empty.recentSongs')} />
         ) : (
         <View style={styles.grid}>
           {Array.from(

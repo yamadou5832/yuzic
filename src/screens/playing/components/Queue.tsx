@@ -14,6 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAlbums } from '@/hooks/albums';
 import { Song } from '@/types';
+import { useTranslation } from 'react-i18next';
 
 type QueueItemProps = {
   item: Song;
@@ -86,6 +87,7 @@ const Queue: React.FC<{ onBack: () => void; width: number }> = ({
 
   const { albums } = useAlbums();
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
 
   const [queue, setQueue] = useState<Song[]>([]);
 
@@ -203,11 +205,11 @@ const Queue: React.FC<{ onBack: () => void; width: number }> = ({
         </View>
       </View>
 
-      <Text style={styles.sectionLabel}>Queue</Text>
+      <Text style={styles.sectionLabel}>{t('playing.queue.title')}</Text>
       <Text style={styles.subLabel}>
         {currentAlbum
-          ? `Playing from ${currentAlbum.title}`
-          : 'Playing from Queue'}
+          ? t('playing.queue.playingFromAlbum', { album: currentAlbum.title })
+          : t('playing.queue.playingFromQueue')}
       </Text>
 
       {/* List */}

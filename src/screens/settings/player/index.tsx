@@ -10,9 +10,11 @@ import {
 import Header from '../components/Header';
 import CurrentlyPlaying from './components/CurrentlyPlaying';
 import { useTheme } from '@/hooks/useTheme';
+import { useTranslation } from 'react-i18next';
 
 const PlayerSettings: React.FC = () => {
   const { isDarkMode } = useTheme();
+  const { t } = useTranslation();
 
   return (
     <SafeAreaView
@@ -22,7 +24,7 @@ const PlayerSettings: React.FC = () => {
         Platform.OS === 'android' && { paddingTop: 24 },
       ]}
     >
-      <Header title="Player" />
+      <Header title={t('settings.player.title')} />
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <CurrentlyPlaying />

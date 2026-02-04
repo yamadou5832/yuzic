@@ -6,6 +6,7 @@ import { useAlbums } from '@/hooks/albums';
 import { useTheme } from '@/hooks/useTheme';
 import AlbumItem from '@/screens/home/components/Items/AlbumItem';
 import SectionEmptyState from '../SectionEmptyState';
+import { useTranslation } from 'react-i18next';
 
 const H_PADDING = 12;
 const GAP = 12;
@@ -25,6 +26,7 @@ export default function RecentlyPlayed() {
   const slotWidth = gridItemWidth + ITEM_MARGIN * 2;
   const albumLastPlayedAt = useSelector(selectAlbumLastPlayedAt);
   const { albums } = useAlbums();
+  const { t } = useTranslation();
 
   const itemsToRender = useMemo(() => {
     const entries = Object.entries(albumLastPlayedAt)
@@ -40,10 +42,10 @@ export default function RecentlyPlayed() {
   return (
     <View style={[styles.container, isDarkMode && styles.containerDark]}>
       <Text style={[styles.title, isDarkMode && styles.titleDark]}>
-        Recently played
+        {t('explore.sections.recentlyPlayed')}
       </Text>
       {itemsToRender.length === 0 ? (
-        <SectionEmptyState message="Play albums to see them here" />
+        <SectionEmptyState message={t('explore.empty.recentlyPlayed')} />
       ) : (
       <ScrollView
         horizontal

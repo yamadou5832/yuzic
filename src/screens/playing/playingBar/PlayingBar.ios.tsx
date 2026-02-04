@@ -29,12 +29,14 @@ import {
 import { usePlayingBarAction } from './actions/usePlayingBarAction';
 import { Toasts } from '@backpackapp-io/react-native-toast';
 import PlaylistList from '@/components/PlaylistList';
+import { useTranslation } from 'react-i18next';
 
 const PlayingBar: React.FC = () => {
     const { isDarkMode } = useTheme();
     const [appState, setAppState] = useState(AppState.currentState);
     const themeColor = useSelector(selectThemeColor);
     const actionMode = useSelector(selectPlayingBarAction);
+    const { t } = useTranslation();
 
     const {
         currentSong,
@@ -146,7 +148,7 @@ const PlayingBar: React.FC = () => {
                                             isDarkMode ? styles.textDark : styles.textLight,
                                         ]}
                                     >
-                                        {currentSong?.title || 'No song playing'}
+                                        {currentSong?.title || t('playing.bar.noSong')}
                                     </Text>
                                     <Text
                                         numberOfLines={1}
@@ -157,7 +159,7 @@ const PlayingBar: React.FC = () => {
                                                 : styles.textLightSecondary,
                                         ]}
                                     >
-                                        {currentSong?.artist || 'Select a track to begin'}
+                                        {currentSong?.artist || t('playing.bar.selectTrack')}
                                     </Text>
                                 </View>
 

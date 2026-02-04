@@ -16,6 +16,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { MaterialIcons } from '@expo/vector-icons';
 import { Loader2 } from 'lucide-react-native';
 import { toast } from '@backpackapp-io/react-native-toast';
+import { useTranslation } from 'react-i18next';
 
 import Header from '../components/Header';
 import * as lidarr from '@/api/lidarr';
@@ -42,6 +43,7 @@ const LidarrView: React.FC = () => {
   const dispatch = useDispatch();
   const themeColor = useSelector(selectThemeColor);
   const { isDarkMode } = useTheme();
+  const { t } = useTranslation();
 
   const serverUrl = useSelector(selectLidarrServerUrl);
   const apiKey = useSelector(selectLidarrApiKey);
@@ -97,7 +99,7 @@ const LidarrView: React.FC = () => {
       } catch {
         if (!cancelled) {
           dispatch(setLidarrAuthenticated(false));
-          toast.error('Lidarr connection failed');
+          toast.error(t('settings.downloaders.lidarr.connectionFailed'));
         }
       } finally {
         if (!cancelled) {
@@ -130,7 +132,7 @@ const LidarrView: React.FC = () => {
       setQueue(currentQueue);
 
       if (finishedItems.length > 0) {
-        toast('Download complete!');
+        toast(t('settings.downloaders.downloadComplete'));
       }
     } catch {
       console.warn('Queue polling failed');
@@ -167,7 +169,7 @@ const LidarrView: React.FC = () => {
     dispatch(disconnectLidarr());
     setQueue([]);
     previousQueueRef.current = [];
-    toast('Disconnected from Lidarr.');
+    toast(t('settings.downloaders.lidarr.disconnected'));
   };
 
   const toggleExpand = (id: string) => {
@@ -176,7 +178,7 @@ const LidarrView: React.FC = () => {
 
   const renderDownloadItem = ({ item }: { item: LidarrQueueRecord }) => {
     const percent = Math.min(100, item.percentComplete ?? 0);
-    const meta = item.trackCount > 0 ? `${item.trackCount} track${item.trackCount === 1 ? '' : 's'}` : '';
+    const meta = item.trackCount > 0 ? `${item.trackCount} ${t('settings.downloaders.tracks', { count: item.trackCount })}` : '';
     const hasWarnings = item.statusMessages?.length > 0;
     const isExpanded = expandedItemId === item.id;
 
@@ -189,7 +191,7 @@ const LidarrView: React.FC = () => {
                 style={[styles.itemTitle, isDarkMode && styles.itemTitleDark]}
                 numberOfLines={1}
               >
-                {item.albumTitle || 'Unknown Album'}
+                {item.albumTitle || t('settings.downloaders.unknownAlbum')}
               </Text>
               <Text
                 style={[styles.itemSub, isDarkMode && styles.itemSubDark]}
@@ -242,28 +244,28 @@ const LidarrView: React.FC = () => {
 
   return (
     <SafeAreaView style={[styles.container, isDarkMode && styles.containerDark]}>
-      <Header title="Lidarr" />
+      <Header title={t('settings.downloaders.lidarr.title')} />
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={[styles.section, isDarkMode && styles.sectionDark]}>
           <Text style={[styles.label, isDarkMode && styles.labelDark]}>
-            Server URL
+            {t('settings.downloaders.serverUrl')}
           </Text>
           <TextInput
             value={serverUrl}
             onChangeText={(v) => dispatch(setLidarrServerUrl(v))}
-            placeholder="http://node:8686"
+            placeholder={t('settings.downloaders.serverUrlPlaceholder.lidarr')}
             placeholderTextColor={isDarkMode ? '#666' : '#999'}
             style={[styles.input, isDarkMode && styles.inputDark]}
           />
 
           <Text style={[styles.label, isDarkMode && styles.labelDark]}>
-            API Key
+            {t('settings.downloaders.apiKey')}
           </Text>
           <TextInput
             value={apiKey}
             onChangeText={(v) => dispatch(setLidarrApiKey(v))}
-            placeholder="API key"
+            placeholder={t('settings.downloaders.apiKeyPlaceholder')}
             placeholderTextColor={isDarkMode ? '#666' : '#999'}
             secureTextEntry
             style={[styles.input, isDarkMode && styles.inputDark]}
@@ -271,7 +273,7 @@ const LidarrView: React.FC = () => {
 
           <View style={styles.row}>
             <Text style={[styles.rowText, isDarkMode && styles.rowTextDark]}>
-              Connectivity
+              {t('settings.downloaders.connectivity')}
             </Text>
 
             {isLoading ? (
@@ -290,7 +292,7 @@ const LidarrView: React.FC = () => {
 
         <View style={[styles.section, isDarkMode && styles.sectionDark]}>
           <Text style={[styles.label, isDarkMode && styles.labelDark]}>
-            Queue
+            {t('settings.downloaders.queue')}
           </Text>
 
           {loadingQueue ? (
@@ -305,7 +307,7 @@ const LidarrView: React.FC = () => {
             </Animated.View>
           ) : queue.length === 0 ? (
             <Text style={[styles.emptyText, isDarkMode && styles.emptyTextDark]}>
-              Nothing downloading yet.
+              {t('settings.downloaders.emptyQueue')}
             </Text>
           ) : (
             <FlatList
@@ -325,7 +327,9 @@ const LidarrView: React.FC = () => {
           onPress={handleDisconnect}
         >
           <MaterialIcons name="logout" size={20} color="#fff" />
-          <Text style={styles.disconnectButtonText}>Disconnect</Text>
+          <Text style={styles.disconnectButtonText}>
+            {t('settings.downloaders.disconnect')}
+          </Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>

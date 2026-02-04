@@ -20,6 +20,7 @@ import { usePlaying } from '@/contexts/PlayingContext';
 import { useTheme } from '@/hooks/useTheme';
 import { LyricsResult } from '@/api/types';
 import { ChevronDown } from 'lucide-react-native';
+import { useTranslation } from 'react-i18next';
 
 type LyricsBottomSheetProps = {
   lyrics: LyricsResult | null;
@@ -78,6 +79,7 @@ const LyricsBottomSheet = forwardRef<BottomSheetModal, LyricsBottomSheetProps>(
     const { isDarkMode } = useTheme();
     const { progress } = usePlaying();
     const insets = useSafeAreaInsets();
+    const { t } = useTranslation();
     const scrollRef = useRef<BottomSheetScrollView>(null);
     const lineLayouts = useRef<Record<number, { y: number; height: number }>>({});
     const [contentHeight, setContentHeight] = useState(0);
@@ -153,7 +155,7 @@ const LyricsBottomSheet = forwardRef<BottomSheetModal, LyricsBottomSheetProps>(
             style={[styles.title, isDarkMode && styles.titleDark]}
             numberOfLines={1}
           >
-            Lyrics
+            {t('playing.lyrics.title')}
           </Text>
           <View style={styles.closeButton} />
         </View>

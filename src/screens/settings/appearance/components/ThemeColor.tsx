@@ -6,17 +6,19 @@ import { selectThemeColor } from '@/utils/redux/selectors/settingsSelectors';
 import { useDispatch, useSelector } from 'react-redux';
 import { setThemeColor } from '@/utils/redux/slices/settingsSlice';
 import { useTheme } from '@/hooks/useTheme';
+import { useTranslation } from 'react-i18next';
 
 export const ThemeColor: React.FC = () => {
   const dispatch = useDispatch();
   const themeColor = useSelector(selectThemeColor);
   const [open, setOpen] = useState(false);
   const { isDarkMode } = useTheme();
+  const { t } = useTranslation();
 
   return (
     <View style={[styles.section, isDarkMode && styles.sectionDark]}>
       <Text style={[styles.infoText, isDarkMode && styles.infoTextDark]}>
-        Customize the primary color of your app
+        {t('settings.appearance.color.info')}
       </Text>
 
       <TouchableOpacity
@@ -26,7 +28,7 @@ export const ThemeColor: React.FC = () => {
         <View style={styles.leftGroup}>
           <View style={[styles.colorPreview, { backgroundColor: themeColor }]} />
           <Text style={[styles.rowText, isDarkMode && styles.rowTextDark]}>
-            Change Theme Color
+            {t('settings.appearance.color.change')}
           </Text>
         </View>
 

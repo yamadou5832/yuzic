@@ -16,17 +16,19 @@ import { useTheme } from '@/hooks/useTheme';
 import {
   PLAYING_BAR_ACTIONS
 } from '@/screens/playing/playingBar/actions/Actions';
+import { useTranslation } from 'react-i18next';
 
 export const PlayingBarActionSelector: React.FC = () => {
   const dispatch = useDispatch();
   const themeColor = useSelector(selectThemeColor);
   const selected = useSelector(selectPlayingBarAction);
   const { isDarkMode } = useTheme();
+  const { t } = useTranslation();
 
   return (
     <View style={[styles.section, isDarkMode && styles.sectionDark]}>
       <Text style={[styles.infoText, isDarkMode && styles.infoTextDark]}>
-        Choose which action appears in the playing bar
+        {t('settings.appearance.playingBarAction.info')}
       </Text>
 
       <View style={styles.row}>

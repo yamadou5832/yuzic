@@ -7,16 +7,18 @@ import { useRoute } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useAlbum } from '@/hooks/albums';
+import { useTheme } from '@/hooks/useTheme';
+import { useTranslation } from 'react-i18next';
 
 import AlbumContent from './components/Content';
 import LoadingAlbumContent from './components/Content/Loading';
-import { useTheme } from '@/hooks/useTheme';
 
 const AlbumScreen: React.FC = () => {
   const route = useRoute<any>();
   const { id } = route.params;
 
   const { isDarkMode } = useTheme();
+  const { t } = useTranslation();
 
   const { album, isLoading, error } = useAlbum(id);
 
@@ -32,7 +34,7 @@ const AlbumScreen: React.FC = () => {
     return (
       <SafeAreaView style={styles.screen(isDarkMode)}>
         <Text style={styles.error(isDarkMode)}>
-          {error?.message ?? 'Album not found'}
+          {error?.message ?? t('media.albumNotFound')}
         </Text>
       </SafeAreaView>
     );

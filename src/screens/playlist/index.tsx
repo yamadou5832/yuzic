@@ -9,12 +9,14 @@ import PlaylistContent from './components/Content';
 import LoadingPlaylistContent from './components/Content/Loading';
 import { track } from '@/utils/analytics/amplitude';
 import { useTheme } from '@/hooks/useTheme';
+import { useTranslation } from 'react-i18next';
 
 const PlaylistScreen: React.FC = () => {
   const route = useRoute<any>();
   const { id } = route.params;
 
   const { isDarkMode } = useTheme();
+  const { t } = useTranslation();
   const { playlist, isLoading } = usePlaylist(id);
 
   if (isLoading) {
@@ -28,7 +30,9 @@ const PlaylistScreen: React.FC = () => {
   if (!playlist) {
     return (
       <SafeAreaView style={styles.screen(isDarkMode)}>
-        <Text style={styles.error(isDarkMode)}>Playlist not found.</Text>
+        <Text style={styles.error(isDarkMode)}>
+          {t('media.playlistNotFound')}
+        </Text>
       </SafeAreaView>
     );
   }

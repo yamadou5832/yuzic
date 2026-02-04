@@ -26,6 +26,7 @@ import { QueryKeys } from '@/enums/queryKeys';
 import { useTheme } from '@/hooks/useTheme';
 import { useArtistMbid } from '@/hooks/artists';
 import { staleTime } from '@/constants/staleTime';
+import { useTranslation } from 'react-i18next';
 
 export type ArtistOptionsProps = {
   artist: Artist | null;
@@ -43,6 +44,8 @@ const ArtistOptions = forwardRef<
   const queryClient = useQueryClient();
   const api = useApi();
   const activeServer = useSelector(selectActiveServer);
+  const { t } = useTranslation();
+  const artistLabel = t('artistOptions.artistLabel');
 
   const {
     playSongInCollection,
@@ -83,15 +86,15 @@ const ArtistOptions = forwardRef<
         id: artist!.id,
         name: artist!.name,
         cover: artist!.cover,
-        subtext: 'Artist',
+        subtext: artistLabel,
       },
       cover: artist!.cover,
-      subtext: 'Artist',
+      subtext: artistLabel,
       songs,
       changed: new Date('1995-12-17T03:24:00'),
       created: new Date('1995-12-17T03:24:00'),
     }),
-    [artist]
+    [artist, artistLabel]
   );
 
   const handlePlay = async (shuffle: boolean) => {
@@ -197,7 +200,7 @@ const ArtistOptions = forwardRef<
             >
               {artist.name}
             </Text>
-            <Text style={[styles.artist, themeStyles.artist]}>Artist</Text>
+            <Text style={[styles.artist, themeStyles.artist]}>{artistLabel}</Text>
           </View>
         </View>
 
@@ -205,25 +208,25 @@ const ArtistOptions = forwardRef<
 
         <TouchableOpacity style={styles.option} onPress={() => handlePlay(false)}>
           <Ionicons name="play" size={26} color={themeStyles.icon.color} />
-          <Text style={[styles.optionText, themeStyles.optionText]}>Play</Text>
+          <Text style={[styles.optionText, themeStyles.optionText]}>{t('artistOptions.actions.play')}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.option} onPress={() => handlePlay(true)}>
           <Ionicons name="shuffle" size={26} color={themeStyles.icon.color} />
-          <Text style={[styles.optionText, themeStyles.optionText]}>Shuffle</Text>
+          <Text style={[styles.optionText, themeStyles.optionText]}>{t('artistOptions.actions.shuffle')}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.option} onPress={handleAddToQueue}>
           <ListEnd size={26} color={themeStyles.icon.color} />
-          <Text style={[styles.optionText, themeStyles.optionText]}>Add to Queue</Text>
+          <Text style={[styles.optionText, themeStyles.optionText]}>{t('artistOptions.actions.addToQueue')}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.option} onPress={handleShuffleToQueue}>
           <Ionicons name="shuffle" size={26} color={themeStyles.icon.color} />
-          <Text style={[styles.optionText, themeStyles.optionText]}>Shuffle to Queue</Text>
+          <Text style={[styles.optionText, themeStyles.optionText]}>{t('artistOptions.actions.shuffleToQueue')}</Text>
         </TouchableOpacity>
 
         {!hideGoToArtist && (
           <TouchableOpacity style={styles.option} onPress={handleGoToArtist}>
             <Ionicons name="person" size={26} color={themeStyles.icon.color} />
-            <Text style={[styles.optionText, themeStyles.optionText]}>Go to Artist</Text>
+            <Text style={[styles.optionText, themeStyles.optionText]}>{t('artistOptions.actions.goToArtist')}</Text>
           </TouchableOpacity>
         )}
 
@@ -231,20 +234,20 @@ const ArtistOptions = forwardRef<
           <>
             <TouchableOpacity style={styles.option} onPress={handleGoToExternalArtist}>
               <Ionicons name="person-outline" size={26} color={themeStyles.icon.color} />
-              <Text style={[styles.optionText, themeStyles.optionText]}>Go to External Artist</Text>
+              <Text style={[styles.optionText, themeStyles.optionText]}>{t('artistOptions.actions.goToExternalArtist')}</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.option} onPress={handleViewExternal}>
               <Ionicons name="open-outline" size={26} color={themeStyles.icon.color} />
-              <Text style={[styles.optionText, themeStyles.optionText]}>View External</Text>
+              <Text style={[styles.optionText, themeStyles.optionText]}>{t('artistOptions.actions.viewExternal')}</Text>
             </TouchableOpacity>
           </>
         )}
 
         <View style={styles.divider} />
 
-        <Text style={[styles.sectionLabel, themeStyles.artist]}>Artist Info</Text>
+        <Text style={[styles.sectionLabel, themeStyles.artist]}>{t('artistOptions.sections.info')}</Text>
         <View style={styles.infoRow}>
-          <Text style={[styles.infoLabel, themeStyles.artist]}>Albums</Text>
+          <Text style={[styles.infoLabel, themeStyles.artist]}>{t('artistOptions.info.albums')}</Text>
           <Text style={[styles.infoValue, themeStyles.title]}>
             {artist.ownedAlbums?.length ?? 0}
           </Text>

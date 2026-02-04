@@ -17,6 +17,7 @@ import { track } from '@/utils/analytics/amplitude';
 import { useDispatch } from 'react-redux';
 import { ServerType } from '@/types';
 import { SERVER_PROVIDERS } from '@/utils/servers/registry';
+import { useTranslation } from 'react-i18next';
 
 export default function Connect() {
     const [localServerUrl, setLocalServerUrl] = useState('');
@@ -26,6 +27,7 @@ export default function Connect() {
 
     const router = useRouter();
     const dispatch = useDispatch();
+    const { t } = useTranslation();
 
     useEffect(() => {
         const t = setTimeout(() => setIsLayoutMounted(true), 0);
@@ -34,12 +36,12 @@ export default function Connect() {
 
     const handleNext = async () => {
     if (!selectedType) {
-        toast.error('Select a server type first.');
+        toast.error(t('onboarding.connect.selectTypeFirst'));
         return;
     }
 
     if (!localServerUrl) {
-        toast.error('Please enter a valid server URL.');
+        toast.error(t('onboarding.connect.enterUrl'));
         return;
     }
 
@@ -58,7 +60,7 @@ export default function Connect() {
         const provider = SERVER_PROVIDERS[selectedType];
 
         if (!provider.capabilities.supportsDemo || !provider.demo) {
-            toast.error('Demo unavailable for this provider.');
+            toast.error(t('onboarding.connect.demoUnavailableProvider'));
             return;
         }
 
@@ -82,7 +84,7 @@ export default function Connect() {
             dispatch(setActiveServer(id));
             router.replace('/(home)');
         } catch {
-            toast.error('An error occurred while connecting.');
+            toast.error(t('onboarding.connect.connectError'));
         } finally {
             setIsTesting(false);
         }
@@ -100,12 +102,12 @@ export default function Connect() {
         <SafeAreaView style={{ flex: 1, backgroundColor: '#000' }}>
             <View style={{ flex: 1 }}>
                 <View style={styles.mainContent}>
-                    <Text style={styles.title}>Connect to your Server</Text>
-                    <Text style={styles.subtitle}>Enter your server URL (http/https)</Text>
+                    <Text style={styles.title}>{t('onboarding.connect.title')}</Text>
+                    <Text style={styles.subtitle}>{t('onboarding.connect.subtitle')}</Text>
 
                     <TextInput
                         style={styles.input}
-                        placeholder="https://your-server.example.com"
+                        placeholder={t('onboarding.connect.urlPlaceholder')}
                         placeholderTextColor="#888"
                         value={localServerUrl}
                         onChangeText={setLocalServerUrl}
@@ -151,7 +153,7 @@ export default function Connect() {
 
                     {selectedType && (
                         <Text style={styles.description}>
-                            {SERVER_PROVIDERS[selectedType].description}
+                            {t(SERVER_PROVIDERS[selectedType].descriptionKey)}
                         </Text>
                     )}
                 </View>
@@ -165,7 +167,9 @@ export default function Connect() {
                         {isTesting ? (
                             <ActivityIndicator size="small" color="#000" />
                         ) : (
-                            <Text style={styles.nextButtonText}>Next</Text>
+                            <Text style={styles.nextButtonText}>
+                                {t('common.next')}
+                            </Text>
                         )}
                     </TouchableOpacity>
 
@@ -187,8 +191,8 @@ export default function Connect() {
                         <Text style={styles.demoButtonText}>
                             {selectedType &&
                             SERVER_PROVIDERS[selectedType].capabilities.supportsDemo
-                                ? `Use ${SERVER_PROVIDERS[selectedType].label} demo`
-                                : 'Demo unavailable'}
+                                ? t('onboarding.connect.useDemo', { provider: SERVER_PROVIDERS[selectedType].label })
+                                : t('onboarding.connect.demoUnavailable')}
                         </Text>
                     </TouchableOpacity>
                 </View>

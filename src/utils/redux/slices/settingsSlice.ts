@@ -1,4 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { DEFAULT_LANGUAGE } from '@/constants/languages';
 
 export type LibrarySortOrder = 'title' | 'recent' | 'userplays' | 'year';
 export type AudioQuality = 'low' | 'medium' | 'high' | 'original';
@@ -9,6 +10,9 @@ export type SearchScope =
   | 'client+external'
   | 'server'
   | 'server+external';
+
+/** Language code (e.g., 'en', 'ja'). See /src/constants/languages.ts for available options. */
+export type AppLanguage = string;
 
 export interface SettingsState {
   /* UI */
@@ -33,6 +37,9 @@ export interface SettingsState {
 
   /* Analytics */
   analyticsEnabled: boolean;
+
+  /* Language */
+  language: AppLanguage;
 }
 
 const initialState: SettingsState = {
@@ -49,6 +56,8 @@ const initialState: SettingsState = {
   audioQuality: 'medium',
 
   analyticsEnabled: false,
+
+  language: DEFAULT_LANGUAGE,
 };
 
 const settingsSlice = createSlice({
@@ -99,6 +108,10 @@ const settingsSlice = createSlice({
       state.analyticsEnabled = action.payload;
     },
 
+    setLanguage(state, action: PayloadAction<AppLanguage>) {
+      state.language = action.payload;
+    },
+
     resetSettings: () => initialState,
   },
 });
@@ -114,6 +127,7 @@ export const {
   setHasSeenGetStarted,
   setAudioQuality,
   setAnalyticsEnabled,
+  setLanguage,
   resetSettings,
 } = settingsSlice.actions;
 

@@ -13,12 +13,14 @@ import {
 } from '@/utils/redux/selectors/settingsSelectors';
 import { setThemeMode, ThemeMode } from '@/utils/redux/slices/settingsSlice';
 import { useTheme } from '@/hooks/useTheme';
+import { useTranslation } from 'react-i18next';
 
 export const ThemeModeSelector: React.FC = () => {
   const dispatch = useDispatch();
   const themeColor = useSelector(selectThemeColor);
   const themeMode = useSelector(selectThemeMode) as ThemeMode;
   const { colors } = useTheme();
+  const { t } = useTranslation();
 
   const options: {
     id: ThemeMode;
@@ -34,10 +36,10 @@ export const ThemeModeSelector: React.FC = () => {
       <View style={styles.row}>
         <View style={styles.textColumn}>
           <Text style={[styles.title, { color: colors.text }]}>
-            Theme
+            {t('settings.appearance.theme.title')}
           </Text>
           <Text style={[styles.subtitle, { color: colors.subtext }]}>
-            Light, dark, or system
+            {t('settings.appearance.theme.subtitle')}
           </Text>
         </View>
 

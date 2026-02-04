@@ -8,6 +8,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useSelector } from 'react-redux';
 import { BottomSheetModal, BottomSheetView } from '@gorhom/bottom-sheet';
+import { useTranslation } from 'react-i18next';
 
 import { selectThemeColor } from '@/utils/redux/selectors/settingsSelectors';
 import { useTheme } from '@/hooks/useTheme';
@@ -20,10 +21,10 @@ interface SortBottomSheetProps {
 }
 
 const sortOptions = [
-  { value: 'title', label: 'Alphabetical', icon: 'text-outline' },
-  { value: 'year', label: 'Release Year', icon: 'calendar-outline' },
-  { value: 'userplays', label: 'Most Played', icon: 'flame-outline' },
-  { value: 'recent', label: 'Most Recent', icon: 'time-outline' },
+  { value: 'title', labelKey: 'home.sort.alphabetical', icon: 'text-outline' },
+  { value: 'year', labelKey: 'home.sort.releaseYear', icon: 'calendar-outline' },
+  { value: 'userplays', labelKey: 'home.sort.mostPlayed', icon: 'flame-outline' },
+  { value: 'recent', labelKey: 'home.sort.mostRecent', icon: 'time-outline' },
 ] as const;
 
 const SortBottomSheet = forwardRef<
@@ -32,6 +33,7 @@ const SortBottomSheet = forwardRef<
 >(({ sortOrder, onSelect }, ref) => {
   const themeColor = useSelector(selectThemeColor);
   const { isDarkMode } = useTheme();
+  const { t } = useTranslation();
 
   const snapPoints = useMemo(() => ['40%'], []);
 
@@ -54,7 +56,7 @@ const SortBottomSheet = forwardRef<
             isDarkMode && styles.sheetTitleDark,
           ]}
         >
-          Sort by
+          {t('home.sortSheet.title')}
         </Text>
 
         {sortOptions.map(option => {
@@ -93,7 +95,7 @@ const SortBottomSheet = forwardRef<
                     { fontWeight: isSelected ? '600' : '400' },
                   ]}
                 >
-                  {option.label}
+                  {t(option.labelKey)}
                 </Text>
               </View>
 

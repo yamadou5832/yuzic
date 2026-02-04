@@ -6,6 +6,7 @@ import { useExternalArtist } from '@/hooks/artists/useExternalArtist'
 import ExternalArtistContent from './components/Content'
 import LoadingExternalArtistContent from './components/Content/Loading'
 import { useTheme } from '@/hooks/useTheme'
+import { useTranslation } from 'react-i18next'
 
 type RouteParams = {
   mbid: string
@@ -16,6 +17,7 @@ export default function ExternalArtistScreen() {
   const route = useRoute<any>()
   const { mbid, name } = (route.params ?? {}) as RouteParams
   const { isDarkMode } = useTheme()
+  const { t } = useTranslation()
 
   const { data: artist, isLoading, error } = useExternalArtist(
     mbid ? { mbid, name: name ?? null } : null
@@ -24,7 +26,7 @@ export default function ExternalArtistScreen() {
   if (!mbid) {
     return (
       <SafeAreaView style={styles.screen(isDarkMode)}>
-        <Text style={styles.error(isDarkMode)}>Artist not found.</Text>
+        <Text style={styles.error(isDarkMode)}>{t('media.artistNotFound')}</Text>
       </SafeAreaView>
     )
   }
@@ -41,7 +43,7 @@ export default function ExternalArtistScreen() {
     return (
       <SafeAreaView style={styles.screen(isDarkMode)}>
         <Text style={styles.error(isDarkMode)}>
-          {error?.message ?? 'Artist not found.'}
+          {error?.message ?? t('media.artistNotFound')}
         </Text>
       </SafeAreaView>
     )

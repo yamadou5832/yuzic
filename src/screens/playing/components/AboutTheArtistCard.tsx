@@ -9,6 +9,7 @@ import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { buildCover } from '@/utils/builders/buildCover';
 import { CoverSource } from '@/types';
+import { useTranslation } from 'react-i18next';
 
 const CARD_HEIGHT = 280;
 const TEXT_AREA_MIN_HEIGHT = 70;
@@ -24,10 +25,12 @@ type Props = {
 export default function AboutTheArtistCard({
   artistName,
   artistCover,
-  subtext = 'Artist',
+  subtext,
   contentWidth,
   onPress,
 }: Props) {
+  const { t } = useTranslation();
+  const resolvedSubtext = subtext ?? t('playing.aboutArtist.subtext');
   const imageHeight = CARD_HEIGHT - TEXT_AREA_MIN_HEIGHT;
   const imageUri = artistCover
     ? buildCover(artistCover, 'detail')
@@ -52,7 +55,7 @@ export default function AboutTheArtistCard({
           style={styles.header}
           numberOfLines={1}
         >
-          Artist
+          {t('playing.aboutArtist.header')}
         </Text>
       </View>
 
@@ -67,7 +70,7 @@ export default function AboutTheArtistCard({
           style={styles.subtext}
           numberOfLines={1}
         >
-          {subtext}
+          {resolvedSubtext}
         </Text>
       </View>
     </View>

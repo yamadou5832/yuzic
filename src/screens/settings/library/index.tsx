@@ -17,10 +17,12 @@ import Stats from './components/Stats';
 import AudioQuality from './components/AudioQuality';
 import Downloads from './components/Downloads';
 import { useTheme } from '@/hooks/useTheme';
+import { useTranslation } from 'react-i18next';
 
 const LibrarySettings: React.FC = () => {
     const { isDarkMode } = useTheme();
     const router = useRouter();
+    const { t } = useTranslation();
 
     return (
         <SafeAreaView
@@ -30,7 +32,7 @@ const LibrarySettings: React.FC = () => {
                 Platform.OS === 'android' && { paddingTop: 24 },
             ]}
         >
-            <Header title="Library" />
+            <Header title={t('settings.library.title')} />
 
             <ScrollView contentContainerStyle={styles.scrollContent}>
                 <Stats />
@@ -44,7 +46,7 @@ const LibrarySettings: React.FC = () => {
                             isDarkMode && styles.sectionTitleDark,
                         ]}
                     >
-                        Discovery
+                        {t('settings.library.discovery.title')}
                     </Text>
                     <Text
                         style={[
@@ -52,8 +54,7 @@ const LibrarySettings: React.FC = () => {
                             isDarkMode && styles.infoTextDark,
                         ]}
                     >
-                        How Discovery suggests artists and albums from your
-                        library.
+                        {t('settings.library.discovery.info')}
                     </Text>
                     <TouchableOpacity
                         style={styles.row}
@@ -65,7 +66,7 @@ const LibrarySettings: React.FC = () => {
                                 isDarkMode && styles.rowTextDark,
                             ]}
                         >
-                            About discovery
+                            {t('settings.library.discovery.about')}
                         </Text>
                         <MaterialIcons
                             name="chevron-right"

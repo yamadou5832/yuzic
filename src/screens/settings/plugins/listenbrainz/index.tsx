@@ -14,6 +14,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { MaterialIcons } from '@expo/vector-icons';
 import { Loader2 } from 'lucide-react-native';
 import { toast } from '@backpackapp-io/react-native-toast';
+import { useTranslation } from 'react-i18next';
 
 import Header from '../../components/Header';
 import { useTheme } from '@/hooks/useTheme';
@@ -39,6 +40,7 @@ const ListenBrainzView: React.FC = () => {
   const dispatch = useDispatch();
   const themeColor = useSelector(selectThemeColor);
   const { isDarkMode } = useTheme();
+  const { t } = useTranslation();
 
   const username = useSelector(selectListenBrainzUsername);
   const token = useSelector(selectListenBrainzToken);
@@ -84,7 +86,7 @@ const ListenBrainzView: React.FC = () => {
           if (!cancelled) {
             dispatch(setAuthenticated(result.success));
             if (!result.success) {
-              toast.error(result.message || 'ListenBrainz connection failed');
+              toast.error(result.message || t('settings.listenBrainz.connectionFailed'));
             }
           }
         }
@@ -92,7 +94,7 @@ const ListenBrainzView: React.FC = () => {
       } catch {
         if (!cancelled) {
           dispatch(setAuthenticated(false));
-          toast.error('Failed to connect to ListenBrainz');
+          toast.error(t('settings.listenBrainz.connectFailed'));
         }
       } finally {
         if (!cancelled) {
@@ -109,7 +111,7 @@ const ListenBrainzView: React.FC = () => {
 
   const handlePing = async () => {
     if (!username || !token) {
-      toast.error('Enter username and token first.');
+      toast.error(t('settings.listenBrainz.missingCredentials'));
       return;
     }
 
@@ -119,14 +121,14 @@ const ListenBrainzView: React.FC = () => {
 
       if (result.success) {
         dispatch(setAuthenticated(true));
-        toast.success('ListenBrainz connection successful.');
+        toast.success(t('settings.listenBrainz.connectionSuccessful'));
       } else {
         dispatch(setAuthenticated(false));
-        toast.error(result.message || 'Connection failed.');
+        toast.error(result.message || t('settings.listenBrainz.connectionFailed'));
       }
     } catch {
       dispatch(setAuthenticated(false));
-      toast.error('Failed to connect to ListenBrainz.');
+      toast.error(t('settings.listenBrainz.connectFailed'));
     } finally {
       setIsLoading(false);
     }
@@ -134,30 +136,30 @@ const ListenBrainzView: React.FC = () => {
 
   const handleDisconnect = () => {
     dispatch(disconnect());
-    toast('Disconnected from ListenBrainz.');
+    toast(t('settings.listenBrainz.disconnected'));
   };
 
   return (
     <SafeAreaView style={[styles.container, isDarkMode && styles.containerDark]}>
-      <Header title="ListenBrainz" />
+      <Header title={t('settings.listenBrainz.title')} />
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={[styles.section, isDarkMode && styles.sectionDark]}>
           <Text style={[styles.label, isDarkMode && styles.labelDark]}>
-            Username
+            {t('settings.listenBrainz.username')}
           </Text>
           <TextInput
             value={username}
             onChangeText={(v) => dispatch(setUsername(v.trim()))}
             autoCapitalize="none"
             autoCorrect={false}
-            placeholder="ListenBrainz username"
+            placeholder={t('settings.listenBrainz.usernamePlaceholder')}
             placeholderTextColor={isDarkMode ? '#666' : '#999'}
             style={[styles.input, isDarkMode && styles.inputDark]}
           />
 
           <Text style={[styles.label, isDarkMode && styles.labelDark]}>
-            User Token
+            {t('settings.listenBrainz.userToken')}
           </Text>
           <TextInput
             value={token}
@@ -165,14 +167,14 @@ const ListenBrainzView: React.FC = () => {
             secureTextEntry
             autoCapitalize="none"
             autoCorrect={false}
-            placeholder="ListenBrainz user token"
+            placeholder={t('settings.listenBrainz.tokenPlaceholder')}
             placeholderTextColor={isDarkMode ? '#666' : '#999'}
             style={[styles.input, isDarkMode && styles.inputDark]}
           />
 
           <View style={styles.row} onPress={handlePing}>
             <Text style={[styles.rowText, isDarkMode && styles.rowTextDark]}>
-              Connectivity
+              {t('settings.listenBrainz.connectivity')}
             </Text>
 
             {isLoading ? (
@@ -191,9 +193,7 @@ const ListenBrainzView: React.FC = () => {
 
         <View style={[styles.section, isDarkMode && styles.sectionDark]}>
           <Text style={[styles.helperText, isDarkMode && styles.helperTextDark]}>
-            ListenBrainz is used for scrobbling and personalized discovery.
-            MusicBrainz provides artist, albums, genres, and release metadata.
-            No listening data is sent without your permission.
+            {t('settings.listenBrainz.helperText')}
           </Text>
         </View>
 
@@ -205,7 +205,9 @@ const ListenBrainzView: React.FC = () => {
           onPress={handleDisconnect}
         >
           <MaterialIcons name="logout" size={20} color="#fff" />
-          <Text style={styles.disconnectButtonText}>Disconnect</Text>
+          <Text style={styles.disconnectButtonText}>
+            {t('settings.listenBrainz.disconnect')}
+          </Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>

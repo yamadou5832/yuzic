@@ -4,6 +4,7 @@ import { useAlbums } from '@/hooks/albums';
 import { useTheme } from '@/hooks/useTheme';
 import AlbumItem from '@/screens/home/components/Items/AlbumItem';
 import SectionEmptyState from '../SectionEmptyState';
+import { useTranslation } from 'react-i18next';
 
 const H_PADDING = 12;
 const GAP = 12;
@@ -30,6 +31,7 @@ export default function RandomAlbums() {
   const { isDarkMode } = useTheme();
   const { width } = useWindowDimensions();
   const { albums } = useAlbums();
+  const { t } = useTranslation();
   const gridItemWidth = getItemWidth(width);
   const slotWidth = gridItemWidth + ITEM_MARGIN * 2;
 
@@ -42,10 +44,10 @@ export default function RandomAlbums() {
   return (
     <View style={[styles.container, isDarkMode && styles.containerDark]}>
       <Text style={[styles.title, isDarkMode && styles.titleDark]}>
-        Random albums
+        {t('explore.sections.randomAlbums')}
       </Text>
       {randomAlbums.length === 0 ? (
-        <SectionEmptyState message="No albums in your library yet" />
+        <SectionEmptyState message={t('explore.empty.randomAlbums')} />
       ) : (
       <ScrollView
         horizontal

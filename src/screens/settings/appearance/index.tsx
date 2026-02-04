@@ -12,9 +12,12 @@ import { Columns } from './components/Columns';
 import { ThemeModeSelector } from './components/ThemeModeSelector';
 import { useTheme } from '@/hooks/useTheme';
 import { PlayingBarActionSelector } from './components/PlayingBarActionSelector';
+import { LanguageSelector } from './components/LanguageSelector';
+import { useTranslation } from 'react-i18next';
 
 const AppearanceSettings: React.FC = () => {
   const { isDarkMode } = useTheme();
+  const { t } = useTranslation();
 
   return (
     <SafeAreaView
@@ -24,9 +27,10 @@ const AppearanceSettings: React.FC = () => {
         Platform.OS === 'android' && { paddingTop: 24 },
       ]}
     >
-      <Header title="Appearance" />
+      <Header title={t('settings.appearance.title')} />
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
+        <LanguageSelector />
         <ThemeModeSelector />
         <ThemeColor />
         <PlayingBarActionSelector />
